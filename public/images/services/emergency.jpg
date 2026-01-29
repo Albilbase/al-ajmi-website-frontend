@@ -1,0 +1,61 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="nightGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0c4a6e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="lightGrad">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Night Sky Background -->
+  <rect width="800" height="600" fill="url(#nightGrad)"/>
+  
+  <!-- City Buildings Silhouette -->
+  <rect x="50" y="300" width="100" height="300" fill="#0f172a" opacity="0.8"/>
+  <rect x="170" y="250" width="80" height="350" fill="#0f172a" opacity="0.8"/>
+  <rect x="270" y="320" width="90" height="280" fill="#0f172a" opacity="0.8"/>
+  <rect x="600" y="280" width="120" height="320" fill="#0f172a" opacity="0.8"/>
+  
+  <!-- Building Windows -->
+  <rect x="60" y="310" width="15" height="20" fill="#fbbf24" opacity="0.6"/>
+  <rect x="85" y="310" width="15" height="20" fill="#fbbf24" opacity="0.6"/>
+  <rect x="60" y="340" width="15" height="20" fill="#fbbf24" opacity="0.6"/>
+  <rect x="180" y="260" width="15" height="20" fill="#fbbf24" opacity="0.6"/>
+  <rect x="205" y="260" width="15" height="20" fill="#fbbf24" opacity="0.6"/>
+  
+  <!-- Road -->
+  <rect x="0" y="500" width="800" height="100" fill="#1f2937"/>
+  <rect x="0" y="545" width="800" height="5" fill="#fbbf24" opacity="0.5"/>
+  
+  <!-- Emergency Van -->
+  <rect x="300" y="450" width="200" height="80" fill="#dc2626" rx="5"/>
+  <rect x="450" y="430" width="50" height="60" fill="#991b1b" rx="3"/>
+  
+  <!-- Van Windows -->
+  <rect x="460" y="440" width="35" height="30" fill="#60a5fa" opacity="0.7"/>
+  
+  <!-- Emergency Lights (Animated Effect) -->
+  <circle cx="350" cy="440" r="15" fill="url(#lightGrad)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="0.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="450" cy="440" r="15" fill="url(#lightGrad)">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="0.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Wheels -->
+  <circle cx="340" cy="530" r="25" fill="#1f2937"/>
+  <circle cx="340" cy="530" r="15" fill="#4b5563"/>
+  <circle cx="460" cy="530" r="25" fill="#1f2937"/>
+  <circle cx="460" cy="530" r="15" fill="#4b5563"/>
+  
+  <!-- Emergency Symbol -->
+  <text x="375" y="500" font-family="Arial" font-size="50" fill="#fff" text-anchor="middle" font-weight="bold">⚡</text>
+  
+  <!-- Motion Lines -->
+  <line x1="250" y1="470" x2="280" y2="470" stroke="#fbbf24" stroke-width="3" opacity="0.6"/>
+  <line x1="240" y1="490" x2="270" y2="490" stroke="#fbbf24" stroke-width="3" opacity="0.6"/>
+  <line x1="230" y1="510" x2="260" y2="510" stroke="#fbbf24" stroke-width="3" opacity="0.6"/>
+</svg>
