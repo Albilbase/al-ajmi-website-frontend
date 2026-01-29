@@ -1,0 +1,222 @@
+.projectDetailsSection {
+  padding-top: 100px; /* Navbar height approximate */
+  min-height: 100vh;
+  background-color: var(--background);
+  padding-bottom: 3rem;
+  overflow: hidden;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  color: var(--primary);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  border: 1px solid transparent;
+}
+
+.backButton:hover {
+  transform: translateX(-5px);
+  border-color: var(--primary);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+[dir="rtl"] .backButton:hover {
+  transform: translateX(5px);
+}
+
+.detailsWrapper {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .detailsWrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  background-color: var(--card-background);
+}
+
+.projectImage {
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.imageWrapper:hover .projectImage {
+  transform: scale(1.05);
+}
+
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.2;
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+[dir="rtl"] .title::after {
+  left: auto;
+  right: 0;
+}
+
+.infoGrid {
+  display: grid;
+  gap: 1.5rem;
+  background: white; /* Glassmorphism fallback */
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0,0,0,0.05);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.infoItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.iconWrapper {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  background: rgba(212, 175, 55, 0.1); /* Primary color low opacity */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.infoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.value {
+  font-size: 1.1rem;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.statusCompleted {
+  color: #065f46 !important;
+  background: #d1fae5;
+  padding: 0.2rem 0.8rem;
+  border-radius: 99px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.statusInProgress {
+  color: #92400e !important;
+  background: #fef3c7;
+  padding: 0.2rem 0.8rem;
+  border-radius: 99px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.statusActive {
+  color: #1e40af !important;
+  background: #dbeafe;
+  padding: 0.2rem 0.8rem;
+  border-radius: 99px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .backButton {
+    background: #1a1a1a;
+    color: white;
+    border-color: #333;
+  }
+  
+  .infoGrid {
+    background: rgba(30, 30, 30, 0.8);
+    border-color: rgba(255,255,255,0.05);
+  }
+  
+  .label {
+    color: #aaa;
+  }
+  
+  .value {
+    color: white;
+  }
+  
+  .infoItem {
+    border-bottom-color: rgba(255,255,255,0.05);
+  }
+
+  .statusCompleted {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399 !important;
+  }
+  .statusInProgress {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24 !important;
+  }
+  .statusActive {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa !important;
+  }
+}

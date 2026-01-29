@@ -1,0 +1,405 @@
+.hsepSection {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  padding-bottom: 6rem;
+  overflow-x: hidden;
+}
+
+/* Hero Section Enhancement */
+.hero {
+  position: relative;
+  height: 60vh;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  background: #000;
+}
+
+.heroBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  filter: brightness(0.6) scale(1.05);
+  transition: transform 0.5s ease-out;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.4) 0%,
+    rgba(14,14,14,0.8) 70%,
+    var(--background) 100%
+  );
+  z-index: 1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  color: white;
+  max-width: 1000px;
+  padding: 0 2rem;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  background: rgba(220, 20, 60, 0.15);
+  border: 1px solid rgba(220, 20, 60, 0.3);
+  border-radius: 100px;
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.badgeIcon {
+  color: var(--accent);
+}
+
+.title {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+}
+
+.titleUnderline {
+  width: 80px;
+  height: 6px;
+  background: var(--accent);
+  margin: 0 auto;
+  border-radius: 3px;
+}
+
+/* Layout Container */
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  margin-top: -80px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Purpose Section */
+.purposeSection {
+  margin-bottom: 4rem;
+}
+
+.purposeCard {
+  background: var(--card);
+  padding: 3rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.iconBox {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(220, 20, 60, 0.05));
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(220, 20, 60, 0.2);
+}
+
+.mainIcon {
+  color: var(--accent);
+}
+
+.sectionTitleSmall {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.purposeText {
+  font-size: 1.25rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+/* Grid Layout for Cards */
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.glassCard {
+  background: var(--card);
+  padding: 3rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.headerIcon {
+  color: var(--accent);
+  width: 32px;
+  height: 32px;
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.cardIntro {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  margin-bottom: 2rem;
+}
+
+.listGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.interactiveItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.3s ease;
+}
+
+.interactiveItem:hover {
+  background: rgba(220, 20, 60, 0.05);
+  border-color: rgba(220, 20, 60, 0.2);
+  transform: translateX(10px);
+}
+
+[dir="rtl"] .interactiveItem:hover {
+  transform: translateX(-10px);
+}
+
+.checkIcon {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 10px;
+}
+
+/* Statement Section */
+.statementSection {
+  margin-bottom: 4rem;
+}
+
+.fullWidthCard {
+  background: var(--card);
+  padding: 5rem 3rem;
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.cardHeaderCenter {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 4rem;
+}
+
+.headerIconLarge {
+  width: 48px;
+  height: 48px;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitleCenter {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+}
+
+.textCenter {
+  font-size: 1.2rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+.statementGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.statementItem {
+  background: rgba(0,0,0,0.2);
+  padding: 2.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.itemNumber {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 3rem;
+  font-weight: 900;
+  opacity: 0.1;
+  color: white;
+  line-height: 1;
+}
+
+[dir="rtl"] .itemNumber {
+  right: auto;
+  left: 1.5rem;
+}
+
+.statementItem p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--foreground);
+}
+
+/* Footer Section */
+.hsepFooter {
+  background: linear-gradient(135deg, var(--accent) 0%, #8b0000 100%);
+  padding: 4rem 2rem;
+  border-radius: 32px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(220, 20, 60, 0.3);
+}
+
+.footerContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.footerIcon {
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.footerContent p {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroBg {
+    background-attachment: scroll;
+  }
+
+  .hero {
+    height: 50vh;
+  }
+
+  .container {
+    padding: 0 1rem;
+    margin-top: -60px;
+  }
+
+  .purposeCard {
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .iconBox {
+    width: 80px;
+    height: 80px;
+  }
+
+  .fullWidthCard {
+    padding: 3rem 1.5rem;
+  }
+
+  .sectionTitleCenter {
+    font-size: 1.75rem;
+  }
+
+  .statementGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .footerContent p {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroBadge {
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .glassCard {
+    padding: 1.5rem;
+  }
+
+  .statementItem {
+    padding: 1.5rem;
+  }
+}

@@ -1,0 +1,1694 @@
+1- slider section :  get for website and dashboard 
+post method for add new slider (body same data)
+put method to update slider     (body same data )
+[
+    {
+      id: 1,
+      title_en: "Excellence in Construction",
+      title_ar: "التميز في البناء والإنشاءات",
+      description_en: "Building the future of the Kingdom with innovation, quality, and commitment since 1980.",
+      description_ar: "نبني مستقبل المملكة بابتكار وجودة والتزام منذ عام 1980.",
+      cta_en: "Explore Our Projects",
+      cta_ar: "استكشف مشاريعنا",
+      image: "/images/hero/WhatsApp Image 2026-01-08 at 12.03.08 PM (1).jpeg"
+    },
+    {
+      id: 2,
+      title_en: "Advanced Engineering Solutions",
+      title_ar: "حلول هندسية متقدمة",
+      description_en: "Leading the way in BIM and digital twin technology for sustainable development.",
+      description_ar: "نحن نقود الطريق في تقنية BIM والتوأم الرقمي من أجل تنمية مستدامة.",
+      cta_en: "Our Services",
+      cta_ar: "خدماتنا",
+      image: "/images/hero/WhatsApp Image 2025-12-07 at 9.54.28 AM.jpeg"
+    },
+    {
+      id: 3,
+      title_en: "Empowering Logistics & Transport",
+      title_ar: "تعزيز الخدمات اللوجستية والنقل",
+      description_en: "Providing world-class logistics services to support the Kingdom's Vision 2030.",
+      description_ar: "نقدم خدمات لوجستية عالمية المستوى لدعم رؤية المملكة 2030.",
+      cta_en: "Learn More",
+      cta_ar: "معرفة المزيد",
+      image: "/images/hero/25af59d5-9685-42a0-9796-43467e710885.jpeg"
+    }
+  ]);
+
+
+2-company introduction 
+{
+    title_en: "Our Proud History",
+    title_ar: "تاريخنا المشرف",
+    desc_en: "Abdul Ali Al-Ajmi Company stands as a beacon of excellence in the construction and infrastructure sector across the Kingdom of Saudi Arabia and beyond.",
+    desc_ar: "تقف شركة عبد العالي العجمي كمنارة للتميز في قطاع المقاولات والبنية التحتية في جميع أنحاء المملكة العربية السعودية وخارجها.",
+    subtitle_en: "EST. 1980",
+    subtitle_ar: "منذ 1980",
+    badge_number: "45+",
+    badge_text_en: "Years of Excellence",
+    badge_text_ar: "سنوات من الخبرة",
+    button_text_en: "Read Full Story",
+    button_text_ar: "اقرأ القصة كاملة",
+    images: [
+      '/images/historysection/1.png',
+      '/images/historysection/2.png',
+      '/images/historysection/3.png'
+    ]
+  }
+
+
+
+3-Home Services Section
+post api for Add New Service  
+1 put method to edit all data  
+{
+    header: {
+      title_en: "Our Premier Services",
+      title_ar: "خدماتنا المتميزة",
+      subtitle_en: "Delivering integrated logistics and engineering solutions that exceed expectations",
+      subtitle_ar: "تقديم حلول لوجستية وهندسية متكاملة تفوق التوقعات"
+    },
+    banner: {
+      image: "/images/services/25af59d5-9685-42a0-9796-43467e710885.jpeg",
+      title_en: "Our Services",
+      title_ar: "خدماتنا",
+      subtitle_en: "Providing Comprehensive Engineering and Logistics Solutions",
+      subtitle_ar: "تقديم حلول هندسية ولوجستية متكاملة"
+    },
+    items: [
+      {
+        id: 1,
+        title_en: "Road Transport in Difficult Areas",
+        title_ar: "النقل البري في المناطق الصعبة",
+        description_en: "The company has the ability to transport goods and difficult tasks on roads through the possession of a number of mechanisms, vehicles and the special tools & machines to carry out these tasks.",
+        description_ar: "تمتلك الشركة القدرة على نقل البضائع والمهام الصعبة على الطرق من خلال امتلاك عدد من الآليات والمركبات والأدوات والآلات الخاصة لتنفيذ هذه المهام.",
+        image: "/images/services/WhatsApp Image 2025-12-10 at 8.17.06 AM.jpeg"
+      },
+      {
+        id: 2,
+        title_en: "Rental Equipment and Heavy Vehicles",
+        title_ar: "تأجير المعدات والمركبات الثقيلة",
+        description_en: "The company owns a fleet of heavy and light equipment and machinery and cars of various types and sizes (bulldozers, trucks, skid steers, graders, bullets, etc.)",
+        description_ar: "تمتلك الشركة أسطولاً من المعدات والآليات الثقيلة والخفيفة والسيارات بمختلف أنواعها وأحجامها (بلدوزرات، شاحنات، لوادر، جريدر، مداحل، إلخ).",
+        image: "/images/services/WhatsApp Image 2025-12-21 at 12.00.58 PM.jpeg"
+      },
+      {
+        id: 3,
+        title_en: "Petroleum Services",
+        title_ar: "الخدمات البترولية",
+        description_en: "In 2006, the company established a special section for the petroleum services under the name of Al-Ajmi Petroleum Services, which provides its services to oil companies.",
+        description_ar: "في عام 2006، أنشأت الشركة قسماً خاصاً للخدمات البترولية تحت اسم العجمي للخدمات البترولية، والذي يقدم خدماته لشركات النفط.",
+        image: "/images/services/85a9159a-c506-491c-99ab-794679b6043f.jpeg"
+      },
+      {
+        id: 4,
+        title_en: "Surface Treatment and Road Safety",
+        title_ar: "معالجة الأسطح وسلامة الطرق",
+        description_en: "One of the company's important works is to treat asphalt surface layers with asphalt slurry, as well as reflective paints, road signs and road signs.",
+        description_ar: "من أعمال الشركة المهمة معالجة الطبقات السطحية للإسفلت باستخدام الملاط الإسفلتي، بالإضافة إلى الدهانات العاكسة ولوحات الطرق والإشارات المروية.",
+        image: "/images/services/WhatsApp Image 2026-01-08 at 11.49.24 AM (1).jpeg"
+      },
+      {
+        id: 5,
+        title_en: "Electricity Works",
+        title_ar: "الأعمال الكهربائية",
+        description_en: "The company has a number of projects for electrical works and street lighting, and the company is classified as the fourth grade in the electrical works.",
+        description_ar: "تمتلك الشركة عدداً من المشاريع للأعمال الكهربائية وإنارة الشوارع، والشركة مصنفة في الدرجة الرابعة في الأعمال الكهربائية.",
+        image: "/images/services/WhatsApp Image 2026-01-08 at 11.52.26 AM (3).jpeg"
+      },
+      {
+        id: 6,
+        title_en: "Building Construction",
+        title_ar: "تشييد المباني",
+        description_en: "As part of the commercial activity of the company is also construction of buildings and general contracting, where the company has some projects for the construction of buildings.",
+        description_ar: "كجزء من النشاط التجاري للشركة، هناك أيضاً بناء المباني والمقاولات العامة، حيث تمتلك الشركة بعض المشاريع لبناء المباني.",
+        image: "/images/services/WhatsApp Image 2025-12-26 at 1.10.04 PM.jpeg"
+      },
+      {
+        id: 7,
+        title_en: "Water and Sanitation Works",
+        title_ar: "أعمال المياه والصرف الصحي",
+        description_en: "The company has a number of projects for the work of sewage and extension of water networks, It has been classified in the water field.",
+        description_ar: "تمتلك الشركة عدداً من المشاريع لأعمال الصرف الصحي وتمديد شبكات المياه، وقد جرى تصنيفها في مجال المياه.",
+        image: "/images/services/WhatsApp Image 2026-01-08 at 12.07.42 PM.jpeg"
+      }
+    ]
+  }
+
+
+
+  4-Home customers  Section
+post api for Add New customers  
+1 put method to edit all data  
+  {
+    header: {
+      title_en: "Projects We Are Proud Of",
+      title_ar: "مشاريع نفخر بها",
+      subtitle_en: "Our Projects",
+      subtitle_ar: "مشاريعنا"
+    },
+    banner: {
+      image: "/images/customerbanner.jpg",
+      title_en: "Our Customers",
+      title_ar: "عملاؤنا",
+      subtitle_en: "We are proud of our partners in success",
+      subtitle_ar: "نفخر بشركائنا في النجاح"
+    },
+    items: [
+      {
+        id: 1,
+        fullName_en: "Saudi Aramco Company",
+        fullName_ar: "شركة أرامكو السعودية",
+        type_en: "Energy & Oil",
+        type_ar: "الطاقة والنفط",
+        logo: "/images/projects/aramco.png"
+      },
+      {
+        id: 2,
+        fullName_en: "Royal Commission for Jubail & Yanbu",
+        fullName_ar: "الهيئة الملكية للجبيل وينبع",
+        type_en: "Regional Development",
+        type_ar: "التنمية الإقليمية",
+        logo: "/images/projects/rcjy.png"
+      },
+      {
+        id: 3,
+        fullName_en: "MODON",
+        fullName_ar: "مدن",
+        type_en: "Industrial Cities",
+        type_ar: "المدن الصناعية",
+        logo: "/images/projects/modon.png"
+      },
+      {
+        id: 4,
+        fullName_en: "Saudi Railways",
+        fullName_ar: "الخطوط الحديدية السعودية",
+        type_en: "Transportation",
+        type_ar: "النقل والخدمات اللوجستية",
+        logo: "/images/projects/railways.png"
+      },
+      {
+        id: 5,
+        fullName_en: "Border Guards",
+        fullName_ar: "حرس الحدود",
+        type_en: "Security",
+        type_ar: "قطاع الأمن",
+        logo: "/images/projects/border-guards.png"
+      },
+      {
+        id: 6,
+        fullName_en: "Ministry of Municipal & Rural Affairs",
+        fullName_ar: "وزارة الشؤون البلدية والقروية",
+        type_en: "Urban Planning",
+        type_ar: "التخطيط الحضري",
+        logo: "/images/projects/momra.png"
+      },
+      {
+        id: 7,
+        fullName_en: "Ministry of Water & Electricity",
+        fullName_ar: "وزارة المياه والكهرباء",
+        type_en: "Infrastructure",
+        type_ar: "البنية التحتية",
+        logo: "/images/projects/mowe.png"
+      }
+    ]
+  }
+
+
+
+5-Home Awards Section
+post api for Add New Awards  
+1 put method to edit all data  
+[
+    { id: 1, src: '/images/Our-Owards/1feb2023-1.png', category_en: 'Certification', category_ar: 'شهادة', title_en: 'ISO Certification 2023', title_ar: 'شهادة الأيزو 2023' },
+    { id: 2, src: '/images/Our-Owards/1feb2023-2.png', category_en: 'Certification', category_ar: 'شهادة', title_en: 'Quality Management', title_ar: 'إدارة الجودة' },
+    { id: 3, src: '/images/Our-Owards/1feb2023-3.png', category_en: 'Certification', category_ar: 'شهادة', title_en: 'Safety Excellence', title_ar: 'التميز في السلامة' },
+    { id: 4, src: '/images/Our-Owards/ND91.jpg', category_en: 'National Recognition', category_ar: 'تقدير وطني', title_en: 'Saudi National Day 91', title_ar: 'اليوم الوطني السعودي 91' },
+    { id: 5, src: '/images/Our-Owards/aramco-23feb2021-a.png', category_en: 'Elite Partner', category_ar: 'شريك نخبة', title_en: 'Aramco Quality Award', title_ar: 'جائزة أرامكو للجودة' },
+    { id: 6, src: '/images/Our-Owards/cert7_2015.jpg', category_en: 'Legacy Award', category_ar: 'جائزة إرث', title_en: 'Project Excellence 2015', title_ar: 'التميز في المشاريع 2015' },
+    { id: 7, src: '/images/Our-Owards/image25feb2021-a.png', category_en: 'Excellence', category_ar: 'تميز', title_en: 'Best Contractor Award', title_ar: 'جائزة أفضل مقاول' },
+    { id: 8, src: '/images/Our-Owards/iso-45001-2018-23feb2021-d.png', category_en: 'Global Standards', category_ar: 'معايير عالمية', title_en: 'ISO 45001:2018', title_ar: 'أيزو 45001:2018' },
+    { id: 9, src: '/images/Our-Owards/pic19dec2021.png', category_en: 'Acknowledgment', category_ar: 'تقدير', title_en: 'Strategic Partnership', title_ar: 'شراكة استراتيجية' },
+    { id: 10, src: '/images/Our-Owards/picture-12may2018.png', category_en: 'Industry Leader', category_ar: 'رائد الصناعة', title_en: 'Construction Leadership', title_ar: 'القيادة في الإنشاءات' },
+    { id: 11, src: '/images/Our-Owards/picture3oct2018_1-1.jpg', category_en: 'Outstanding Performance', category_ar: 'أداء متميز', title_en: 'Safety Award 2018', title_ar: 'جائزة السلامة 2018' }
+  ]
+
+
+
+
+  6- Home Partners Section
+post api for Add New Partners  
+
+  [
+    { id: 1, src: "/images/partners/partner1.jpg" },
+    { id: 2, src: "/images/partners/partner2.jpg" },
+    { id: 3, src: "/images/partners/partner3.jpg" },
+    { id: 4, src: "/images/partners/partner4.jpg" },
+    { id: 5, src: "/images/partners/partner5.jpg" },
+  ]
+
+
+
+  7-News Ticker Manager
+post api for Add New Ticker Message 
+
+  {
+    label_en: "Latest News",
+    label_ar: "آخر الأخبار",
+    items: [
+      { id: 1, text_en: "Alajmi Company wins new infrastructure project in Riyadh", text_ar: "شركة العجمي تفوز بمشروع بنية تحتية جديد في الرياض" },
+      { id: 2, text_en: "Celebrating 40 years of excellence in construction", text_ar: "نحتفل بمرور 40 عاماً من التميز في مجال الإنشاءات" },
+      { id: 3, text_en: "New heavy equipment fleet added to our logistics division", text_ar: "إضافة أسطول معدات ثقيلة جديد لقطاع الخدمات اللوجستية" }
+    ]
+  }
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+--  company section --------
+
+1-About Us Management
+post api for Add Certificate
+post for add Partner Entity
+put method to change all data 
+{
+    hero: {
+      title_en: "About Al-Ajmi Company",
+      title_ar: "عن شركة العجمي",
+      subtitle_en: "Building the Future Since 1980",
+      subtitle_ar: "نبني المستقبل منذ عام 1980",
+      bgImage: "/images/historysection/1.png"
+    },
+    intro: {
+      badge_en: "Who We Are",
+      badge_ar: "من نحن",
+      title_en: "Abdul Ali Al-Ajmi Company",
+      title_ar: "شركة عبد العالي العجمي",
+      text_en: "Since its establishment in 1980, Abdul Ali Al-Ajmi Company has specialized in the construction and maintenance of roads and bridges, infrastructure, site preparation works, real estate development, and road transport services. The company has successfully implemented all its projects in accordance with the standards of Saudi Aramco, Ministry of Transport, Border Guard, Ministry of Municipal and Rural Affairs, and the private real estate sector. Abdul Ali Al-Ajmi has been recognized as a major road construction company throughout the Kingdom of Saudi Arabia.",
+      text_ar: "منذ تأسيسها عام 1980، تخصصت شركة عبد العالي العجمي في إنشاء وصيانة الطرق والجسور والبنية التحتية وأعمال تجهيز المواقع والتطوير العقاري وخدمات النقل البري. نجحت الشركة في تنفيذ جميع مشاريعها وفقاً لمعايير أرامكو السعودية ووزارة النقل وحرس الحدود ووزارة الشؤون البلدية والقروية والقطاع العقاري الخاص. وقد تم الاعتراف بشركة عبد العالي العجمي كواحدة من كبرى شركات إنشاء الطرق في جميع أنحاء المملكة العربية السعودية.",
+      expYears: 44,
+      expText_en: "Years of Excellence",
+      expText_ar: "عاماً من التميز",
+      images: [
+        '/images/historysection/7.png',
+        '/images/historysection/8.png',
+        '/images/historysection/9.png'
+      ]
+    },
+    certificates: {
+      badge_en: "Accreditations",
+      badge_ar: "الاعتمادات",
+      title_en: "Certifications & International Memberships",
+      title_ar: "الشهادات والعضويات الدولية",
+      subtitle_en: "Commitment to Quality and Standards",
+      subtitle_ar: "التزام بالجودة والمعايير العالمية",
+      list: [
+        { en: "ISO 9001-2000 Certified", ar: "شهادة الأيزو 9001-2000" },
+        { en: "ISO 14001-2004 Certified", ar: "شهادة الأيزو 14001-2004" },
+        { en: "OHSAS 18001-2007 Certified", ar: "شهادة OHSAS 18001-2007" },
+        { en: "ISO 9001-2008 Certified", ar: "شهادة الأيزو 9001-2008" },
+        { en: "ANSI-ASQ National Accreditation Board (ANAB)", ar: "مجلس الاعتماد الوطني ANSI-ASQ (ANAB)" },
+        { en: "National Asphalt Pavement Association (NAPA)", ar: "الجمعية الوطنية لرصف الأسفلت (NAPA)" },
+        { en: "Asphalt Emulsion Manufacturers Association (AEMA)", ar: "جمعية مصنعي مستحلب الأسفلت (AEMA)" },
+        { en: "International Slurry Surfacing Association (ISSA)", ar: "الجمعية الدولية لرصف الملاط (ISSA)" },
+        { en: "International Road Federation (IRF)", ar: "الاتحاد الدولي للطرق (IRF)" },
+        { en: "Gulf Road Engineering Society (GRES)", ar: "جمعية هندسة الطرق الخليجية (GRES)" }
+      ]
+    },
+    capabilities: {
+      badge_en: "Capabilities",
+      badge_ar: "قدراتنا",
+      title_en: "Resources & Capabilities",
+      title_ar: "الموارد والإمكانيات",
+      text_en: "The company acts as a first-grade classified contractor in road construction and maintenance. Additionally, we own a massive fleet of mechanisms, vehicles, and specialized tools to carry out construction, electricity, water, and drainage works. Our resources include a series of crushers, concrete and asphalt mixers, and highly trained teams utilizing the latest technology.",
+      text_ar: "الشركة مصنفة كمقاول من الدرجة الأولى في إنشاء وصيانة الطرق. نمتلك أسطولاً ضخماً من الآليات والمركبات والأدوات المتخصصة لتنفيذ أعمال الإنشاءات والكهرباء والمياه والصرف الصحي. تشمل مواردنا سلسلة من الكسارات وخلاطات الخرسانة والأسفلت، وفرقاً مدربة تدريباً عالياً تستخدم أحدث التقنيات.",
+      image: "/images/historysection/7.png"
+    },
+    partners: {
+      badge_en: "Our Partners",
+      badge_ar: "شركاؤنا",
+      title_en: "Key Clients & Partners",
+      title_ar: "عملاؤنا وشركاؤنا",
+      text_en: "The main activity of the company is contracting, where the company has implemented many mega projects for various government and semi-government bodies.",
+      text_ar: "النشاط الرئيسي للشركة هو المقاولات، حيث نفذت الشركة العديد من المشاريع الضخمة لمختلف الجهات الحكومية وشبه الحكومية.",
+      list: [
+        { en: "Saudi Aramco Company", ar: "شركة أرامكو السعودية" },
+        { en: "Border Guards", ar: "حرس الحدود" },
+        { en: "Ministry of Housing", ar: "وزارة الإسكان" },
+        { en: "Royal Commission for Jubail & Yanbu", ar: "الهيئة الملكية للجبيل وينبع" },
+        { en: "Ministry of Transportation", ar: "وزارة النقل" },
+        { en: "Ministry of Municipal and Rural Affairs", ar: "وزارة الشؤون البلدية والقروية" },
+        { en: "Ministry of Water and Electricity", ar: "وزارة المياه والكهرباء" },
+        { en: "Saudi Industrial Property Authority (MODON)", ar: "هيئة المدن الصناعية (مدن)" }
+      ]
+    }
+  }
+
+
+  
+
+  2- Why Al-Ajmi Management 
+  post method for Add New Expertise Feature
+  put method for all data 
+  {
+    hero: {
+      title_en: "Why Al-Ajmi?",
+      title_ar: "لماذا العجمي؟",
+      subtitle_en: "Efficiency, Quality, and Reliability",
+      subtitle_ar: "كفاءة، جودة، وموثوقية",
+      bgImage: "/images/whyajami/WhatsApp Image 2026-01-08 at 12.03.08 PM.jpeg"
+    },
+    intro: {
+      title_en: "Integrated Capabilities",
+      title_ar: "إمكانيات متكاملة",
+      text_en: "Abdul Ali Al-Ajmi owns a series of asphalt mixing plants, crushers, and readymade mix concrete plants, which have been set up in an organized manner to ensure complete coverage of all working areas and supported by a equipped fleet for the road transport.",
+      text_ar: "تمتلك شركة عبد العالي العجمي سلسلة من مصانع خلط الأسفلت والكسارات ومحطات الخرسانة الجاهزة، والتي تم إنشاؤها بشكل منظم لضمان التغطية الكاملة لجميع مناطق العمل، مدعومة بأسطول مجهز للنقل البري.",
+      image: "/images/whyajami/WhatsApp Image 2026-01-14 at 8.25.15 AM (2).jpeg"
+    },
+    transport: {
+      title_en: "Strategic Transport Fleet",
+      title_ar: "أسطول نقل استراتيجي",
+      text_en: "Means of transport are considered one of the important factors to success in the economic progress, because it is a first pillar in the fields of construction, trade, agriculture and many other fields, means of transport is the first step for the movement of goods and people from one place to another and in economic and social co-operation among the various sectors, especially in Saudi Arabia, which is similar to the continent because of its wide range and given the importance of this sector, Abdul Ali Al-Ajmi Company has given one of its priorities to the transport and established the transport division which contains a fleet of vehicles in different types and sizes.",
+      text_ar: "تعتبر وسائل النقل من أهم عوامل النجاح في التقدم الاقتصادي، لأنها الركيزة الأولى في مجالات البناء والتجارة والزراعة وغيرها من المجالات. تُعد وسائل النقل الخطوة الأولى لنقل البضائع والأفراد من مكان لآخر وللتعاون الاقتصادي والاجتماعي بين مختلف القطاعات، خاصة في المملكة العربية السعودية التي تشبه القارة نظراً لاتساع مساحتها. ونظراً لأهمية هذا القطاع، أولت شركة عبد العالي العجمي إحدى أولوياتها للنقل وأسست قسم النقل الذي يحتوي على أسطول من المركبات بمختلف أنواعها وأحجامها."
+    },
+    petroleum: {
+      title_en: "Petroleum Services Division",
+      title_ar: "قطاع الخدمات البترولية",
+      text_en: "As a culmination of these integrated services, the company has entered a new field of challenge and excellence by starting the petroleum division which provides quality services in this field to Saudi Aramco in regards to oil, gas and industrial facilities, the division also extended the field of its services to include the countries of the Gulf Co-operation Council.",
+      text_ar: "تتويجاً لهذه الخدمات المتكاملة، دخلت الشركة مجالاً جديداً من التحدي والتميز من خلال بدء قسم الخدمات البترولية الذي يقدم خدمات عالية الجودة في هذا المجال لشركة أرامكو السعودية فيما يتعلق بالنفط والغاز والمنشآت الصناعية. وقد وسع القسم نطاق خدماته ليشمل دول مجلس التعاون الخليجي.",
+      image: "/images/whyajami/e1e855e9-b768-4f96-93e3-0e32c1de20f3.jpeg"
+    },
+    expertise: {
+      title_en: "Unmatched Expertise & Reputation",
+      title_ar: "خبرة وسمعة لا تضاهى",
+      text_en: "During these years of experience in the field of business the company has achieved high reputation from its customers through its intensive care, design, management, credibility and professionalism to deliver its services to these clients. Highly Skilled engineers work with Abdul Ali Al-Ajmi Company and the company is keen to bring distinguished experiences to keep pace with the progress in this area by communicating with several countries across the world.",
+      text_ar: "خلال هذه السنوات من الخبرة في مجال الأعمال، حققت الشركة سمعة طيبة لدى عملائها من خلال الرعاية المكثفة والتصميم والإدارة والمصداقية والاحترافية في تقديم خدماتها. يعمل مهندسون ذوو مهارات عالية في شركة عبد العالي العجمي، وتعتبر الشركة حريصة على جلب تجارب متميزة لمواكبة التقدم في هذا المجال من خلال التواصل مع دول عدة عبر العالم.",
+      list: [
+        { en: "The ability to deal with all levels of clients for providing the best services.", ar: "القدرة على التعامل مع جميع مستويات العملاء لتقديم أفضل الخدمات." },
+        { en: "Enhanced ability to gather information and put in organized databases for study, use and referring to them when needed, and to demonstrate the ability to develop strategic logical solutions at critical times during the project implementation, it is still fully committed and in a constant state of efficiency and activity and ensuring the continuation of active planning for the future.", ar: "القدرة المعززة على جمع المعلومات ووضعها في قواعد بيانات منظمة للدراسة والاستخدام والرجوع إليها عند الحاجة، وإظهار القدرة على تطوير حلول منطقية استراتيجية في الأوقات الحرجة أثناء تنفيذ المشروع، مع الالتزام الكامل والبقاء في حالة دائمة من الكفاءة والنشاط وضمان استمرار التخطيط الفعال للمستقبل." }
+      ]
+    },
+    offices: {
+      title_en: "Our Presence",
+      title_ar: "تواجدنا",
+      text_en: "Abdul Ali Al-Ajmi Company meets the needs of its clients through its offices and branch offices, the head office is located in the city of Riyadh, and there are regional offices in Al-Ahsa.",
+      text_ar: "تلبي شركة عبد العالي العجمي احتياجات عملائها من خلال مكاتبها وفروعها، حيث يقع المكتب الرئيسي في مدينة الرياض، وتوجد مكاتب إقليمية في الأحساء."
+    }
+  }
+
+
+  3-Vision & Mission Management 
+  post api for Add New Vision list and delete 
+  post api for Add New Transparency list and delete 
+  post api for Add New Responsibility list and delete 
+  post api for Add New Profitability list and delete
+put method for all data 
+
+  {
+    hero: {
+      title_en: "COMPANY AL-AJMI",
+      title_ar: "شركة العجمي",
+      subtitle_en: "Vision, Mission & Values",
+      subtitle_ar: "الرؤية، الرسالة، والقيم",
+      images: [
+        "/images/vision/1.png",
+        "/images/vision/2.png",
+        "/images/vision/3.png",
+        "/images/vision/4.png"
+      ]
+    },
+    vision: {
+      title_en: "Vision",
+      title_ar: "الرؤية",
+      text_en: "Abdul Ali Al-Ajmi believes that its customers and employees are the source of its strength after the help of The Almighty Allah, so the company seeks to the following:",
+      text_ar: "تؤمن شركة عبد العالي العجمي بأن عملائها وموظفيها هم مصدر قوتها بعد عون الله عز وجل، لذلك تسعى الشركة لتحقيق ما يلي:",
+      list: [
+        { 
+          en: "To provide excellent experience for its customers through the quality of good performance regarding the implementation of their projects with the best technical solutions, lowest financial costs and purest environmental services.",
+          ar: "تقديم تجربة مميزة لعملائها من خلال جودة الأداء في تنفيذ مشاريعهم بأفضل الحلول التقنية وأقل التكاليف المالية وأنقى الخدمات البيئية."
+        },
+        { 
+          en: "To develop its employees in all aspects, whether it related to their incomes, work knowledge or the stability of their current and future career",
+          ar: "تطوير موظفيها في كافة الجوانب، سواء فيما يتعلق بدخولهم أو معارفهم العملية أو استقرار مسيرتهم المهنية الحالية والمستقبلية."
+        }
+      ]
+    },
+    mission: {
+      title_en: "Mission",
+      title_ar: "الرسالة",
+      text_en: "Abdul Ali Al-Ajmi Company seeks continuously to develop its activities, experiences and the efficiency of its employees in order to become the best company in the region due to its excellent works.",
+      text_ar: "تسعى شركة عبد العالي العجمي باستمرار لتطوير أنشطتها وخبراتها وكفاءة موظفيها لتصبح الشركة الأفضل في المنطقة نظراً لأعمالها المتميزة."
+    },
+    valuesHeader: {
+      title_en: "Our Core Values",
+      title_ar: "قيمنا المؤسسية",
+      subtitle_en: "The principles that drive us towards excellence",
+      subtitle_ar: "المبادئ التي تقودنا نحو التميز"
+    },
+    values: {
+      transparency: {
+        title_en: "Values of Transparency",
+        title_ar: "قيم الشفافية",
+        list: [
+          { en: "Executing its works in an excellent manner with a high level of the transparency whether its clients present or not on the site.", ar: "تنفيذ أعمالها بأسلوب متميز وبدرجة عالية من الشفافية سواء كان عملاؤها متواجدين في الموقع أم لا." },
+          { en: "Ensuring fair treatment to its all employees.", ar: "ضمان المعاملة العادلة لجميع موظفيها." },
+          { en: "Providing information to all partners timely.", ar: "توفير المعلومات لجميع الشركاء في الوقت المناسب." }
+        ]
+      },
+      responsibility: {
+        title_en: "Responsibility",
+        title_ar: "المسؤولية",
+        list: [
+          { en: "The company makes all expectations clear to its all customers and maintains its commitments with a great sense of responsibility.", ar: "توضح الشركة كافة التوقعات لجميع عملائها وتحافظ على التزاماتها بحس كبير من المسؤولية." },
+          { en: "It respects its employees, as well as their opinions and ideas and works on developing them by training.", ar: "تحترم موظفيها وآراءهم وأفكارهم وتعمل على تطويرهم بالتدريب." },
+          { en: "It fulfills its obligations towards the partners with a great respect.", ar: "الوفاء بالتزاماتها تجاه الشركاء باحترام كبير." }
+        ]
+      },
+      profitability: {
+        title_en: "Profitability",
+        title_ar: "الربحية",
+        list: [
+          { en: "The company offers the actual cost its client.", ar: "تقدم الشركة التكلفة الفعلية لعملائها." },
+          { en: "It encourages the spirit of initiative in its staff and gives them equal opportunity.", ar: "تشجيع روح المبادرة لدى موظفيها ومنحهم فرصة متساوية." },
+          { en: "It gives its partners reasonable profits.", ar: "منح الشركاء أرباحاً معقولة." },
+          { en: "It makes significant contributions to serve the community.", ar: "تقديم مساهمات كبيرة لخدمة المجتمع." }
+        ]
+      }
+    },
+    stats: {
+      number: "25+",
+      label_en: "Years of Excellence",
+      label_ar: "عاماً من التميز"
+    }
+  }
+
+
+
+  4-Board of Directors Management 
+  post api for Add New Board Member and delete 
+  put api  for all data 
+
+
+  {
+    hero: {
+      title_en: "Board of Directors",
+      title_ar: "مجلس الإدارة",
+      subtitle_en: "Leadership & Governance",
+      subtitle_ar: "القيادة والحوكمة",
+      bgImage: "/images/board/banner-board.png"
+    },
+    members: [
+      {
+        id: 1,
+        name_en: "Mr. Ewida Abdual Ali Al-Ajmi",
+        name_ar: "السيد / عويضة عبد العالي العجمي",
+        position_en: "Chairman of ALAJMI CO",
+        position_ar: "رئيس مجلس الإدارة",
+        image: "/images/board/MR. EWIDA ABDUAL ALI AL-AJMI.png"
+      },
+      {
+        id: 2,
+        name_en: "Eng. Mohamed Abdual Ali Al-Ajmi",
+        name_ar: "المهندس / محمد عبد العالي العجمي",
+        position_en: "CEO and Managing Director",
+        position_ar: "الرئيس التنفيذي والعضو المنتدب",
+        image: "/images/board/ENGINEER. MOHAMED ABDUAL ALI AL-AJMI.png"
+      },
+      {
+        id: 3,
+        name_en: "Mr. Faisal Abdual Ali Al-Ajmi",
+        name_ar: "السيد / فيصل عبد العالي العجمي",
+        position_en: "Deputy Chairman of the Board",
+        position_ar: "نائب رئيس مجلس الإدارة",
+        image: "/images/board/MR. FAISAL ABDUAL ALI AL-AJMI.png"
+      }
+    ]
+  }
+
+
+  5-HSE Policy Management 
+post api for Add New Principles list 
+post api for Add New Statement  list 
+post api for Add New Responsibility  list 
+put api for all data 
+
+
+
+  {
+    hero: {
+      title_en: "Health, Safety & Environmental Policy",
+      title_ar: "سياسة الصحة والسلامة والبيئة",
+      bgImage: "/images/hsep/hsep-banner.jpg"
+    },
+    purpose: {
+      title_en: "Purpose",
+      title_ar: "الغرض",
+      text_en: "ABDUL ALI AL-AJMI COMPANY a Leader in Construction and Maintenance of Highways & Interchanges, Buildings, Site Development, Site Preparation, Electrical, & Communication Works, Petroleum Services, Transportation and General Civil Engineering works in the Kingdom of Saudi Arabia is committed to a policy of Zero harm to people and the environment, ensuring that minimizes any adverse health, safety and environmental impacts.",
+      text_ar: "تلتزم شركة عبد العالي العجمي، الرائدة في إنشاء وصيانة الطرق السريعة والتقاطعات، والمباني، وتطوير المواقع، والأعمال الكهربائية والاتصالات، والخدمات البترولية، والنقل، وأعمال الهندسة المدنية العامة في المملكة العربية السعودية، بسياسة 'صفر ضرر' للأشخاص والبيئة، مما يضمن تقليل أي آثار سلبية على الصحة والسلامة والبيئة."
+    },
+    principles: {
+      title_en: "Principles",
+      title_ar: "المبادئ",
+      list: [
+        { 
+          en: "This Policy has been established on the basis that concern for the occupational health & safety of our employees and guardianship of the environment are essential to the successful conduct and future growth of our business, and are in the best interest of each of the organization's stakeholders and our major client's such as Saudi Aramco, Ministry of Housing, MA'ADEN, MODON, Saudi Railway Organization, Ministry of Transportation, Royal Commission for Jubail & Yanbu, Borderers Guard, National Guard & Saudi Electricity Company.",
+          ar: "تأسست هذه السياسة على أساس أن الاهتمام بالصحة والسلامة المهنية لموظفينا وحماية البيئة أمران ضروريان للنجاح والنمو المستقبلي لأعمالنا، ويصبان في مصلحة كل من أصحاب المصلحة في المنظمة وعملائنا الرئيسيين مثل أرامكو السعودية، وزارة الإسكان، معادن، مدن، المؤسسة العامة للخطوط الحديدية، وزارة النقل، الهيئة الملكية للجبيل وينبع، حرس الحدود، الحرس الوطني، والشركة السعودية للكهرباء."
+        },
+        { 
+          en: "ABDUL ALI AL-AJMI COMPANY follows the principle that safety is a condition of employment.",
+          ar: "تتبع شركة عبد العالي العجمي مبدأ أن السلامة هي شرط للتوظيف."
+        },
+        { 
+          en: "ABDUL ALI AL-AJMI COMPANY considers that environmental protection and management (e.g. pollution prevention) is an important consideration in our activities and commitment to this is reflected in corporate policies, procedures, programmers and practices.",
+          ar: "تعتبر شركة عبد العالي العجمي أن حماية البيئة وإدارتها (مثل منع التلوث) اعتبار مهم في أنشطتنا، وينعكس الالتزام بذلك في سياسات الشركة وإجراءاتها وبرامجها وممارساتها."
+        }
+      ]
+    },
+    statement: {
+      title_en: "Policy Statement",
+      title_ar: "بيان السياسة",
+      intro_en: "To achieve the purposes and principles above, ABDUL ALI AL-AJMI COMPANY and its projects/business units will:",
+      intro_ar: "لتحقيق الأغراض والمبادئ المذكورة أعلاه، ستقوم شركة عبد العالي العجمي ومشاريعها/وحدات أعمالها بما يلي:",
+      list: [
+        { en: "Comply with all KSA health, safety and environmental legislation as a minimum and SAUDI ARAMCO standard which is the main references for ABDUL ALI AL-AJMI COMPANY’s HSE Programs.", ar: "الامتثال لجميع تشريعات الصحة والسلامة والبيئة في المملكة العربية السعودية كحد أدنى، ومعايير أرامكو السعودية التي تعد المرجع الرئيسي لبرامج الصحة والسلامة والبيئة في الشركة." },
+        { en: "Identify and evaluate all health, safety and environmental hazards and establish controls and techniques to manage risk to acceptable levels. Risk assessment should be updated whenever significant change in the working environmental has occurred.", ar: "تحديد وتقييم جميع مخاطر الصحة والسلامة والبيئة ووضع ضوابط وتقنيات لإدارة المخاطر إلى مستويات مقبولة. يجب تحديث تقييم المخاطر كلما حدث تغيير كبير في بيئة العمل." },
+        { en: "Manage accurate and timely reporting, recording, investigation and remediation of incidents and near misses to prevent re-occurrence.", ar: "إدارة الإبلاغ الدقيق وفي الوقت المناسب، والتسجيل، والتحقيق، ومعالجة الحوادث والحوادث الوشكة لمنع تكرارها." },
+        { en: "Establish and update, as appropriate, corporate health, safety and environmental objectives and measurable targets relevant to the impacts of ABDUL ALI AL-AJMI COMPANY activities in order to drive and demonstrate continual improvement.", ar: "إنشاء وتحديث أهداف وغايات مؤسسية للصحة والسلامة والبيئة ذات صلة بتأثيرات أنشطة الشركة لدفع وإظهار التحسين المستمر." },
+        { en: "Continue to initiate, develop, record, measure and communicate progress on health, safety and environmental performance through-out the organization.", ar: "الاستمرار في المبادرة والتطوير والتسجيل والقياس والتواصل بشأن التقدم في أداء الصحة والسلامة والبيئة في جميع أنحاء المنظمة." },
+        { en: "Work towards implementing health, safety and environmental management systems and complying with all aspects of the internationally – recognized certification system OHSAS 18001:2007 (Occupational Safety & Health Management System), ISO 14001:2015 (Environmental Management System) level of accreditation ready and ISO 9001:2015 as a minimum.", ar: "العمل نحو تنفيذ أنظمة إدارة الصحة والسلامة والبيئة والامتثال لجميع جوانب أنظمة الاعتماد المعترف بها دولياً OHSAS 18001:2007 (نظام إدارة الصحة والسلامة المهنية)، ISO 14001:2015 (نظام الإدارة البيئية) بمستوى 'جاهز للاعتماد' و ISO 9001:2015 كحد أدنى." },
+        { en: "Reduce emissions and wastes to water, air and land, and conserve resources.", ar: "تقليل الانبعاثات والنفايات إلى الماء والهواء والأرض، والحفاظ على الموارد." },
+        { en: "Require our contractors and visitors to also comply with all site health, safety and environmental requirements and work with together to achieve comparable health, safety and environmental standards.", ar: "إلزام مقاولينا وزوارنا بالامتثال أيضاً لجميع متطلبات الصحة والسلامة والبيئة في الموقع والعمل معاً لتحقيق معايير مماثلة." },
+        { en: "Supply, provide and maintain safe equipment.", ar: "توفير وصيانة معدات آمنة." },
+        { en: "Provide appropriate health, safety and environmental training for all staff at all levels.", ar: "توفير تدريب مناسب في مجال الصحة والسلامة والبيئة لجميع الموظفين على كافة المستويات." },
+        { en: "Take a stance of zero tolerance of the conditions and behaviors that contribute to workplace incidents and environmental damage, which have a negative impact to the business.", ar: "اتخاذ موقف حازم بعدم التسامح مطلقاً مع الظروف والسلوكيات التي تساهم في حوادث مكان العمل والأضرار البيئية، والتي تؤثر سلباً على الأعمال." },
+        { en: "Provide resource in line with the priority the company places on health, safety and the environment.", ar: "توفير الموارد بما يتماشى مع الأولوية التي تضعها الشركة للصحة والسلامة والبيئة." },
+        { en: "Consider health, safety and environmental factors in investment purchasing decisions, project planning, material management, commissioning and other processes.", ar: "مراعاة عوامل الصحة والسلامة والبيئة في قرارات الشراء الاستثماري، وتخطيط المشاريع، وإدارة المواد، والتشغيل، والعمليات الأخرى." },
+        { en: "Submit an annual report on matters relating to this policy to senior management.", ar: "تقديم تقرير سنوي عن المسائل المتعلقة بهذه السياسة إلى الإدارة العليا." },
+        { en: "Review this Policy at intervals not exceeding two (2) years (or whenever significant change).", ar: "مراجعة هذه السياسة على فترات لا تتجاوز سنتين (أو كلما حدث تغيير كبير)." }
+      ]
+    },
+    responsibility: {
+      title_en: "Responsibility",
+      title_ar: "المسؤولية",
+      intro_en: "In line with the Policy above, the following commitments are made:",
+      intro_ar: "تماشياً مع السياسة أعلاه، يتم تقديم الالتزامات التالية:",
+      list: [
+        { en: "All Management will visibly and consistently uphold the principles and requirements of this policy and integrate them throughout the company. The executive management team will regularly review health, safety and environmental performance.", ar: "ستقوم جميع الإدارات بدعم مبادئ ومتطلبات هذه السياسة بشكل واضح ومستمر ودمجها في جميع أنحاء الشركة. ستقوم الإدارة التنفيذية بمراجعة أداء الصحة والسلامة والبيئة بانتظام." },
+        { en: "The Management and supervisory staff in each business unit will be responsible and held accountable for resourcing. Implementing and maintaining the health, safety and environmental management system necessary to comply with this policy, and will be held fully accountable for compliance and performance.", ar: "سيكون موظفو الإدارة والإشراف في كل وحدة عمل مسؤولين ومحاسبين عن توفير الموارد، وتنفيذ وصيانة نظام إدارة الصحة والسلامة والبيئة اللازم للامتثال لهذه السياسة." },
+        { en: "Every employee whose work may create a significant health, safety and environmental impact will be trained and held accountable for complying with the principles of the policy and related standards, procedures, practices, instructions and rules.", ar: "سيتم تدريب كل موظف قد يخلق عمله تأثيراً كبيراً على الصحة والسلامة والبيئة ومحاسبته على الامتثال لمبادئ السياسة والمعايير والإجراءات والممارسات والتعليمات والقواعد ذات الصلة." }
+      ],
+      footer_en: "Through the active participation and commitment of all ABDUL ALI AL-AJMI COMPANY employees, we commit to meet and exceed the requirements of this policy.",
+      footer_ar: "من خلال المشاركة النشطة والالتزام من جميع موظفي شركة عبد العالي العجمي، نلتزم بتلبية متطلبات هذه السياسة وتجاوزها."
+    }
+  }
+
+
+
+
+
+  ----------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------
+   ----------------------------------------------------------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------
+    ----------media center--------
+
+    1-Media Center Management
+post for Add Media Items  ,edit and delete 
+
+    
+export const mediaData = {
+  banner: "/images/mediacenterbanner.jpg",
+  items: [
+    {
+      id: "media-1",
+      image: "/images/media/Community Initiatives – Our Beaches are Clean.jpg",
+      sliderImages: [
+        "/images/media/Community Initiatives – Our Beaches are Clean.jpg",
+        "/images/media/Community Initiatives – Our Beaches are Clean.jpg",
+        "/images/media/Community Initiatives – Our Beaches are Clean.jpg"
+      ],
+      date: "2024-01-06",
+      tag_en: "Community",
+      tag_ar: "مبادرات مجتمعية",
+      en: {
+        title: "Community Initiatives – Our Beaches are Clean",
+        description: "Abdul Ali Al-Ajmi Company is proud to present this new achievement that reflects our continuous commitment to excellence and quality in all our projects. We always strive to achieve the highest standards of performance and innovation in the construction sector."
+      },
+      ar: {
+        title: "مبادرات مجتمعية – شواطئنا نظيفة",
+        description: "تفخر شركة عبد العالي العجمي بتقديم هذا الإنجاز الجديد الذي يعكس التزامنا المستمر بالتميز والجودة في جميع مشاريعنا. نسعى دائماً لتحقيق أعلى معايير الأداء والابتكار في قطاع البناء والتشييد."
+      }
+    },
+    {
+      id: "media-2",
+      image: "/images/media/Foundation Day.jpg",
+      sliderImages: [
+        "/images/media/Foundation Day.jpg",
+        "/images/media/Foundation Day.jpg"
+      ],
+      date: "2024-02-22",
+      tag_en: "Event",
+      tag_ar: "فعالية",
+      en: {
+        title: "Foundation Day",
+        description: "Celebrating the deep roots and history of our great nation. A day of pride and reflection on our journey since the foundation."
+      },
+      ar: {
+        title: "يوم التأسيس",
+        description: "نحتفل بالجذور العميقة وتاريخ أمتنا العظيمة. يوم للفخر والتأمل في مسيرتنا منذ التأسيس."
+      }
+    },
+    {
+      id: "media-3",
+      image: "/images/media/Renewal of the sixth pledge of allegiance to the Crown Prince.png",
+      sliderImages: [
+        "/images/media/Renewal of the sixth pledge of allegiance to the Crown Prince.png",
+        "/images/media/Renewal of the sixth pledge of allegiance to the Crown Prince.png"
+      ],
+      date: "2024-03-10",
+      tag_en: "News",
+      tag_ar: "أخبار",
+      en: {
+        title: "Renewal of the sixth pledge of allegiance to the Crown Prince",
+        description: "We renew our pledge of allegiance and loyalty to the Crown Prince, supporting the vision and future of the Kingdom."
+      },
+      ar: {
+        title: "تجديد البيعة السادسة لولي العهد",
+        description: "نجدد عهد البيعة والولاء لولي العهد، داعمين لرؤية ومستقبل المملكة."
+      }
+    },
+    {
+      id: "media-4",
+      image: "/images/media/Roshn Group (one of the Public.jpg",
+      sliderImages: [
+        "/images/media/Roshn Group (one of the Public.jpg",
+        "/images/media/Roshn Group (one of the Public.jpg"
+      ],
+      date: "2024-04-15",
+      tag_en: "Partnership",
+      tag_ar: "شراكة",
+      en: {
+        title: "Roshn Group (one of the Public Investment Fund companies)",
+        description: "Collaboration with Roshn Group to develop integrated residential communities that enhance the quality of life."
+      },
+      ar: {
+        title: "مجموعة روشن (إحدى شركات صندوق الاستثمارات العامة)",
+        description: "التعاون مع مجموعة روشن لتطوير مجتمعات سكنية متكاملة تعزز جودة الحياة."
+      }
+    },
+    {
+      id: "media-5",
+      image: "/images/media/Saudi Arabia wins to host 2034 World Cup.jpg",
+      sliderImages: [
+        "/images/media/Saudi Arabia wins to host 2034 World Cup.jpg",
+        "/images/media/Saudi Arabia wins to host 2034 World Cup.jpg"
+      ],
+      date: "2024-05-20",
+      tag_en: "National",
+      tag_ar: "وطني",
+      en: {
+        title: "Saudi Arabia wins to host 2034 World Cup",
+        description: "A historic moment for the Kingdom as it wins the hosting of the 2034 World Cup. We are ready to contribute to this global event."
+      },
+      ar: {
+        title: "المملكة تفوز باستضافة كأس العالم 2034",
+        description: "لحظة تاريخية للمملكة بفوزها باستضافة كأس العالم 2034. نحن مستعدون للمساهمة في هذا الحدث العالمي."
+      }
+    },
+    {
+      id: "media-6",
+      image: "/images/media/Saudi National Day 92.png",
+      sliderImages: [
+        "/images/media/Saudi National Day 92.png"
+      ],
+      date: "2022-09-23",
+      tag_en: "National Day",
+      tag_ar: "اليوم الوطني",
+      en: {
+        title: "Saudi National Day 92",
+        description: "Commemorating the 92nd National Day of the Kingdom of Saudi Arabia. It is our home and we are its builders."
+      },
+      ar: {
+        title: "اليوم الوطني السعودي 92",
+        description: "بمناسبة اليوم الوطني الـ 92 للمملكة العربية السعودية. هي لنا دار ونحن لها عمار."
+      }
+    },
+    {
+      id: "media-7",
+      image: "/images/media/Saudi National Day 93.jpeg",
+      sliderImages: [
+        "/images/media/Saudi National Day 93.jpeg"
+      ],
+      date: "2023-09-23",
+      tag_en: "National Day",
+      tag_ar: "اليوم الوطني",
+      en: {
+        title: "Saudi National Day 93",
+        description: "We dream and we achieve. Celebrating the 93rd National Day with pride and ambition."
+      },
+      ar: {
+        title: "اليوم الوطني السعودي 93",
+        description: "نحلم ونحقق. نحتفل باليوم الوطني الـ 93 بكل فخر وطموح."
+      }
+    },
+    {
+      id: "media-8",
+      image: "/images/media/Signing a contract for the implementation of the main infrastructure works for Rua Almadinah project.jpg",
+      sliderImages: [
+        "/images/media/Signing a contract for the implementation of the main infrastructure works for Rua Almadinah project.jpg"
+      ],
+      date: "2024-01-10",
+      tag_en: "Contract",
+      tag_ar: "توقيع عقد",
+      en: {
+        title: "Signing a contract for the implementation of the main infrastructure works for Rua Almadinah project",
+        description: "Proud to take part in the development of Rua Almadinah project, enhancing the spiritual and cultural experience of visitors."
+      },
+      ar: {
+        title: "توقيع عقد تنفيذ أعمال البنية التحتية الرئيسية لمشروع رؤى المدينة",
+        description: "فخورون بالمشاركة في تطوير مشروع رؤى المدينة، لتعزيز التجربة الروحية والثقافية للزوار."
+      }
+    },
+    {
+      id: "media-9",
+      image: "/images/media/The Sixth Conference and Exhibition for Maintenance, Reliability and Asset Management MaintCon2022.jpg",
+      sliderImages: [
+        "/images/media/The Sixth Conference and Exhibition for Maintenance, Reliability and Asset Management MaintCon2022.jpg"
+      ],
+      date: "2022-11-20",
+      tag_en: "Conference",
+      tag_ar: "مؤتمر",
+      en: {
+        title: "The Sixth Conference and Exhibition for Maintenance, Reliability and Asset Management MaintCon2022",
+        description: "Active participation in MaintCon2022 to exchange expertise and adopt best practices in asset management."
+      },
+      ar: {
+        title: "المؤتمر والمعرض السادس للصيانة والاعتمادية وإدارة الأصول MaintCon2022",
+        description: "مشاركة فاعلة في مؤتمر MaintCon2022 لتبادل الخبرات وتبني أفضل الممارسات في إدارة الأصول."
+      }
+    },
+    {
+      id: "media-10",
+      image: "/images/media/celebrations on the occasion of the 94th National Day.png",
+      sliderImages: [
+        "/images/media/celebrations on the occasion of the 94th National Day.png"
+      ],
+      date: "2024-09-23",
+      tag_en: "National Day",
+      tag_ar: "اليوم الوطني",
+      en: {
+        title: "Celebrations on the occasion of the 94th National Day",
+        description: "Our celebrations for the 94th National Day, reflecting our unity and architectural progress."
+      },
+      ar: {
+        title: "احتفالات بمناسبة اليوم الوطني 94",
+        description: "احتفالاتنا باليوم الوطني الـ 94، تعبيراً عن وحدتنا وتقدمنا المعماري."
+      }
+    }
+  ]
+};
+ 
+
+
+
+ 2-Newspaper Management
+ post for Add Newspaper 
+ put method for all data 
+ {
+    banner: {
+      image: "/images/newspaper/newspaperbanner.jpg",
+      title_en: "Newspaper Coverage",
+      title_ar: "التغطية الصحفية"
+    },
+    items: [
+      { id: 1, title_en: "Abdul Ali Al-Ajmi Company celebrates the National Day", title_ar: "شركة عبد العالي العجمي تحتفل باليوم الوطني", src: "/images/newspaper/Abdul Ali Al-Ajmi Company celebrates the National Day.png" },
+      { id: 2, title_en: "Al Ajami Co & Saudi Aramco", title_ar: "شركة العجمي وأرامكو السعودية", src: "/images/newspaper/Al Ajami co & Aramco Saudi.jpg" },
+      { id: 3, title_en: "Al Ajami Co", title_ar: "شركة العجمي", src: "/images/newspaper/Al Ajami co.jpg" },
+      { id: 4, title_en: "Company Achievements", title_ar: "إنجازات الشركة", src: "/images/newspaper/Company Achivements.jpg" },
+      { id: 5, title_en: "History Article", title_ar: "مقال تاريخي", src: "/images/newspaper/History article.jpg" },
+      { id: 6, title_en: "Founding a State", title_ar: "تأسيس دولة", src: "/images/newspaper/founding a state.jpg" },
+      { id: 7, title_en: "Sabq News", title_ar: "صحيفة سبق", src: "/images/newspaper/sabq news.jpg" }
+    ]
+  }
+
+
+
+
+  3-Media Gallery Manager
+post api for New Media Collection
+put method for all data 
+
+
+  {
+    banner: {
+      image: "/images/piclaybrary/piclaybrary banner.webp",
+      title_en: "Picture Library",
+      title_ar: "مكتبة الصور"
+    },
+    categories: [
+      {
+        id: 'infrastructure',
+        name_en: "Infrastructure Projects",
+        name_ar: "مشاريع البنية التحتية",
+        folder: "Infrastructure Projects",
+        images: [
+          "/images/piclaybrary/Infrastructure Projects/Image_dec_129-1.jpg",
+          "/images/piclaybrary/Infrastructure Projects/Image_dec_129.jpg",
+          "/images/piclaybrary/Infrastructure Projects/Image_dec_148.jpg",
+          "/images/piclaybrary/Infrastructure Projects/Image_dec_151.jpg"
+        ]
+      },
+      {
+        id: 'road',
+        name_en: "Road Projects",
+        name_ar: "مشاريع الطرق",
+        folder: "Road Projects",
+        images: [
+          "/images/piclaybrary/Road Projects/01-2jan2018-1.png",
+          "/images/piclaybrary/Road Projects/01-2jan2018-2.png",
+          "/images/piclaybrary/Road Projects/02-2jan2018-1.png",
+          "/images/piclaybrary/Road Projects/02-2jan2018-2.png"
+        ]
+      }
+    ]
+  }
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------Projects Management-----------------------------
+post api for Add New Project ,edit and delete 
+projectsData = [
+  {
+    id: "aramco",
+    name_en: "Saudi Aramco Company",
+    name_ar: "شركة أرامكو السعودية",
+    projects: [
+      {
+        id: "aramco-1",
+        image: "/images/our-projects/Saudi Aramco Compan/Development of the heavy industrial zone in the Jazan Economic Area.png",
+        en: { title: "Development of the heavy industrial zone in the Jazan Economic Area", owner: "Saudi Aramco", location: "", duration: "", status: "Under Construction", value: "SR 88,367,400" },
+        ar: { title: "تطوير المنطقة الصناعية الثقيلة في منطقة جازان الاقتصادية", owner: "أرامكو السعودية", location: "", duration: "", status: "قيد الإنشاء", value: "88,367,400 ريال" }
+      },
+      {
+        id: "aramco-2",
+        image: "/images/our-projects/Saudi Aramco Compan/Gas Collection Plant Road.jpg",
+        en: { title: "Gas Collection Plant Road", owner: "Saudi Aramco", location: " Chiba", duration: "300 days", status: "Under construction", value: "SR 45,300,000" },
+        ar: { title: "طريق محطة تجميع الغاز", owner: "أرامكو السعودية", location: "شيبة", duration: "300 يوم", status: "قيد الإنشاء", value: "45,300,000 ريال" }
+      },
+      {
+        id: "aramco-3",
+        image: "/images/our-projects/Saudi Aramco Compan/Infrastructure works for the Jazan Economic Zone.png",
+        en: { title: "Infrastructure works for the Jazan Economic Zone", owner: "Saudi Aramco", location: "", duration: "", status: "Under Construction", value: "SR 323,145,280" },
+        ar: { title: "أعمال البنية التحتية لمنطقة جازان الاقتصادية", owner: "أرامكو السعودية", location: "", duration: "", status: "قيد الإنشاء", value: "323,145,280 ريال" }
+      },
+      {
+        id: "aramco-4",
+        image: "/images/our-projects/Saudi Aramco Compan/Maintenance of main roads in the southern region.jpg",
+        en: { title: "Maintenance of main roads in the southern region", owner: "Saudi Aramco", location: "Southern Region", duration: "5 years", status: "Under construction", value: "SAR 392,985,769" },
+        ar: { title: "صيانة الطرق الرئيسية في المنطقة الجنوبية", owner: "أرامكو السعودية", location: "المنطقة الجنوبية", duration: "5 سنوات", status: "قيد الإنشاء", value: "392,985,769 ريال" }
+      },
+      {
+        id: "aramco-5",
+        image: "/images/our-projects/Saudi Aramco Compan/Site of Jizan refinery.jpg",
+        en: { title: "Site of Jizan refinery", owner: "Saudi Aramco", location: "Jizan", duration: "368 days", status: "Under construction", value: "SR 245,360,850" },
+        ar: { title: "موقع مصفاة جازان", owner: "أرامكو السعودية", location: "جازان", duration: "368 يوم", status: "قيد الإنشاء", value: "245,360,850 ريال" }
+      },
+      {
+        id: "aramco-6",
+        image: "/images/our-projects/Saudi Aramco Compan/Transportation of clay and cement materials.png",
+        en: { title: "Transportation of clay and cement materials", owner: "Saudi Aramco", location: "Eastern Region", duration: "5 years", status: "Done", value: "SR 30,340,000" },
+        ar: { title: "نقل مواد الطين والأسمنت", owner: "أرامكو السعودية", location: "المنطقة الشرقية", duration: "5 سنوات", status: "مكتمل", value: "30,340,000 ريال" }
+      },
+      {
+        id: "aramco-7",
+        image: "/images/our-projects/Saudi Aramco Compan/Transportation of materials, cement and clay.jpg",
+        en: { title: "Transportation of materials, cement and clay", owner: "Saudi Aramco", location: "", duration: "5 years", status: "Under construction", value: "SR 30,660,000" },
+        ar: { title: "نقل المواد والأسمنت والطين", owner: "أرامكو السعودية", location: "", duration: "5 سنوات", status: "قيد الإنشاء", value: "30,660,000 ريال" }
+      }
+    ]
+  },
+  {
+    id: "dammamAirports",
+    name_en: "Dammam Airports Company",
+    name_ar: "شركة مطارات الدمام",
+    projects: [
+      {
+        id: "dammam-1",
+        image: "/images/our-projects/Dammam Airports Company/Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part A).png",
+        en: { title: "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part A)", owner: "Dammam Airports Company", location: "Dammam", duration: "39.5 months", status: "in progress", value: "88,697,116.00 SAR" },
+        ar: { title: "تطوير البنية التحتية لقرية الشحن الجوي بمطار الملك فهد الدولي (الجزء أ)", owner: "شركة مطارات الدمام", location: "الدمام", duration: "39.5 شهر", status: "قيد التنفيذ", value: "88,697,116.00 ريال" }
+      },
+      {
+        id: "dammam-2",
+        image: "/images/our-projects/Dammam Airports Company/Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part B).png",
+        en: { title: "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part B)", owner: "Dammam Airports Company", location: "Dammam", duration: "22.3 months", status: "in progress", value: "40,054,161.41 SAR" },
+        ar: { title: "تطوير البنية التحتية لقرية الشحن الجوي بمطار الملك فهد الدولي (الجزء ب)", owner: "شركة مطارات الدمام", location: "الدمام", duration: "22.3 شهر", status: "قيد التنفيذ", value: "40,054,161.41 ريال" }
+      }
+    ]
+  },
+  {
+    id: "railways",
+    name_en: "General Authority for Railways",
+    name_ar: "الهيئة العامة للسكك الحديدية",
+    projects: [
+      {
+        id: "railways-1",
+        image: "/images/our-projects/General Authority for Railways/Construction of a concrete bridge (41-42) km on the double railway line 1-2.jpg",
+        en: { title: "Construction of a concrete bridge (41-42) km on the double railway line 1-2", owner: "Railways General Authority", location: "", duration: "", status: "Under Construction", value: "SR 14,158,622" },
+        ar: { title: "إنشاء جسر خرساني (41-42) كم على خط السكة الحديد المزدوج 1-2", owner: "الهيئة العامة للسكك الحديدية", location: "", duration: "", status: "قيد الإنشاء", value: "14,158,622 ريال" }
+      },
+      {
+        id: "railways-2",
+        image: "/images/our-projects/General Authority for Railways/Construction of a concrete bridge 196 km on the railway line.jpg",
+        en: { title: "Construction of a concrete bridge 196 km on the railway line", owner: "Railways General Authority", location: "", duration: "", status: "Completed", value: "SR 17,725,385" },
+        ar: { title: "إنشاء جسر خرساني 196 كم على خط السكة الحديد", owner: "الهيئة العامة للسكك الحديدية", location: "", duration: "", status: "مكتمل", value: "17,725,385 ريال" }
+      },
+      {
+        id: "railways-3",
+        image: "/images/our-projects/General Authority for Railways/Modification of the soil shoulders for the iron line No. (1) between Al-Hofuf and Riyadh.jpg",
+        en: { title: "Modification of the soil shoulders for the iron line No. (1) between Al-Hofuf and Riyadh", owner: "Railways General Authority", location: "", duration: "", status: "Under Construction", value: " SR 28.696.678.74" },
+        ar: { title: "تعديل أكتاف التربة للخط الحديدي رقم (1) بين الهفوف والرياض", owner: "الهيئة العامة للسكك الحديدية", location: "", duration: "", status: "قيد الإنشاء", value: "28,696,678.74 ريال" }
+      }
+    ]
+  },
+  {
+    id: "industrialCities",
+    name_en: "Industrial Cities Authority",
+    name_ar: "هيئة المدن الصناعية",
+    projects: [
+      {
+        id: "industrial-1",
+        image: "/images/our-projects/Industrial Cities Authority/Completion of the roads development in the second industrial city in Dammam.jpg",
+        en: { title: "Completion of the roads development in the second industrial city in Dammam", owner: "Saudi Industrial Property Authority “MODON”", location: "", duration: "", status: "Under Construction", value: "SR 43,969,703.10" },
+        ar: { title: "استكمال تطوير الطرق في المدينة الصناعية الثانية بالدمام", owner: "الهيئة السعودية للمدن الصناعية \"مدن\"", location: "", duration: "", status: "قيد الإنشاء", value: "43,969,703.10 ريال" }
+      },
+      {
+        id: "industrial-2",
+        image: "/images/our-projects/Industrial Cities Authority/Development of Oasis cities in Yanbu.jpg",
+        en: { title: "Development of Oasis cities in Yanbu", owner: "Saudi Industrial Property Authority “MODON”", location: "", duration: "", status: "Under Construction", value: "SR 47,812,668.16" },
+        ar: { title: "تطوير مدن الواحات في ينبع", owner: "الهيئة السعودية للمدن الصناعية \"مدن\"", location: "", duration: "", status: "قيد الإنشاء", value: "47,812,668.16 ريال" }
+      },
+      {
+        id: "industrial-3",
+        image: "/images/our-projects/Industrial Cities Authority/Development of building material zone in Sudair city for the industry & business.jpg",
+        en: { title: "Development of building material zone in Sudair city for the industry & business", owner: "Saudi Industrial Property Authority “MODON”", location: "", duration: "", status: "Under Construction", value: "SR 210,271,351" },
+        ar: { title: "تطوير منطقة مواد البناء بمدينة سدير للصناعة والأعمال", owner: "الهيئة السعودية للمدن الصناعية \"مدن\"", location: "", duration: "", status: "قيد الإنشاء", value: "210,271,351 ريال" }
+      },
+      {
+        id: "industrial-4",
+        image: "/images/our-projects/Industrial Cities Authority/Development of the Second Industrial City in Al-Hasa.png",
+        en: { title: "Development of the Second Industrial City in Al-Hasa", owner: "Saudi Industrial Property Authority “MODON”", location: "Al– Ahsa – Hofuf", duration: "", status: "Under Construction", value: "SR 65,000,000" },
+        ar: { title: "تطوير المدينة الصناعية الثانية بالأحساء", owner: "الهيئة السعودية للمدن الصناعية \"مدن\"", location: "الأحساء - الهفوف", duration: "", status: "قيد الإنشاء", value: "65,000,000 ريال" }
+      },
+      {
+        id: "industrial-5",
+        image: "/images/our-projects/Industrial Cities Authority/Infrastructure implementation project in the second industrial city in Aseer Contract No-2490.png",
+        en: { title: "Infrastructure implementation project in the second industrial city in Aseer Contract No-2490", owner: "Saudi Industrial Property Authority “MODON”", location: "", duration: "36 Months", status: "In progress", value: "SR 193,838,477.50" },
+        ar: { title: "مشروع تنفيذ البنية التحتية بالمدينة الصناعية الثانية بعسير عقد رقم-2490", owner: "الهيئة السعودية للمدن الصناعية \"مدن\"", location: "", duration: "36 شهر", status: "قيد التنفيذ", value: "193,838,477.50 ريال" }
+      },
+      {
+        id: "industrial-6",
+        image: "/images/our-projects/Industrial Cities Authority/Link services and facilities between the second and third industrial cities in Jeddah–Contract No.-2459.png",
+        en: { title: "Link services and facilities between the second and third industrial cities in Jeddah–Contract No.-2459", owner: "Saudi Industrial Property Authority “MODON”", location: "", duration: "36 months", status: "In progress", value: "SR 173,583,751.1" },
+        ar: { title: "ربط الخدمات والمرافق بين المدينتين الصناعيتين الثانية والثالثة بجدة – عقد رقم-2459", owner: "الهيئة السعودية للمدن الصناعية \"مدن\"", location: "", duration: "36 شهر", status: "قيد التنفيذ", value: "173,583,751.1 ريال" }
+      }
+    ]
+  },
+  {
+    id: "municipalRural",
+    name_en: "Ministry of Municipal and Rural Affairs",
+    name_ar: "وزارة الشؤون البلدية والقروية",
+    projects: [
+      {
+        id: "municipal-1",
+        image: "/images/our-projects/Ministry of Municipal and Rural Affairs/CONSTRUCTION OF THE KING ABDULLAH CULTURAL CENTER.png",
+        en: { title: "CONSTRUCTION OF THE KING ABDULLAH CULTURAL CENTER", owner: "Ministry of Municipal and Rural Affairs  – Al Ahsa Secretariat", location: "Al- Ahsa", duration: "", status: "Done", value: "SR 61,195,000" },
+        ar: { title: "إنشاء مركز الملك عبدالله الثقافي", owner: "وزارة الشؤون البلدية والقروية - أمانة الأحساء", location: "الأحساء", duration: "", status: "مكتمل", value: "61,195,000 ريال" }
+      },
+      {
+        id: "municipal-2",
+        image: "/images/our-projects/Ministry of Municipal and Rural Affairs/KING FAHAD INTERCHANGE – KING ABDULAZIZ ROAD.jpg",
+        en: { title: "KING FAHAD INTERCHANGE – KING ABDULAZIZ ROAD", owner: "Ministry of Municipal and Rural Affairs  – Al Ahsa Secretariat", location: "Hofuf – Secretariat of Ahsa", duration: "", status: "Finished", value: "SR 59,584,220.00" },
+        ar: { title: "تقاطع الملك فهد – طريق الملك عبدالعزيز", owner: "وزارة الشؤون البلدية والقروية - أمانة الأحساء", location: "الهفوف - أمانة الأحساء", duration: "", status: "مكتمل", value: "59,584,220.00 ريال" }
+      }
+    ]
+  },
+  {
+    id: "transportation",
+    name_en: "Ministry of Transport",
+    name_ar: "وزارة النقل",
+    projects: [
+      {
+        id: "transport-1",
+        image: "/images/our-projects/Ministry of The Transportation/Al-Hofuf Road-Al-Aqeer in the Eastern Region.jpg",
+        en: { title: "Al-Hofuf Road-Al-Aqeer in the Eastern Region", owner: "Ministry of Transport", location: "Eastern Region", duration: "36 months", status: "Done", value: " SAR 55,000,000.00" },
+        ar: { title: "طريق الهفوف-العقير بالمنطقة الشرقية", owner: "وزارة النقل", location: "المنطقة الشرقية", duration: "36 شهر", status: "مكتمل", value: "55,000,000.00 ريال" }
+      },
+      {
+        id: "transport-2",
+        image: "/images/our-projects/Ministry of The Transportation/Completion of the Ring Road in Al-Hasa, Southern, Eastern and Northern Shr.jpg",
+        en: { title: "Completion of the Ring Road in Al-Hasa, Southern, Eastern and Northern Shr", owner: "Ministry of Transport ", location: " Al Ahsa ring road", duration: "36 months", status: "Done", value: " 219.999.992.00 SAR" },
+        ar: { title: "استكمال الطريق الدائري بالأحساء الجنوبي والشرقي والشمالي", owner: "وزارة النقل", location: "طريق الأحساء الدائري", duration: "36 شهر", status: "مكتمل", value: "219,999,992.00 ريال" }
+      },
+      {
+        id: "transport-3",
+        image: "/images/our-projects/Ministry of The Transportation/Completion of the Riyadh-Khurais road duplication in the Riyadh region.png",
+        en: { title: "Completion of the Riyadh-Khurais road duplication in the Riyadh region", owner: "Ministry of Transport", location: "Riyadh", duration: "47.5 months", status: "in progress", value: " 94,999,999.50 SAR" },
+        ar: { title: "استكمال ازدواج طريق الرياض-خريص بمنطقة الرياض", owner: "وزارة النقل", location: "الرياض", duration: "47.5 شهر", status: "قيد التنفيذ", value: "94,999,999.50 ريال" }
+      },
+      {
+        id: "transport-4",
+        image: "/images/our-projects/Ministry of The Transportation/Completion of the intersections of Al-Ahsa Abqaiq-Dhahran -Abu Hadriyah in the Eastern Province.png",
+        en: { title: "Completion of the intersections of Al-Ahsa Abqaiq-Dhahran -Abu Hadriyah in the Eastern Province", owner: "Ministry of Transport", location: "Al Ahsa", duration: "24.3 months", status: "in progress", value: " 122,443,611.68 SAR" },
+        ar: { title: "استكمال تقاطعات الأحساء بقيق-الظهران -أبو حدرية بالمنطقة الشرقية", owner: "وزارة النقل", location: "الأحساء", duration: "24.3 شهر", status: "قيد التنفيذ", value: "122,443,611.68 ريال" }
+      },
+      {
+        id: "transport-5",
+        image: "/images/our-projects/Ministry of The Transportation/Construction of a road from King Khalid Military City to Daghileeb Al-Wajaan intersection in the Eastern Province.png",
+        en: { title: "Construction of a road from King Khalid Military City to Daghileeb Al-Wajaan intersection in the Eastern Province", owner: "Ministry of Transport ", location: " Eastern Province ", duration: "39.8 months", status: "in progress", value: " 197,336,358.45 SAR" },
+        ar: { title: "إنشاء طريق من مدينة الملك خالد العسكرية إلى تقاطع دغيليب الوجعان بالمنطقة الشرقية", owner: "وزارة النقل", location: "المنطقة الشرقية", duration: "39.8 شهر", status: "قيد التنفيذ", value: "197,336,358.45 ريال" }
+      },
+      {
+        id: "transport-6",
+        image: "/images/our-projects/Ministry of The Transportation/Double Hafof-Salwa.jpg",
+        en: { title: "Double Hafof-Salwa", owner: "Ministry of Transport", location: "Double Hofuf / Salwa", duration: "36 months", status: "Done", value: " 69,999.999.00 SAR" },
+        ar: { title: "ازدواج الهفوف-سلوى", owner: "وزارة النقل", location: "ازدواج الهفوف / سلوى", duration: "36 شهر", status: "مكتمل", value: "69,999,999.00 ريال" }
+      },
+      {
+        id: "transport-7",
+        image: "/images/our-projects/Ministry of The Transportation/Maintenance of Dhahran-Abqaiq-Hofuf-Khurais road performance, Contract No. (203).png",
+        en: { title: "Maintenance of Dhahran-Abqaiq-Hofuf-Khurais road performance, Contract No. (203)", owner: "", location: "", duration: "36 months", status: "In progress", value: " SR 73,869,102.20" },
+        ar: { title: "صيانة أداء طريق الظهران-بقيق-الهفوف-خريص، عقد رقم (203)", owner: "", location: "", duration: "36 شهر", status: "قيد التنفيذ", value: "73,869,102.20 ريال" }
+      },
+      {
+        id: "transport-8",
+        image: "/images/our-projects/Ministry of The Transportation/Maintenance of the performance of the roads of Riyadh – Khurais – Sudair, Contract No. (111).png",
+        en: { title: "Maintenance of the performance of the roads of Riyadh – Khurais – Sudair, Contract No. (111)", owner: "", location: "", duration: "36 months", status: "In progress ", value: " SR 101,300,945.01" },
+        ar: { title: "صيانة أداء طريق الرياض – خريص – سدير، عقد رقم (111)", owner: "", location: "", duration: "36 شهر", status: "قيد التنفيذ", value: "101,300,945.01 ريال" }
+      },
+      {
+        id: "transport-9",
+        image: "/images/our-projects/Ministry of The Transportation/Roads and Transport Administration Branch Building in Al-Ahsa Governorate.png",
+        en: { title: "Roads and Transport Administration Branch Building in Al-Ahsa Governorate", owner: "Ministry of Transport", location: "Al Ahsa", duration: "49.8 months", status: "in progress ", value: " 9,999,957.00 SAR" },
+        ar: { title: "مبنى فرع إدارة الطرق والنقل بمحافظة الأحساء", owner: "وزارة النقل", location: "الأحساء", duration: "49.8 شهر", status: "قيد التنفيذ", value: "9,999,957.00 ريال" }
+      },
+      {
+        id: "transport-10",
+        image: "/images/our-projects/Ministry of The Transportation/The implementation of a bridge at the intersection of the road Albuibat with the road Althamama.jpg",
+        en: { title: "The implementation of a bridge at the intersection of the road Albuibat with the road Althamama", owner: "Ministry of Transport ", location: "Tramway", duration: " 8 months", status: "Done ", value: " SR 53,272,000.00" },
+        ar: { title: "تنفيذ جسر عند تقاطع طريق البويب مع طريق الثمامة", owner: "وزارة النقل", location: "تراموي", duration: "8 أشهر", status: "مكتمل", value: "53,272,000.00 ريال" }
+      }
+    ]
+  },
+  {
+    id: "waterElectricity",
+    name_en: "Ministry of Water and Electricity",
+    name_ar: "وزارة المياه والكهرباء",
+    projects: [
+      {
+        id: "water-1",
+        image: "/images/our-projects/Ministry of Water and Electricity/Establishing drinking water networks in Buraidah city – Phase III.jpg",
+        en: { title: "Establishing drinking water networks in Buraidah city – Phase III", owner: "Ministry of Water and Electricity", location: "Al- Ahsa", duration: "", status: "Under construction", value: "SR 74,473,325" },
+        ar: { title: "إنشاء شبكات مياه الشرب بمدينة بريدة – المرحلة الثالثة", owner: "وزارة المياه والكهرباء", location: "الأحساء", duration: "", status: "قيد الإنشاء", value: "74,473,325 ريال" }
+      },
+      {
+        id: "water-2",
+        image: "/images/our-projects/Ministry of Water and Electricity/Sewage treatment plant capacity of 3000 m3 -day and the main pumping station and the expulsion line surplus in the province of Samta Jazan.jpg",
+        en: { title: "Sewage treatment plant capacity of 3000 m3 -day and the main pumping station...", owner: "Ministry of Water and Electricity", location: "Jazan", duration: "", status: "Under construction", value: "SR 107,545,417" },
+        ar: { title: "محطة معالجة مياه الصرف الصحي سعة 3000 م3/يوم ومحطة الضخ الرئيسية...", owner: "وزارة المياه والكهرباء", location: "جازان", duration: "", status: "قيد الإنشاء", value: "107,545,417 ريال" }
+      },
+      {
+        id: "water-3",
+        image: "/images/our-projects/Ministry of Water and Electricity/Water line project to connect the desalination tank with the reserve in the desalination tank in Naaman city in Abha city.jpg",
+        en: { title: "Water line project to connect the desalination tank with the reserve...", owner: "Ministry of Water and Electricity", location: "Abha", duration: "", status: "Done", value: "SR 18,285,155" },
+        ar: { title: "مشروع خط المياه لربط خزان التحلية بالاحتياطي...", owner: "وزارة المياه والكهرباء", location: "أبها", duration: "", status: "مكتمل", value: "18,285,155 ريال" }
+      }
+    ]
+  },
+  {
+    id: "housing",
+    name_en: "Ministry of Housing",
+    name_ar: "وزارة الإسكان",
+    projects: [
+      {
+        id: "housing-1",
+        image: "/images/our-projects/Ministry of housing/Abdu Arish Housing – Jazan.png",
+        en: { title: "Abdu Arish Housing – Jazan", owner: "Ministry of Housing", location: "Eastern Region", duration: "", status: "Completed", value: " SR 87,778,027.68"  },
+        ar: { title: "إسكان أبو عريش – جازان", owner: "وزارة الإسكان", location: "المنطقة الشرقية", duration: "", status: "مكتمل", value: "87,778,027.68 ريال" }
+      },
+      {
+        id: "housing-2",
+        image: "/images/our-projects/Ministry of housing/Al-Kharj Housing “Preliminary Works”.jpg",
+        en: { title: "Al-Kharj Housing “Preliminary Works”", owner: "Ministry of Housing", location: "Al-Kharj housing", duration: "", status: "Done", value: " SR 61,360,000" },
+        ar: { title: "إسكان الخرج \"أعمال أولية\"", owner: "وزارة الإسكان", location: "إسكان الخرج", duration: "", status: "مكتمل", value: "61,360,000 ريال" }
+      },
+      {
+        id: "housing-3",
+        image: "/images/our-projects/Ministry of housing/Biesh Housing – Jazan.png",
+        en: { title: "Biesh Housing – Jazan", owner: "Ministry of Housing", location: "Eastern Region", duration: "", status: "Completed", value: " SR 80,548,212" },
+        ar: { title: "إسكان بيش – جازان", owner: "وزارة الإسكان", location: "المنطقة الشرقية", duration: "", status: "مكتمل", value: "80,548,212 ريال" }
+      },
+      {
+        id: "housing-4",
+        image: "/images/our-projects/Ministry of housing/Housing of King Abdullah Suburb – Jazan.png",
+        en: { title: "Housing of King Abdullah Suburb – Jazan", owner: "Ministry of Housing", location: "Eastern Region", duration: "", status: "Under Construction", value: " SR 276,381,907.96" },
+        ar: { title: "إسكان ضاحية الملك عبدالله – جازان", owner: "وزارة الإسكان", location: "المنطقة الشرقية", duration: "", status: "قيد الإنشاء", value: "276,381,907.96 ريال" }
+      },
+      {
+        id: "housing-5",
+        image: "/images/our-projects/Ministry of housing/Housing project in the area of Al Baha.jpg",
+        en: { title: "Housing project in the area of Al Baha", owner: "Ministry of Housing", location: "Nawan – Jazan", duration: "", status: "Completed", value: " SR 69,600,000" },
+        ar: { title: "مشروع الإسكان بمنطقة الباحة", owner: "وزارة الإسكان", location: "ناوان - جازان", duration: "", status: "مكتمل", value: "69,600,000 ريال" }
+      },
+      {
+        id: "housing-6",
+        image: "/images/our-projects/Ministry of housing/Riyadh Airport King Khalid Hotel – Riyadh.jpg",
+        en: { title: "Riyadh Airport King Khalid Hotel – Riyadh", owner: "Ministry of Housing", location: "Riyadh ", duration: "", status: "Done", value: " SR 146,476,280" },
+        ar: { title: "فندق مطار الملك خالد بالرياض – الرياض", owner: "وزارة الإسكان", location: "الرياض", duration: "", status: "مكتمل", value: "146,476,280 ريال" }
+      },
+      {
+        id: "housing-7",
+        image: "/images/our-projects/Ministry of housing/Sabiyah Housing – Jazan.png",
+        en: { title: "Sabiyah Housing – Jazan", owner: " Ministry of Housing", location: " ", duration: " ", status: "Completed", value: " SR 79,767,376.60" },
+        ar: { title: "إسكان صبيا – جازان", owner: "وزارة الإسكان", location: "", duration: "", status: "مكتمل", value: "79,767,376.60 ريال" }
+      },
+      {
+        id: "housing-8",
+        image: "/images/our-projects/Ministry of housing/Samtah Housing – Jazan.png",
+        en: { title: "Samtah Housing – Jazan", owner: "Ministry of Housing", location: " ", duration: " ", status: "Completed", value: " SR 63,339,656.35" },
+        ar: { title: "إسكان صامطة – جازان", owner: "وزارة الإسكان", location: "", duration: "", status: "مكتمل", value: "63,339,656.35 ريال" }
+      }
+    ]
+  },
+  {
+    id: "nationalHousing",
+    name_en: "National Housing Company",
+    name_ar: "الوطنية للإسكان",
+    projects: [
+      {
+        id: "national-1",
+        image: "/images/our-projects/National Housing Company/Implementation of the developmental housing project, King Abdulaziz Road – 1782 housing units – Medina.png",
+        en: { title: "Implementation of the developmental housing project, King Abdulaziz Road – 1782 housing units – Medina", owner: "National Housing Company", location: "", duration: "18 months", status: " In progress", value: "590,788,600" },
+        ar: { title: "تنفيذ مشروع الإسكان التنموي طريق الملك عبدالعزيز – 1782 وحدة سكنية – المدينة المنورة", owner: "الشركة الوطنية للإسكان", location: "", duration: "18 شهر", status: "قيد التنفيذ", value: "590,788,600 ريال" }
+      },
+      {
+        id: "national-2",
+        image: "/images/our-projects/National Housing Company/Implementation of the infrastructure for the site of Forsan Gumah in Jazan.png",
+        en: { title: "Implementation of the infrastructure for the site of Forsan Gumah in Jazan", owner: "National Housing Company", location: "Forsan Gumah in Jazan", duration: "33.2 Months", status: "Completed", value: "SR 99,561,287.73" },
+        ar: { title: "تنفيذ البنية التحتية لموقع فرسان جمعة بجازان", owner: "الشركة الوطنية للإسكان", location: "فرسان جمعة بجازان", duration: "33.2 شهر", status: "مكتمل", value: "99,561,287.73 ريال" }
+      }
+    ]
+  },
+  {
+    id: "qiddiya",
+    name_en: "Qiddiya Investment Company",
+    name_ar: "شركة القدية للاستثمار",
+    projects: [
+      {
+        id: "qiddiya-1",
+        image: "/images/our-projects/Qiddiya Investment Company/Comprehensive settlement of the main resort area and the city center of Qiddiya–Contract No.-QMPO-400-CT-00001.png",
+        en: { title: "Comprehensive settlement of the main resort area and the city center of Qiddiya", owner: "Qiddiya", location: "Riyadh", duration: "26.2 Months", status: "Completed", value: "SR 249,794,890.29" },
+        ar: { title: "التسوية الشاملة لمنطقة المنتجع الرئيسية ووسط مدينة القدية", owner: "القدية", location: "الرياض", duration: "26.2 شهر", status: "مكتمل", value: "249,794,890.29 ريال" }
+      },
+      {
+        id: "qiddiya-2",
+        image: "/images/our-projects/Qiddiya Investment Company/Service Road for the Upper Plateau of Qiddiya City – Contract No. QMPO-410-CT-00630.png",
+        en: { title: "Service Road for the Upper Plateau of Qiddiya City", owner: "Qiddiya", location: "Riyadh", duration: "13.1 Months", status: "Completed", value: "SR 41,895,000.00" },
+        ar: { title: "طريق الخدمة للهضبة العليا لمدينة القدية", owner: "القدية", location: "الرياض", duration: "13.1 شهر", status: "مكتمل", value: "41,895,000.00 ريال" }
+      },
+      {
+        id: "qiddiya-3",
+        image: "/images/our-projects/Qiddiya Investment Company/Settlement works project for the Six Flags Buildings for Qiddiya Investment Company – Contract No.- QPMO-410-CT-01498.png",
+        en: { title: "Settlement works project for the Six Flags Buildings for Qiddiya Investment Company", owner: "Qiddiya Investment Company", location: "Riyadh", duration: "3 months", status: "Executed", value: "24,802,471.83 SAR" },
+        ar: { title: "مشروع أعمال التسوية لمباني سيكس فلاجز لشركة القدية للاستثمار", owner: "شركة القدية للاستثمار", location: "الرياض", duration: "3 أشهر", status: "مكتمل", value: "24,802,471.83 ريال" }
+      }
+    ]
+  },
+  {
+    id: "royalCommission",
+    name_en: "Royal Commission for Jubail and Yanbu",
+    name_ar: "الهيئة الملكية للجبيل وينبع",
+    projects: [
+      {
+        id: "royal-1",
+        image: "/images/our-projects/Royal Commission for Jubail and Yanbu/MAINTENANCE OF THE ROADS OF YANBU CITY – PHASE NINE – YANBU INDUSTRIAL CITY.jpg",
+        en: { title: "MAINTENANCE OF THE ROADS OF YANBU CITY – PHASE NINE – YANBU INDUSTRIAL CITY", owner: "Royal Commission for Jubail & Yanbu", location: "Yanbu", duration: "", status: "Under construction", value: "SR 59,990,587.00" },
+        ar: { title: "صيانة طرق مدينة ينبع – المرحلة التاسعة – مدينة ينبع الصناعية", owner: "الهيئة الملكية للجبيل وينبع", location: "ينبع", duration: "", status: "قيد الإنشاء", value: "59,990,587.00 ريال" }
+      }
+    ]
+  },
+  {
+    id: "borderGuards",
+    name_en: "The Guards Of The Border",
+    name_ar: "حرس الحدود",
+    projects: [
+      {
+        id: "border-1",
+        image: "/images/our-projects/The Guards Of The Border/Operation, maintenance and cleanliness for the patrolling of the Border Guard in the sectors of (Al-Khafji-Hafr Al-Batin) – the Eastern Region No. (2).jpg",
+        en: { title: "Operation, maintenance and cleanliness for the patrolling of the Border Guard in the sectors of (Al-Khafji-Hafr Al-Batin) – the Eastern Region No. (2)", owner: "Border Guard", location: "", duration: "", status: "Under construction", value: " SR 21,522,310" },
+        ar: { title: "تشغيل وصيانة ونظافة لـدوريات حرس الحدود في قطاعات (الخفجي - حفر الباطن) – المنطقة الشرقية رقم (2)", owner: "حرس الحدود", location: "", duration: "", status: "قيد الإنشاء", value: "21,522,310 ريال" }
+      },
+      {
+        id: "border-2",
+        image: "/images/our-projects/The Guards Of The Border/Road construction of the for the border patrolling (Al-Matif – Kharkhir) – Sharurah.png",
+        en: { title: "Road construction of the for the border patrolling (Al-Matif – Kharkhir) – Sharurah", owner: "Border Guard", location: "", duration: "", status: "Under construction", value: "SR 597,150,000" },
+        ar: { title: "إنشاء طريق لدوريات الحدود (المطيف – الخرخير) – شرورة", owner: "حرس الحدود", location: "", duration: "", status: "قيد الإنشاء", value: "597,150,000 ريال" }
+      }
+    ]
+  },
+  {
+    id: "miskCity",
+    name_en: "The Miskcity Company",
+    name_ar: "شركة مدينة مسك",
+    projects: [
+      {
+        id: "misk-1",
+        image: "/images/our-projects/The Miskcity Commpany/The preliminary works of the Misk Al-Mishraq city project.png",
+        en: { title: "The preliminary works of the Misk Al-Mishraq city project", owner: "Misk Company ", location: "Riyadh", duration: "21.6 months", status: "in progress ", value: " 43,232,369.38 SAR" },
+        ar: { title: "الأعمال الأولية لمشروع مدينة مسك المشراق", owner: "شركة مسك", location: "الرياض", duration: "21.6 شهر", status: "قيد التنفيذ", value: "43,232,369.38 ريال" }
+      }
+    ]
+  }
+];
+
+
+-----------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+--------------------------Suppliers Management ----------------------------------------------------
+ get Registration Requests dashboard and edit all data
+{
+    banner: {
+      image: "/images/splyerbanner.jpeg",
+      title_en: "Suppliers Registration",
+      title_ar: "تسجيل الموردين",
+      subtitle_en: "Join our network of partners",
+      subtitle_ar: "نعتز بشراكاتنا الاستراتيجية مع نخبة الموردين"
+    },
+    registrations: [
+      {
+        id: "SR-1025",
+        company: "Rawabi Construction Material",
+        activity: "Material",
+        country: "Saudi Arabia",
+        date: "2026-01-20",
+        officer: "Ahmed Mansour",
+        email: "ahmed@rawabi.com",
+        phone: "+966 50 123 4567",
+        vat: "310123456789003",
+        status: "New",
+        fax: "+966 11 222 3333",
+        bankName: "Al-Rajhi Bank",
+        accountNo: "123456789012345",
+        iban: "SA0380000000123456789012"
+        file:'gg.pdf'
+      },
+      {
+        id: "SR-1024",
+        company: "Gulf Logistics Solutions",
+        activity: "Transporter",
+        country: "UAE",
+        date: "2026-01-18",
+        officer: "Sarah Wilson",
+        email: "s.wilson@gulfloc.ae",
+        phone: "+971 4 555 1234",
+        vat: "1002345678",
+        status: "New",
+        fax: "+971 4 555 1235",
+        bankName: "Emirates NBD",
+        accountNo: "98765432109876",
+        iban: "AE012345678901234567890"
+         file:'gg.pdf'
+      },
+      {
+        id: "SR-1023",
+        company: "Industrial Spare Parts Co.",
+        activity: "Spare parts",
+        country: "Saudi Arabia",
+        date: "2026-01-15",
+        officer: "Faisal Al-Otaibi",
+        email: "faisal@ispc.sa",
+        phone: "+966 11 444 8888",
+        vat: "300987654321003",
+        status: "New",
+        fax: "+966 11 444 8889",
+        bankName: "SNB",
+        accountNo: "55566677788899",
+        iban: "SA0510000000555666777888"
+         file:'gg.pdf'
+      }
+    ]
+  }
+
+
+
+
+this api for  dropdowns  to get data 
+
+ "nicknameOptions": {
+        "placeholder": "— Please select an option —",
+        "consulting": "Consulting",
+        "subcontractors": "Subcontractors",
+        "spareParts": "Spare parts",
+        "asset": "Asset",
+        "material": "Material",
+        "transporter": "Transporter",
+        "rent": "Rent",
+        "purchasing": "Purchasing",
+        "hospitals": "Hospitals",
+        "paintsSafety": "Paints AND SAFETY",
+        "fuel": "Fuel",
+        "other": "Other"
+      },
+      "address": "Address (Country)",
+      "addressOptions": {
+        "placeholder": "— Please select an option —",
+        "egypt": "Egypt",
+        "uae": "UAE",
+        "saudia": "Saudia Arabia",
+        "jordan": "Jordan",
+        "other": "Other"
+      },
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------- Job Openings Management --------------------------------------------------------------
+this for dashboard Add New Vacancy ,edit and delete 
+const mockVacancies = [
+  {
+    id: "job-1",
+    en: {
+      title: "Security Guard",
+      description: "Patrolling and monitoring workplaces to guard property against theft and vandalism, monitoring entry points to workplaces, and maintaining order",
+      employeesCount: "4",
+      experience: "Unconditional",
+      qualification: "Secondary degree"
+    },
+    ar: {
+      title: "حارس أمن",
+      description: "الدوريات ومراقبة أماكن العمل لحماية الممتلكات من السرقة والتخريب، ومراقبة نقاط الدخول إلى أماكن العمل، والحفاظ على النظام",
+      employeesCount: "4",
+      experience: "غير مشروط",
+      qualification: "شهادة ثانوية"
+    }
+  },
+  {
+    id: "job-2",
+    en: {
+      title: "Administrative specialist",
+      description: "Assisting the line manager in setting the main objectives of the department or department, performing and executing a range of different administrative tasks, providing support to co-workers, ensuring the transfer of expertise and knowledge, and preparing documents and reports specialized in business results",
+      employeesCount: "6",
+      experience: "Unconditional",
+      qualification: "Diploma or higher in Business Administration"
+    },
+    ar: {
+      title: "أخصائي إداري",
+      description: "مساعدة المدير المباشر في وضع الأهداف الرئيسية للقسم أو الإدارة، وأداء وتنفيذ مجموعة من المهام الإدارية المختلفة، وتقديم الدعم لزملاء العمل، وضمان نقل الخبرة والمعرفة، وإعداد المستندات والتقارير المتخصصة في نتائج الأعمال",
+      employeesCount: "6",
+      experience: "غير مشروط",
+      qualification: "دبلوم أو أعلى في إدارة الأعمال"
+    }
+  }
+];
+
+
+for website form 
+"form": {
+      "fullName": "Full Name",
+      "nationality": "Nationality",
+      "nationalityOptions": {
+        "placeholder": "— Select Nationality —",
+        "saudi": "Saudi",
+        "egyptian": "Egyptian",
+        "qatari": "Qatari",
+        "omani": "Omani",
+        "uae": "UAE",
+        "iraqi": "Iraqi",
+        "kuwaiti": "Kuwaiti",
+        "yemeni": "Yemeni",
+        "jordanian": "Jordanian",
+        "syrian": "Syrian"
+      },
+      "residency": "Residency Status",
+      "residencyOptions": {
+        "placeholder": "— Select Residency Status —",
+        "nonTransferable": "Non-transferable residence",
+        "transferable": "Residency transferable"
+      },
+      "address": "Address",
+      "mobile": "Mobile",
+      "job": "Job Title",
+      "specialization": "Specialization",
+      "email": "Email",
+      "expectedSalary": "Expected Salary",
+      "salaryOptions": {
+        "placeholder": "— Select Expected Salary —",
+        "less2000": "2000 Less",
+        "2000to3000": "2000 to 3000",
+        "3000to5000": "3000 to 5000",
+        "5000to7000": "5000 to 7000",
+        "7000to10000": "7000 to 10000",
+        "10000to12000": "10000 to 12000",
+        "12000to15000": "12000 to 15000",
+        "15000to20000": "15000 to 20000",
+        "more20000": "20000 And more"
+      },
+      "cv": "Attach your CV",
+      "submit": "Send Application"
+    }
+
+
+
+
+    --------------------------------------------------    --------------------------------------------------    --------------------------------------------------    --------------------------------------------------
+        --------------------------------------------------    --------------------------------------------------    --------------------------------------------------    --------------------------------------------------
+            --------------------------------------------------    --------------------------------------------------    --------------------------------------------------    --------------------------------------------------
+ --------------------------------------------------Suggestions & Complaints --------------------------------
+  dashboard data 
+ {
+    banner: {
+      image: "/images/complementbanner.jpeg",
+      title_en: "Suggestions & Complaints",
+      title_ar: "المقترحات والشكاوى",
+      subtitle_en: "We value your feedback to improve our services",
+      subtitle_ar: "نسعد باستلام مقترحاتكم لتقديم خدمات أفضل"
+    },
+    suggestions: [
+      {
+        id: "SUG-5012",
+        name: "Abdullah Mohammed",
+        mobile: "+966 50 111 2222",
+        email: "abdullah@example.com",
+        type: "suggestion",
+        subject: "Mobile App Idea",
+        message: "It would be great if the company had a mobile app for tracking material deliveries in real-time.",
+        date: "2026-01-20",
+        status: "New"
+      },
+      {
+        id: "COM-5011",
+        name: "Sami Al-Fahad",
+        mobile: "+966 55 333 4444",
+        email: "sami@example.com",
+        type: "complaint",
+        subject: "Delivery Delay",
+        message: "There was a significant delay in the concrete delivery at the Dammam project site last Tuesday.",
+        date: "2026-01-18",
+        status: "New"
+      },
+      {
+        id: "SUG-5010",
+        name: "Jessica Miller",
+        mobile: "+966 54 555 6666",
+        email: "j.miller@contracting.com",
+        type: "suggestion",
+        subject: "Safety Gear Upgrade",
+        message: "I suggest upgrading the current high-visibility vests to a breathable mesh material for summer operations.",
+        date: "2026-01-15",
+        status: "New"
+      }
+    ]
+  }
+
+  get for drop down  (select type )
+   "typeOptions": {
+        "placeholder": "— Please select an option —",
+        "suggestion": "Suggestion",
+        "complaint": "Complaint"
+      },
+
+
+
+
+
+
+      --------------------------------------------------------------------------------------------------------------
+      ---------------------------------------------------------------------------------------------------------------
+      --------------------------------------------------- Contact Us Manager --------------------------------------------------------------
+      Contact Us Manager
+
+post for Add New Branch 
+
+api put for all data 
+
+
+      {
+    hero: {
+      banner: "/images/contactusbanner.webp",
+      title_en: "Contact Us",
+      title_ar: "اتصل بنا",
+      subtitle_en: "We are always here to help you",
+      subtitle_ar: "نحن هنا دائماً لمساعدتك"
+    },
+    generalInfo: {
+      phone: "+966 11 477 7777",
+      email: "info@alajmi.com.sa",
+      hours_sat_en: "Saturday: 08:00 AM - 01:00 PM",
+      hours_sat_ar: "السبت: 08:00 صباحاً - 01:00 ظهراً",
+      hours_week_en: "Sun - Thu: 08:00 AM - 05:00 PM",
+      hours_week_ar: "الأحد - الخميس: 08:00 صباحاً - 05:00 مساءً"
+    },
+    branches: [
+      {
+        id: 'riyadh',
+        name_en: "Head Office - Riyadh",
+        name_ar: "المكتب الرئيسي - الرياض",
+        address_en: "Saudi Arabia Riyadh",
+        address_ar: "المملكة العربية السعودية، الرياض",
+        phone: "966-112-402-450",
+        fax: "+966 112-402-458",
+        poBox_en: "86059 Riyadh 11622",
+        poBox_ar: "86059 الرياض 11622",
+        mapLink: "https://maps.google.com/maps?q=24.8049998,46.7990096&output=embed"
+      },
+      {
+        id: 'jazan',
+        name_en: "Jazan Branch",
+        name_ar: "فرع جازان",
+        address_en: "Saudi Arabia Jazan",
+        address_ar: "المملكة العربية السعودية، جازان",
+        phone: "966-112-402-450",
+        fax: "+966 173-310-066",
+        poBox_en: "3044 Jazan 45142",
+        poBox_ar: "3044 جازان 45142",
+        mapLink: "https://maps.google.com/maps?q=16.8891,42.5511&output=embed"
+      },
+      {
+        id: 'hofuf',
+        name_en: "Hofuf Branch",
+        name_ar: "فرع الهفوف",
+        address_en: "Hofuf - Saudi Arabia",
+        address_ar: "الهفوف - المملكة العربية السعودية",
+        phone: "966-112-402-450",
+        fax: "966 1359-287-04",
+        poBox_en: "447 Al-Ehsaa 31980",
+        poBox_ar: "447 الأحساء 31980",
+        mapLink: "https://maps.google.com/maps?q=25.3833,49.5833&output=embed"
+      }
+    ]
+  }
+
+
+
+
+  this data for contact form in website 
+  "form": {
+      
+      "fullName": "Full Name",
+      "mobile": "Mobile",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      
+    },
+
+
+
+
+
+    ------------------------------------------------------------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    --------------------------------------------------Footer Management --------------------
+post api for Add News Item 
+put method for all data 
+
+    {
+    about: {
+      en: "Leading the way in infrastructure, construction, and logistics since 1980.",
+      ar: "الرائدة في مجال البنية التحتية والإنشاءات والخدمات اللوجستية منذ عام 1980."
+    },
+    news: [
+      { id: 1, en: "Signing an agreement with Roshn Group", ar: "توقيع اتفاقية مع مجموعة روشن" },
+      { id: 2, en: "Saudi Arabia wins to host 2034 World Cup", ar: "المملكة العربية السعودية تفوز باستضافة كأس العالم 2034" }
+    ],
+    contact: {
+      address: { en: "Saudi Arabia - Riyadh", ar: "المملكة العربية السعودية - الرياض" },
+      phone: "966-112-402-450",
+      email: "info@alajmicompany.com",
+      hours: {
+        sat: { en: "Saturday: 09:00 - 14:00", ar: "السبت: 09:00 - 14:00" },
+        week: { en: "Sun - Thu: 08:00 - 17:00", ar: "الأحد - الخميس: 08:00 - 17:00" }
+      }
+    },
+    rights: {
+      en: "Alajmi Company. All Rights Reserved.",
+      ar: "شركة العجمي. جميع الحقوق محفوظة."
+    }
+  }
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  login 
+post 
+  {
+ email:diya@gg.com
+    password:@123456789@
+  }
+   -------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
+  
+additional note : 
+
+for images need apis  for images add and delete for every section 
+api for website(not dashboard)content-lang in header to return data in en or ar liek this : 
+ headers: {
+              'Accept-Language': ar || en 
+ },
+
+
+//ar in header 
+  "data": [
+            {
+                "id": 31,
+                "slug": "bla bla
+                "title": "منظمة السلام الأزرق في الشرق الأوسط ترحب باتفاقية المياه بين العراق وتركيا", see 
+                "date": "2025-11-06",
+                "image_url": "https://apibluepeace.codexal.co/storage/news/mLRMLA3hz3aYuXPmQtJmKiG67KJtdjsShmjZTMUZ.jpg",
+                "location": "بغداد, العراق" see
+            },
+
+  ]
+
+//en in header
+ "data": [
+            {
+                "id": 31,
+                "slug": "bla bla
+                "title": "Blue Peace Middle East Welcomes the Iraq–Türkiye Water Agreement", see
+                "date": "2025-11-06",
+                "image_url": "https://apibluepeace.codexal.co/storage/news/mLRMLA3hz3aYuXPmQtJmKiG67KJtdjsShmjZTMUZ.jpg",
+                "location": "Baghdad, Iraq"  see
+            },
+ ]

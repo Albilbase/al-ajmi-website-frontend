@@ -1,0 +1,734 @@
+{
+  "nav": {
+    "home": "Home",
+    "company": "Company",
+    "companySub": {
+      "about": "About us",
+      "whyAjami": "Why Ajami",
+      "vision": "COMPANY VISION",
+      "board": "Board of Directors",
+      "hse": "HEALTH, SAFETY & ENVIRONMENTAL POLICY"
+    },
+    "projects": "Our Projects",
+    "services": "Our Services",
+    "media": "Media Center",
+    "mediaSub": {
+      "mediaItem": "Media",
+      "news": "Newspaper",
+      "gallery": "Picture Library"
+    },
+    "customers": "Customers",
+    "suppliers": " Suppliers",
+    "jobs": "Jobs",
+    "suggestions": "Suggestion ",
+    "contact": "Contact Us"
+  },
+  "footer": {
+    "about": "About Al-Ajmi",
+    "aboutText": "A leading Saudi company in construction, engineering, and logistics, contributing to the development of the Kingdom since 1980.",
+    "quickLinks": "Quick Links",
+    "contactInfo": "Contact Information",
+    "contactUs": "Contact Us",
+    "address": "Address",
+    "addressText": "Saudi Arabia - Riyadh",
+    "phone": "Phone",
+    "email": "Email",
+    "news": "Last news",
+    "workingHours": "Working Hours",
+    "sat": "Saturday: 09:00 - 14:00",
+    "sunThu": "Sun - Thu: 08:00 - 17:00",
+    "rights": "Alajmi Company. All Rights Reserved.",
+    "lastNews": "Last News",
+    "news1": "Signing an agreement with Roshn Group (one of the Public Investment Fund companies)",
+    "news2": "Saudi Arabia wins to host 2034 World Cup"
+  },
+  "contact": {
+    "email": "info@alajmicompany.com",
+    "phone": "966-112-402-450"
+  },
+  "hero": {
+    "slides": [
+      {
+        "title": "Excellence in Construction",
+        "description": "Building the future of the Kingdom with innovation, quality, and commitment since 1980.",
+        "cta": "Explore Our Projects"
+      },
+      {
+        "title": "Advanced Engineering Solutions",
+        "description": "Leading the way in BIM and digital twin technology for sustainable development.",
+        "cta": "Our Services"
+      },
+      {
+        "title": "Empowering Logistics & Transport",
+        "description": "Providing world-class logistics services to support the Kingdom's Vision 2030.",
+        "cta": "Learn More"
+      }
+    ]
+  },
+  "news": {
+    "label": "LATEST NEWS",
+    "items": [
+      "Deputy Governor of Jazan patronizes the signing of a community partnership agreement",
+      "Ceremony to complete the Al-Fadhli main intersection construction project",
+      "Achieving 1,100,000 working hours with the highest quality standards in safety and security",
+      "Elections for the Board of Directors of the Saudi Contractors Authority"
+    ]
+  },
+  "services": {
+    "title": "Our Premier Services",
+    "subtitle": "Delivering integrated logistics and engineering solutions that exceed expectations",
+    "items": [
+      {
+        "id": 1,
+        "title": "Road Transport in Difficult Areas",
+        "description": "The company has the ability to transport goods and difficult tasks on roads through the possession of a number of mechanisms, vehicles and the special tools & machines to carry out these tasks, where the transport of goods and asphalt, drilling materials, clay, oil, cement, petroleum and other materials are carried out by the company, the most important agencies that deal with the company regarding the transport operations is Saudi Aramco Company.",
+        "image": "/images/services/WhatsApp Image 2025-12-10 at 8.17.06 AM.jpeg"
+      },
+      {
+        "id": 2,
+        "title": "Rental Equipment and Heavy Vehicles",
+        "description": "The company owns a fleet of heavy and light equipment and machinery and cars of various types and sizes (bulldozers, trucks, skid steers, graders, bullets, etc.) where the company rents these equipment for various projects.",
+        "image": "/images/services/WhatsApp Image 2025-12-21 at 12.00.58 PM.jpeg"
+      },
+      {
+        "id": 3,
+        "title": "Petroleum Services",
+        "description": "In 2006, the company established a special section for the petroleum services under the name of Al-Ajmi Petroleum Services, which provides its services to oil companies, headed by Saudi Aramco and joint operations in Khafji and the Gulf Cooperation Council in the field of maintenance of dams and wells.",
+        "image": "/images/services/85a9159a-c506-491c-99ab-794679b6043f.jpeg"
+      },
+      {
+        "id": 4,
+        "title": "Surface Treatment and Road Safety",
+        "description": "One of the company's important works is to treat asphalt surface layers with asphalt slurry, as well as reflective paints, road signs and road signs, and the installation of reflective cat eyes that provide safety for drivers on external roads. The company has specialized teams in road planning, cat eyes installation, asphalt implementation, and abrasive works. The company also has crushers and mixers in different locations.",
+        "image": "/images/services/WhatsApp Image 2026-01-08 at 11.49.24 AM (1).jpeg"
+      },
+      {
+        "id": 5,
+        "title": "Electricity Works",
+        "description": "The company has a number of projects for electrical works and street lighting, and the company is classified as the fourth grade in the electrical works.",
+        "image": "/images/services/WhatsApp Image 2026-01-08 at 11.52.26 AM (3).jpeg"
+      },
+      {
+        "id": 6,
+        "title": "Building Construction",
+        "description": "As part of the commercial activity of the company is also construction of buildings and general contracting, where the company has some projects for the construction of buildings and maintenance and cleanliness, and the most important of these projects is the company new headquarter and the company has been classified as the third grade in this field.",
+        "image": "/images/services/WhatsApp Image 2025-12-26 at 1.10.04 PM.jpeg"
+      },
+      {
+        "id": 7,
+        "title": "Water and Sanitation Works",
+        "description": "The company has a number of projects for the work of sewage and extension of water networks, It has been classified in the water field of water & drainage works and implemented its many projects due to having third grade in the waters and drainage works.",
+        "image": "/images/services/WhatsApp Image 2026-01-08 at 12.07.42 PM.jpeg"
+      }
+    ]
+  },
+  "history": {
+    "title": "Abdul Ali Al-Ajmi Company",
+    "description": "Abdul Ali Al-Ajmi Company was established in 1980 and has taken its main headquarters in the city of Riyadh and has expanded its business and established branches in Hofuf and Jaffa. The company has specialized since its establishment in 1980 in the field of road and bridge construction and maintenance, infrastructure, worksite preparation, real estate plans development, and land transport services. It is known as a major company in the field of road construction throughout the Kingdom of Saudi Arabia.",
+    "button": "Read More"
+  },
+   "projects": {
+    "subtitle": "Our Projects",
+    "title": "Projects We Are Proud Of",
+    "items": [
+      {
+        "id": 1,
+        "fullName": "Saudi Aramco Company",
+        "type": "Energy & Oil",
+        "logo": "/images/projects/aramco.png"
+      },
+      {
+        "id": 2,
+        "fullName": "Royal Commission for Jubail & Yanbu",
+        "type": "Regional Development",
+        "logo": "/images/projects/rcjy.png"
+      },
+      {
+        "id": 3,
+        "fullName": "MODON",
+        "type": "Industrial Cities",
+        "logo": "/images/projects/modon.png"
+      },
+      {
+        "id": 4,
+        "fullName": "Saudi Railways",
+        "type": "Transportation",
+        "logo": "/images/projects/railways.png"
+      },
+      {
+        "id": 5,
+        "fullName": "Border Guards",
+        "type": "Security",
+        "logo": "/images/projects/border-guards.png"
+      },
+      {
+        "id": 6,
+        "fullName": "Ministry of Municipal & Rural Affairs",
+        "type": "Urban Planning",
+        "logo": "/images/projects/momra.png"
+      },
+      {
+        "id": 7,
+        "fullName": "Ministry of Water & Electricity",
+        "type": "Infrastructure",
+        "logo": "/images/projects/mowe.png"
+      }
+    ]
+  },
+  "partners": {
+    "title": "Our Partners"
+  },
+  "aboutPage": {
+    "title": "About Al-Ajmi Company",
+    "subtitle": "Building the Future Since 1980",
+    "intro": {
+      "title": "Who We Are",
+      "text": "Since its establishment in 1980, Abdul Ali Al-Ajmi Company has specialized in the construction and maintenance of roads and bridges, infrastructure, site preparation works, real estate development, and road transport services. The company has successfully implemented all its projects in accordance with the standards of Saudi Aramco, Ministry of Transport, Border Guard, Ministry of Municipal and Rural Affairs, and the private real estate sector. Abdul Ali Al-Ajmi has been recognized as a major road construction company throughout the Kingdom of Saudi Arabia."
+    },
+    "certificates": {
+      "title": "Certifications & International Memberships",
+      "subtitle": "Commitment to Quality and Standards",
+      "list": [
+        "ISO 9001-2000 Certified",
+        "ISO 14001-2004 Certified",
+        "OHSAS 18001-2007 Certified",
+        "ISO 9001-2008 Certified",
+        "ANSI-ASQ National Accreditation Board (ANAB)",
+        "National Asphalt Pavement Association (NAPA)",
+        "Asphalt Emulsion Manufacturers Association (AEMA)",
+        "International Slurry Surfacing Association (ISSA)",
+        "International Road Federation (IRF)",
+        "Gulf Road Engineering Society (GRES)"
+      ]
+    },
+    "clients": {
+      "title": "Key Clients & Partners",
+      "text": "The main activity of the company is contracting, where the company has implemented many mega projects for various government and semi-government bodies:",
+      "list": [
+        "Saudi Aramco Company",
+        "Border Guards",
+        "Ministry of Housing",
+        "Royal Commission for Jubail & Yanbu",
+        "Ministry of Transportation",
+        "Ministry of Municipal and Rural Affairs",
+        "Ministry of Water and Electricity",
+        "Saudi Industrial Property Authority (MODON)"
+      ]
+    },
+    "resources": {
+      "title": "Resources & Capabilities",
+      "text": "The company acts as a first-grade classified contractor in road construction and maintenance. Additionally, we own a massive fleet of mechanisms, vehicles, and specialized tools to carry out construction, electricity, water, and drainage works. Our resources include a series of crushers, concrete and asphalt mixers, and highly trained teams utilizing the latest technology."
+    }
+  },
+  "whyAjamiPage": {
+    "title": "Why Al-Ajmi?",
+    "subtitle": "Efficiency, Quality, and Reliability",
+    "intro": {
+      "title": "Integrated Capabilities",
+      "text": "Abdul Ali Al-Ajmi owns a series of asphalt mixing plants, crushers, and readymade mix concrete plants, which have been set up in an organized manner to ensure complete coverage of all working areas and supported by a equipped fleet for the road transport."
+    },
+    "transport": {
+      "title": "Strategic Transport Fleet",
+      "text": "Means of transport are considered one of the important factors to success in the economic progress, because it is a first pillar in the fields of construction, trade, agriculture and many other fields, means of transport is the first step for the movement of goods and people from one place to another and in economic and social co-operation among the various sectors, especially in Saudi Arabia, which is similar to the continent because of its wide range and given the importance of this sector, Abdul Ali Al-Ajmi Company has given one of  its priorities to the transport and established the transport division which contains a fleet of vehicles in different types and sizes, it has been managed by a selective management staff with expertise and competence in this field to help the company for completion of projects quickly and efficiently to contribute in the progress and prosperity of the country."
+    },
+    "petroleum": {
+      "title": "Petroleum Services Division",
+      "text": "As a culmination of these integrated services, the company has entered a new field of challenge and excellence by starting the petroleum division which provides quality services in this field to Saudi Aramco in regards to oil, gas and industrial facilities, the division also extended the field of its services to include the countries of the Gulf Co-operation Council."
+    },
+    "expertise": {
+      "title": "Unmatched Expertise & Reputation",
+      "text": "During these years of experience in the field of business the company has achieved high reputation from its customers through its intensive care, design, management, credibility and professionalism to deliver its services to these clients. Highly Skilled engineers work with Abdul Ali Al-Ajmi Company and the company is keen to bring distinguished experiences to keep pace with the progress in this area by communicating with several countries across the world.",
+      "list": [
+        "The ability to deal with all levels of clients for providing the best services.",
+        "Enhanced ability to gather information and put in organized databases for study, use and referring to them when needed, and to demonstrate the ability to develop strategic logical solutions at critical times during the project implementation, it is still fully committed and in a constant state of efficiency and activity and ensuring the continuation of active planning for the future."
+      ]
+    },
+    "offices": {
+      "title": "Our Presence",
+      "text": "Abdul Ali Al-Ajmi Company meets the needs of its clients through its offices and branch offices, the head office is located in the city of Riyadh, and there are regional offices in Al-Ahsa."
+    }
+  }
+  ,
+  "visionPage": {
+    "title": "COMPANY AL-AJMI",
+    "subtitle": "Vision, Mission & Values",
+    "vision": {
+      "title": "Vision",
+      "text": "Abdul Ali Al-Ajmi believes that its customers and employees are the source of its strength after the help of The Almighty Allah, so the company seeks to the following:",
+      "list": [
+        "To provide excellent experience for its customers through the quality of good performance regarding the implementation of their projects with the best technical solutions, lowest financial costs and purest environmental services.",
+        "To develop its employees in all aspects, whether it related to their incomes, work knowledge or the stability of their current and future career"
+      ]
+    },
+    "mission": {
+      "title": "Mission",
+      "text": "Abdul Ali Al-Ajmi Company seeks continuously to develop its activities, experiences and the efficiency of its employees in order to become the best company in the region due to its excellent works."
+    },
+    "values": {
+      "transparency": {
+        "title": "Values of the Transparency",
+        "list": [
+          "Executing its works in an excellent manner with a high level of the transparency whether its clients present or not on the site.",
+          "Ensuring fair treatment to its all employees.",
+          "Providing information to all partners timely."
+        ]
+      },
+      "responsibility": {
+        "title": "Responsibility",
+        "list": [
+          "The company makes all expectations clear to its all customers and maintains its commitments with a great sense of responsibility.",
+          "It respects its employees, as well as their opinions and ideas and works on developing them by training.",
+          "It fulfills its obligations towards the partners with a great respect."
+        ]
+      },
+      "profitability": {
+        "title": "Profitability",
+        "list": [
+          "The company offers the actual cost its client.",
+          "It encourages the spirit of initiative in its staff and gives them equal opportunity.",
+          "It gives its partners reasonable profits.",
+          "It makes significant contributions to serve the community."
+        ]
+      }
+    }
+  },
+  "boardPage": {
+    "title": "Board of Directors",
+    "subtitle": "Leadership & Governance",
+    "members": [
+      {
+        "name": "Mr. Ewida Abdual Ali Al-Ajmi",
+        "position": "Chairman of ALAJMI CO"
+      },
+      {
+        "name": "Eng. Mohamed Abdual Ali Al-Ajmi",
+        "position": "CEO and Managing Director"
+      },
+      {
+        "name": "Mr. Faisal Abdual Ali Al-Ajmi",
+        "position": "Deputy Chairman of the Board"
+      }
+    ]
+  },
+  "hsepPage": {
+    "title": "Health, Safety & Environmental Policy",
+    "purpose": {
+      "title": "Purpose",
+      "text": "ABDUL ALI AL-AJMI COMPANY a Leader in Construction and Maintenance of Highways & Interchanges, Buildings, Site Development, Site Preparation, Electrical, & Communication Works, Petroleum Services, Transportation and General Civil Engineering works in the Kingdom of Saudi Arabia is committed to a policy of Zero harm to people and the environment, ensuring that minimizes any adverse health, safety and environmental impacts."
+    },
+    "principles": {
+      "title": "Principles",
+      "text": [
+        "This Policy has been established on the basis that concern for the occupational health & safety of our employees and guardianship of the environment are essential to the successful conduct and future growth of our business, and are in the best interest of each of the organization's stakeholders and our major client's such as Saudi Aramco, Ministry of Housing, MA'ADEN, MODON, Saudi Railway Organization, Ministry of Transportation, Royal Commission for Jubail & Yanbu, Borderers Guard, National Guard & Saudi Electricity Company.",
+        "ABDUL ALI AL-AJMI COMPANY follows the principle that safety is a condition of employment.",
+        "ABDUL ALI AL-AJMI COMPANY considers that environmental protection and management (e.g. pollution prevention) is an important consideration in our activities and commitment to this is reflected in corporate policies, procedures, programmers and practices."
+      ]
+    },
+    "statement": {
+      "title": "Policy Statement",
+      "intro": "To achieve the purposes and principles above, ABDUL ALI AL-AJMI COMPANY and its projects/business units will:",
+      "list": [
+        "Comply with all KSA health, safety and environmental legislation as a minimum and SAUDI ARAMCO standard which is the main references for ABDUL ALI AL-AJMI COMPANY’s HSE Programs.",
+        "Identify and evaluate all health, safety and environmental hazards and establish controls and techniques to manage risk to acceptable levels. Risk assessment should be updated whenever significant change in the working environmental has occurred.",
+        "Manage accurate and timely reporting, recording, investigation and remediation of incidents and near misses to prevent re-occurrence.",
+        "Establish and update, as appropriate, corporate health, safety and environmental objectives and measurable targets relevant to the impacts of ABDUL ALI AL-AJMI COMPANY activities in order to drive and demonstrate continual improvement.",
+        "Continue to initiate, develop, record, measure and communicate progress on health, safety and environmental performance through-out the organization.",
+        "Work towards implementing health, safety and environmental management systems and complying with all aspects of the internationally – recognized certification system OHSAS 18001:2007 (Occupational Safety & Health Management System), ISO 14001:2015 (Environmental Management System) level of accreditation ready and ISO 9001:2015 as a minimum.",
+        "Reduce emissions and wastes to water, air and land, and conserve resources.",
+        "Require our contractors and visitors to also comply with all site health, safety and environmental requirements and work with together to achieve comparable health, safety and environmental standards.",
+        "Supply, provide and maintain safe equipment.",
+        "Provide appropriate health, safety and environmental training for all staff at all levels.",
+        "Take a stance of zero tolerance of the conditions and behaviors that contribute to workplace incidents and environmental damage, which have a negative impact to the business.",
+        "Provide resource in line with the priority the company places on health, safety and the environment.",
+        "Consider health, safety and environmental factors in investment purchasing decisions, project planning, material management, commissioning and other processes.",
+        "Submit an annual report on matters relating to this policy to senior management.",
+        "Review this Policy at intervals not exceeding two (2) years (or whenever significant change)."
+      ]
+    },
+    "responsibility": {
+      "title": "Responsibility",
+      "intro": "In line with the Policy above, the following commitments are made:",
+      "list": [
+        "All Management will visibly and consistently uphold the principles and requirements of this policy and integrate them throughout the company. The executive management team will regularly review health, safety and environmental performance.",
+        "The Management and supervisory staff in each business unit will be responsible and held accountable for resourcing. Implementing and maintaining the health, safety and environmental management system necessary to comply with this policy, and will be held fully accountable for compliance and performance.",
+        "Every employee whose work may create a significant health, safety and environmental impact will be trained and held accountable for complying with the principles of the policy and related standards, procedures, practices, instructions and rules."
+      ],
+      "footer": "Through the active participation and commitment of all ABDUL ALI AL-AJMI COMPANY employees, we commit to meet and exceed the requirements of this policy."
+    }
+  },
+  "projectsPage": {
+    "title": "Our Projects",
+    "subtitle": "Discover our portfolio",
+    "defaultProject": "Project Name",
+    "categories": {
+      "aramco": "Saudi Aramco Company",
+      "dammamAirports": "Dammam Airports Company",
+      "railways": "General Authority for Railways",
+      "industrialCities": "Industrial Cities Authority",
+      "municipalRural": "Ministry of Municipal and Rural Affairs",
+      "transportation": "Ministry of Transportation",
+      "waterElectricity": "Ministry of Water and Electricity",
+      "housing": "Ministry of Housing",
+      "nationalHousing": "National Housing Company",
+      "qiddiya": "Qiddiya Investment Company",
+      "royalCommission": "Royal Commission for Jubail and Yanbu",
+      "borderGuards": "The Guards Of The Border",
+      "miskCity": "The Miskcity Company"
+    },
+    "labels": {
+      "owner": "Owner",
+      "location": "Location",
+      "duration": "Duration",
+      "status": "Status",
+      "value": "Project Value"
+    },
+    "items": {
+      "aramco": [
+        { "src": "Development of the heavy industrial zone in the Jazan Economic Area.png", "title": "Development of the heavy industrial zone in the Jazan Economic Area", "owner": "Saudi Aramco", "location": "", "duration": "", "status": "Under Construction", "value": "SR 88,367,400" },
+        { "src": "Gas Collection Plant Road.jpg", "title": "Gas Collection Plant Road", "owner": "Saudi Aramco", "location": " Chiba", "duration": "300 days", "status": "Under construction", "value": "SR 45,300,000" },
+        { "src": "Infrastructure works for the Jazan Economic Zone.png", "title": "Infrastructure works for the Jazan Economic Zone", "owner": "Saudi Aramco", "location": "", "duration": "", "status": "Under Construction", "value": "SR 323,145,280" },
+        { "src": "Maintenance of main roads in the southern region.jpg", "title": "Maintenance of main roads in the southern region", "owner": "Saudi Aramco", "location": "Southern Region", "duration": "5 years", "status": "Under construction", "value": "SAR 392,985,769" },
+        { "src": "Site of Jizan refinery.jpg", "title": "Site of Jizan refinery", "owner": "Saudi Aramco", "location": "Jizan", "duration": "368 days", "status": "Under construction", "value": "SR 245,360,850" },
+        { "src": "Transportation of clay and cement materials.png", "title": "Transportation of clay and cement materials", "owner": "Saudi Aramco", "location": "Eastern Region", "duration": "5 years", "status": "Done", "value": "SR 30,340,000" },
+        { "src": "Transportation of materials, cement and clay.jpg", "title": "Transportation of materials, cement and clay", "owner": "Saudi Aramco", "location": "", "duration": "5 years", "status": "Under construction", "value": "SR 30,660,000" }
+      ],
+      "dammamAirports": [
+        { "src": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part A).png", "title": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part A)" , "owner": "Dammam Airports Company", "location": "Dammam", "duration": "39.5 months", "status": "in progress", "scopeOfWork":"Execution of infrastructure works (site development, construction of sewage networks, rain drainage, drinking water, fire, lighting, communications, roads and all other utilities Project duration: 39.5 months","value": "88,697,116.00 SAR"},
+        { "src": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part B).png", "title": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part B)", "owner": "Dammam Airports Company", "location": "Dammam", "duration": "22.3 months", "status": "in progress", "scopeOfWork":"Execution of infrastructure works (site development, construction of sewage networks, rain drainage, drinking water, fire, lighting, communications, roads and all other utilities Project duration: 22.3 months","value": "40,054,161.41 SAR" }
+      ],
+      "railways": [
+        { "src": "Construction of a concrete bridge (41-42) km on the double railway line 1-2.jpg", "title": "Construction of a concrete bridge (41-42) km on the double railway line 1-2" , "owner": "Railways General Authority", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 14,158,622"},
+        { "src": "Construction of a concrete bridge 196 km on the railway line.jpg", "title": "Construction of a concrete bridge 196 km on the railway line" , "owner": "Railways General Authority", "location": "", "duration": "", "status": "Completed", "scopeOfWork":"","value": "SR 17,725,385" },
+        { "src": "Modification of the soil shoulders for the iron line No. (1) between Al-Hofuf and Riyadh.jpg", "title": "Modification of the soil shoulders for the iron line No. (1) between Al-Hofuf and Riyadh" , "owner": "Railways General Authority", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": " SR 28.696.678.74" }
+      ],
+      "industrialCities": [
+        { "src": "Completion of the roads development in the second industrial city in Dammam.jpg", "title": "Completion of the roads development in the second industrial city in Dammam", "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 43,969,703.10" },
+        { "src": "Development of Oasis cities in Yanbu.jpg", "title": "Development of Oasis cities in Yanbu" , "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 47,812,668.16" },
+        { "src": "Development of building material zone in Sudair city for the industry & business.jpg", "title": "Development of building material zone in Sudair city for the industry & business", "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 210,271,351" },
+        { "src": "Development of the Second Industrial City in Al-Hasa.png", "title": "Development of the Second Industrial City in Al-Hasa" , "owner": "Saudi Industrial Property Authority “MODON”", "location": "Al– Ahsa – Hofuf", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 65,000,000" },
+        { "src": "Infrastructure implementation project in the second industrial city in Aseer Contract No-2490.png", "title": "Infrastructure implementation project in the second industrial city in Aseer Contract No-2490" , "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "36 Months", "status": "In progress", "scopeOfWork":"Implementation of the infrastructure in the second industrial city in Asir. The scope consists of (road and lighting network – medium voltage network – communication network – a network that adds torrents – the drainage network – the treated water network and irrigation – the drinking water network).","value": "SR 193,838,477.50" },
+        { "src": "Link services and facilities between the second and third industrial cities in Jeddah–Contract No.-2459.png", "title": "Link services and facilities between the second and third industrial cities in Jeddah–Contract No.-2459", "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "36 months", "status": "In progress", "scopeOfWork":"Completion of infrastructure works, utilities and delivery of services between the Second and Third Industrial City in Jeddah","value": "SR 173,583,751.1" }
+      ],
+      "municipalRural": [
+        { "src": "CONSTRUCTION OF THE KING ABDULLAH CULTURAL CENTER.png", "title": "CONSTRUCTION OF THE KING ABDULLAH CULTURAL CENTER", "owner": "Ministry of Municipal and Rural Affairs  – Al Ahsa Secretariat", "location": "Al- Ahsa", "duration": "", "status": "Done", "scopeOfWork":"","value": "SR 61,195,000" },
+        { "src": "KING FAHAD INTERCHANGE – KING ABDULAZIZ ROAD.jpg", "title": "KING FAHAD INTERCHANGE – KING ABDULAZIZ ROAD", "owner": "Ministry of Municipal and Rural Affairs  – Al Ahsa Secretariat", "location": "Hofuf – Secretariat of Ahsa", "duration": "", "status": "Finished", "scopeOfWork":"","value": "SR 59,584,220.00" }
+      ],
+      "transportation": [
+        { "src": "Al-Hofuf Road-Al-Aqeer in the Eastern Region.jpg", "title": "Al-Hofuf Road-Al-Aqeer in the Eastern Region" , "owner": "Ministry of Transport", "location": "Eastern Region", "duration": "36 months", "status": "Done", "scopeOfWork":"","value": " SAR 55,000,000.00" },
+        { "src": "Completion of the Ring Road in Al-Hasa, Southern, Eastern and Northern Shr.jpg", "title": "Completion of the Ring Road in Al-Hasa, Southern, Eastern and Northern Shr", "owner": "Ministry of Transport ", "location": " Al Ahsa ring road", "duration": "36 months", "status": "Done", "scopeOfWork":"","value": " 219.999.992.00 SAR" },
+        { "src": "Completion of the Riyadh-Khurais road duplication in the Riyadh region.png", "title": "Completion of the Riyadh-Khurais road duplication in the Riyadh region", "owner": "Ministry of Transport", "location": "Riyadh", "duration": "47.5 months", "status": "in progress", "scopeOfWork":"mplementation of a dual road with the construction of a road of two traffic lanes and external shoulders, and the construction of ferries for the drainage of torrents and valleys, and networks for the drainage of torrential and rain water for the double part","value": " 94,999,999.50 SAR" },
+        { "src": "Completion of the intersections of Al-Ahsa Abqaiq-Dhahran -Abu Hadriyah in the Eastern Province.png", "title": "Completion of the intersections of Al-Ahsa Abqaiq-Dhahran -Abu Hadriyah in the Eastern Province", "owner": "Ministry of Transport", "location": "Al Ahsa", "duration": "24.3 months", "status": "in progress", "scopeOfWork":"Implementation of a dual road with the construction of a road of two traffic lanes and external shoulders, and the construction of ferries for the drainage of torrents and valleys, and networks for the drainage of torrential and rain water for the double part","value": " 122,443,611.68 SAR" },
+        { "src": "Construction of a road from King Khalid Military City to Daghileeb Al-Wajaan intersection in the Eastern Province.png", "title": "Construction of a road from King Khalid Military City to Daghileeb Al-Wajaan intersection in the Eastern Province", "owner": "Ministry of Transport ", "location": " Eastern Province ", "duration": "39.8 months", "status": "in progress", "scopeOfWork":"Roads and bridges construction and concrete works","value": " 197,336,358.45 SAR" },
+        { "src": "Double Hafof-Salwa.jpg", "title": "Double Hafof-Salwa", "owner": "Ministry of Transport", "location": "Double Hofuf / Salwa", "duration": "36 months", "status": "Done", "scopeOfWork":"","value": " 69,999.999.00 SAR" },
+        { "src": "Maintenance of Dhahran-Abqaiq-Hofuf-Khurais road performance, Contract No. (203).png", "title": "Maintenance of Dhahran-Abqaiq-Hofuf-Khurais road performance, Contract No. (203)", "owner": "", "location": "", "duration": "36 months", "status": "In progress", "scopeOfWork":"Maintenance works for road performance (Dhahran – Abqaiq – Hofuf – Khurais) Contract No. 203","value": " SR 73,869,102.20" },
+        { "src": "Maintenance of the performance of the roads of Riyadh – Khurais – Sudair, Contract No. (111).png", "title": "Maintenance of the performance of the roads of Riyadh – Khurais – Sudair, Contract No. (111)", "owner": "", "location": "", "duration": "36 months", "status": "In progress ", "scopeOfWork":"Road performance maintenance works (Riyadh – Khurais – Sudair) Contract No. 111","value": " SR 101,300,945.01" },
+        { "src": "Roads and Transport Administration Branch Building in Al-Ahsa Governorate.png", "title": "Roads and Transport Administration Branch Building in Al-Ahsa Governorate", "owner": "Ministry of Transport", "location": "Al Ahsa", "duration": "49.8 months", "status": "in progress ", "scopeOfWork":"Construction and implementation of the Roads and Transport Administration building in Al-Ahsa Governorate in the Eastern Province, consisting of three floors, with an estimated area of 2,100 square meters, with a reinforced concrete structure, with site fencing according to plans and bills of quantities.","value": " 9,999,957.00 SAR" },
+        { "src": "The implementation of a bridge at the intersection of the road Albuibat with the road Althamama.jpg", "title": "The implementation of a bridge at the intersection of the road Albuibat with the road Althamama", "owner": "Ministry of Transport ", "location": "Tramway", "duration": " 8 months", "status": "Done ", "scopeOfWork":"","value": " SR 53,272,000.00" }
+      ],
+      "waterElectricity": [
+        { "src": "Establishing drinking water networks in Buraidah city – Phase III.jpg", "title": "Establishing drinking water networks in Buraidah city – Phase III", "owner": "Ministry of Water and Electricity", "location": "Al- Ahsa", "duration": "", "status": "Under construction", "scopeOfWork":"","value": "SR 74,473,325" },
+        { "src": "Sewage treatment plant capacity of 3000 m3 -day and the main pumping station and the expulsion line surplus in the province of Samta Jazan.jpg", "title": "Sewage treatment plant capacity of 3000 m3 -day and the main pumping station...", "owner": "Ministry of Water and Electricity", "location": "Jazan", "duration": "", "status": "Under construction", "scopeOfWork":"","value": "SR 107,545,417" },
+        { "src": "Water line project to connect the desalination tank with the reserve in the desalination tank in Naaman city in Abha city.jpg", "title": "Water line project to connect the desalination tank with the reserve...", "owner": "Ministry of Water and Electricity", "location": "Abha", "duration": "", "status": "Done", "scopeOfWork":"","value": "SR 18,285,155" }
+      ],
+      "housing": [
+        { "src": "Abdu Arish Housing – Jazan.png", "title": "Abdu Arish Housing – Jazan", "owner": "Ministry of Housing", "location": "Eastern Region", "duration": "", "status": "Completed", "scopeOfWork":"","value": " SR 87,778,027.68"  },
+        { "src": "Al-Kharj Housing “Preliminary Works”.jpg", "title": "Al-Kharj Housing “Preliminary Works”", "owner": "Ministry of Housing", "location": "Al-Kharj housing", "duration": "", "status": "Done", "scopeOfWork":"","value": " SR 61,360,000" },
+        { "src": "Biesh Housing – Jazan.png", "title": "Biesh Housing – Jazan", "owner": "Ministry of Housing", "location": "Eastern Region", "duration": "", "status": "Completed", "scopeOfWork":"","value": " SR 80,548,212" },
+        { "src": "Housing of King Abdullah Suburb – Jazan.png", "title": "Housing of King Abdullah Suburb – Jazan", "owner": "Ministry of Housing", "location": "Eastern Region", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": " SR 276,381,907.96" },
+        { "src": "Housing project in the area of Al Baha.jpg", "title": "Housing project in the area of Al Baha", "owner": "Ministry of Housing", "location": "Nawan – Jazan", "duration": "", "status": "Completed", "scopeOfWork":"","value": " SR 69,600,000" },
+        { "src": "Riyadh Airport King Khalid Hotel – Riyadh.jpg", "title": "Riyadh Airport King Khalid Hotel – Riyadh", "owner": "Ministry of Housing", "location": "Riyadh ", "duration": "", "status": "Done", "scopeOfWork":"","value": " SR 146,476,280" },
+        { "src": "Sabiyah Housing – Jazan.png", "title": "Sabiyah Housing – Jazan", "owner": " Ministry of Housing", "location": " ", "duration": " ", "status": "Completed", "scopeOfWork":"","value": " SR 79,767,376.60" },
+        { "src": "Samtah Housing – Jazan.png", "title": "Samtah Housing – Jazan", "owner": "Ministry of Housing", "location": " ", "duration": " ", "status": "Completed", "scopeOfWork":"","value": " SR 63,339,656.35" }
+      ],
+      "nationalHousing": [
+        { "src": "Implementation of the developmental housing project, King Abdulaziz Road – 1782 housing units – Medina.png", "title": "Implementation of the developmental housing project, King Abdulaziz Road – 1782 housing units – Medina", "owner": "National Housing Company", "location": "", "duration": "18 months", "status": " In progress", "scopeOfWork":"Implementation of housing units for developmental housing for the King Abdulaziz Road project – in the Medina region","value": "590,788,600" },
+        { "src": "Implementation of the infrastructure for the site of Forsan Gumah in Jazan.png", "title": "Implementation of the infrastructure for the site of Forsan Gumah in Jazan", "owner": "National Housing Company", "location": "Forsan Gumah in Jazan", "duration": "33.2 Months", "status": "Completed", "scopeOfWork":"Settlement of the general site, road construction and plots of land for the entire site of Farasan Qamah","value": "SR 99,561,287.73" }
+      ],
+      "qiddiya": [
+        { "src": "Comprehensive settlement of the main resort area and the city center of Qiddiya–Contract No.-QMPO-400-CT-00001.png", "title": "Comprehensive settlement of the main resort area and the city center of Qiddiya", "owner": "Qiddiya", "location": "Riyadh", "duration": "26.2 Months", "status": "Completed", "scopeOfWork":"Implementation of all earthworks, sewage, surveying, transfer and tree care in the center of the city of Qiddiya and the main resort area","value": "SR 249,794,890.29" },
+        { "src": "Service Road for the Upper Plateau of Qiddiya City – Contract No. QMPO-410-CT-00630.png", "title": "Service Road for the Upper Plateau of Qiddiya City", "owner": "Qiddiya", "location": "Riyadh", "duration": "13.1 Months", "status": "Completed", "scopeOfWork":"Raising the efficiency of roads, building sidewalks and traffic safety","value": "SR 41,895,000.00" },
+        { "src": "Settlement works project for the Six Flags Buildings for Qiddiya Investment Company – Contract No.- QPMO-410-CT-01498.png", "title": "Settlement works project for the Six Flags Buildings for Qiddiya Investment Company", "owner": "Qiddiya Investment Company", "location": "Riyadh", "duration": "3 months", "status": "Executed", "scopeOfWork":"General leveling works, removing waste, preparing the general site for construction works and deep excavation works (21 m) in all types of soil, including rocky, and transferring surplus materials to places approved by the owner.","value": "24,802,471.83 SAR" }
+      ],
+      "royalCommission": [
+        { "src": "MAINTENANCE OF THE ROADS OF YANBU CITY – PHASE NINE – YANBU INDUSTRIAL CITY.jpg", "title": "MAINTENANCE OF THE ROADS OF YANBU CITY – PHASE NINE – YANBU INDUSTRIAL CITY", "owner": "Royal Commission for Jubail & Yanbu", "location": "Yanbu", "duration": "", "status": "Under construction", "scopeOfWork":"","value": "SR 59,990,587.00" }
+      ],
+      "borderGuards": [
+        { "src": "Operation, maintenance and cleanliness for the patrolling of the Border Guard in the sectors of (Al-Khafji-Hafr Al-Batin) – the Eastern Region No. (2).jpg", "title": "Operation, maintenance and cleanliness for the patrolling of the Border Guard...", "owner": "Border Guard", "location": "", "duration": "", "status": "Under construction", "scopeOfWork":"","value": " SR 21,522,310"  },
+        { "src": "Road construction of the for the border patrolling (Al-Matif – Kharkhir) – Sharurah.png", "title": "Road construction of the for the border patrolling (Al-Matif – Kharkhir) – Sharurah", "owner": "Border Guard", "location": "", "duration": "", "status": "Under construction", "scopeOfWork":"","value": "SR 597,150,000"  }
+      ],
+      "miskCity": [
+        { "src": "The preliminary works of the Misk Al-Mishraq city project.png", "title": "The preliminary works of the Misk Al-Mishraq city project", "owner": "Misk Company ", "location": "Riyadh", "duration": "21.6 months", "status": "in progress ", "scopeOfWork":"excavation and disposal of materials","value": " 43,232,369.38 SAR" }
+      ]
+    }
+  },
+  "mediaPage": {
+    "items": [
+      {
+        "src": "Community Initiatives – Our Beaches are Clean.jpg",
+        "title": "Community Initiatives – Our Beaches are Clean"
+      },
+      {
+        "src": "Foundation Day.jpg",
+        "title": "Foundation Day"
+      },
+      {
+        "src": "Renewal of the sixth pledge of allegiance to the Crown Prince.png",
+        "title": "Renewal of the sixth pledge of allegiance to the Crown Prince"
+      },
+      {
+        "src": "Roshn Group (one of the Public.jpg",
+        "title": "Roshn Group (one of the Public Investment Fund companies)"
+      },
+      {
+        "src": "Saudi Arabia wins to host 2034 World Cup.jpg",
+        "title": "Saudi Arabia wins to host 2034 World Cup"
+      },
+      {
+        "src": "Saudi National Day 92.png",
+        "title": "Saudi National Day 92"
+      },
+      {
+        "src": "Saudi National Day 93.jpeg",
+        "title": "Saudi National Day 93"
+      },
+      {
+        "src": "Signing a contract for the implementation of the main infrastructure works for Rua Almadinah project.jpg",
+        "title": "Signing a contract for the implementation of the main infrastructure works for Rua Almadinah project"
+      },
+      {
+        "src": "The Sixth Conference and Exhibition for Maintenance, Reliability and Asset Management MaintCon2022.jpg",
+        "title": "The Sixth Conference and Exhibition for Maintenance, Reliability and Asset Management MaintCon2022"
+      },
+      {
+        "src": "celebrations on the occasion of the 94th National Day.png",
+        "title": "Celebrations on the occasion of the 94th National Day"
+      }
+    ]
+  },
+  "newspaperPage": {
+    "items": [
+      {
+        "src": "Abdul Ali Al-Ajmi Company celebrates the National Day.png",
+        "title": "Abdul Ali Al-Ajmi Company celebrates the National Day"
+      },
+      {
+        "src": "Al Ajami co & Aramco Saudi.jpg",
+        "title": "Al Ajami Co & Saudi Aramco"
+      },
+      {
+        "src": "Al Ajami co.jpg",
+        "title": "Al Ajami Co"
+      },
+      {
+        "src": "Company Achivements.jpg",
+        "title": "Company Achievements"
+      },
+      {
+        "src": "History article.jpg",
+        "title": "History Article"
+      },
+      {
+        "src": "founding a state.jpg",
+        "title": "Founding a State"
+      },
+      {
+        "src": "sabq news.jpg",
+        "title": "Sabq News"
+      }
+    ]
+  },
+  "galleryPage": {
+    "items": [
+      {
+        "id": "infrastructure",
+        "src": "Infrastructure Projects.jpg",
+        "title": "Infrastructure Projects"
+      },
+      {
+        "id": "road",
+        "src": "Road Projects.jpg",
+        "title": "Road Projects"
+      }
+    ]
+  },
+  "suppliersPage": {
+    "title": "Suppliers Registration",
+    "subtitle": "Join our network of partners",
+    "form": {
+      "nameSupplier": "Name Supplier",
+      "nickname": "Nickname (Activity Type)",
+      "nicknameOptions": {
+        "placeholder": "— Please select an option —",
+        "consulting": "Consulting",
+        "subcontractors": "Subcontractors",
+        "spareParts": "Spare parts",
+        "asset": "Asset",
+        "material": "Material",
+        "transporter": "Transporter",
+        "rent": "Rent",
+        "purchasing": "Purchasing",
+        "hospitals": "Hospitals",
+        "paintsSafety": "Paints AND SAFETY",
+        "fuel": "Fuel",
+        "other": "Other"
+      },
+      "address": "Address (Country)",
+      "addressOptions": {
+        "placeholder": "— Please select an option —",
+        "egypt": "Egypt",
+        "uae": "UAE",
+        "saudia": "Saudia Arabia",
+        "jordan": "Jordan",
+        "other": "Other"
+      },
+      "mobile": "Mobile",
+      "fax": "Fax",
+      "commercialRecord": "Commercial Record",
+      "bankName": "Bank Name",
+      "accountNo": "Account No.",
+      "iban": "IBAN",
+      "email": "Email",
+      "communicationOfficer": "Communication Officer",
+      "officerMobile": "Mobile (Communication Officer)",
+      "uploadFile": "Upload File",
+      "submit": "Send"
+    }
+  },
+  "suggestionsPage": {
+    "title": "Suggestions & Complaints",
+    "subtitle": "We value your feedback",
+    "form": {
+      "type": "Select Type",
+      "typeOptions": {
+        "placeholder": "— Please select an option —",
+        "suggestion": "Suggestion",
+        "complaint": "Complaint"
+      },
+      "name": "Your Name",
+      "mobile": "Mobile",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "submit": "Send"
+    }
+  },
+  "contactPage": {
+    "title": "Contact Us",
+    "subtitle": "Get in touch with us",
+    "form": {
+      "title": "Send Message",
+      "fullName": "Full Name",
+      "mobile": "Mobile",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "submit": "Send Message"
+    },
+    "info": {
+      "title": "Keep in Touch",
+      "branchesTitle": "Company Branches Al-Ajami",
+      "phone": "966-112-402-450",
+      "email": "info@alajmicompany.com",
+      "hours": {
+        "saturday": "Saturday 9:00 - 14:00",
+        "weekdays": "Sunday to Thursday 8:00 - 17:00"
+      },
+      "branches": {
+        "riyadh": {
+          "name": "Riyadh Branch",
+          "address": "Saudi Arabia Riyadh",
+          "fax": "+966 112-402-458",
+          "poBox": "86059 Riyadh 11622"
+        },
+        "jazan": {
+          "name": "Jazan Branch",
+          "address": "Saudi Arabia Jazan",
+          "fax": "+966 173-310-066",
+          "poBox": "3044 Jazan 45142"
+        },
+        "hofuf": {
+          "name": "Hofuf Branch",
+          "address": "Hofuf - Saudi Arabia",
+          "fax": "966 1359-287-04",
+          "poBox": "447 Al-Ehsaa 31980"
+        }
+      }
+    }
+  },
+  "jobsPage": {
+    "title": "Join Our Team",
+    "subtitle": "Explore Career Opportunities",
+    "vacanciesTitle": "Available Vacancies",
+    "applyTitle": "Apply Now",
+    "jobs": [
+      {
+        "title": "Security Guard",
+        "description": "Patrolling and monitoring workplaces to guard property against theft and vandalism, monitoring entry points to workplaces, and maintaining order",
+        "employeesCount": "Number of employees : 4",
+        "experience": "Years of Experience : Unconditional",
+        "qualification": "Qualification : Secondary degree"
+      },
+      {
+        "title": "Administrative specialist",
+        "description": "Assisting the line manager in setting the main objectives of the department or department, performing and executing a range of different administrative tasks, providing support to co-workers, ensuring the transfer of expertise and knowledge, and preparing documents and reports specialized in business results",
+        "employeesCount": "Number of employees : 6",
+        "experience": "Years of Experience : Unconditional",
+        "qualification": "Qualification : Diploma or higher in Business Administration"
+      },
+      {
+        "title": "Project Manager",
+        "description": "Developing and implementing an integrated plan for the project, controlling changes, defining the scope of the project accurately in terms of items and times, preparing schedules by means of programs and applications used to develop work schedules, managing the cost and resources required to complete the project, and providing a basis for distributing information and publishing the status of the project stages",
+        "employeesCount": "Number of employees : 2",
+        "experience": "Years of Experience : 10",
+        "qualification": "Qualification : Bachelor of Civil Engineering"
+      }
+    ],
+    "form": {
+      "fullName": "Full Name",
+      "nationality": "Nationality",
+      "nationalityOptions": {
+        "placeholder": "— Select Nationality —",
+        "saudi": "Saudi",
+        "egyptian": "Egyptian",
+        "qatari": "Qatari",
+        "omani": "Omani",
+        "uae": "UAE",
+        "iraqi": "Iraqi",
+        "kuwaiti": "Kuwaiti",
+        "yemeni": "Yemeni",
+        "jordanian": "Jordanian",
+        "syrian": "Syrian"
+      },
+      "residency": "Residency Status",
+      "residencyOptions": {
+        "placeholder": "— Select Residency Status —",
+        "nonTransferable": "Non-transferable residence",
+        "transferable": "Residency transferable"
+      },
+      "address": "Address",
+      "mobile": "Mobile",
+      "job": "Job Title",
+      "specialization": "Specialization",
+      "email": "Email",
+      "expectedSalary": "Expected Salary",
+      "salaryOptions": {
+        "placeholder": "— Select Expected Salary —",
+        "less2000": "2000 Less",
+        "2000to3000": "2000 to 3000",
+        "3000to5000": "3000 to 5000",
+        "5000to7000": "5000 to 7000",
+        "7000to10000": "7000 to 10000",
+        "10000to12000": "10000 to 12000",
+        "12000to15000": "12000 to 15000",
+        "15000to20000": "15000 to 20000",
+        "more20000": "20000 And more"
+      },
+      "cv": "Attach your CV",
+      "submit": "Send Application"
+    }
+  },
+  "awards": {
+    "title": "Our Awards & Recognitions",
+    "subtitle": "A legacy of excellence and trust certified by international standards"
+  }
+}

@@ -1,0 +1,13 @@
+Project Status
+
+Remaining Tasks to Complete the Project:
+
+Add and replace the new images across the website (done).
+
+Integrate the website   with the backend APIs (pending).
+
+Create the dashboard(done) and connect it with the APIs (pending).
+
+Implement the Login page(done) and link it with the authentication API (pending).
+
+add comments for the whole project (pending).

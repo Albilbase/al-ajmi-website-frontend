@@ -1,0 +1,342 @@
+.whyAjamiSection {
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+  padding-bottom: 6rem;
+  overflow-x: hidden;
+}
+
+/* Hero Section Enhancement */
+.hero {
+  position: relative;
+  height: 50vh;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+  margin-bottom: 4rem;
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7));
+  z-index: 1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  color: white;
+  max-width: 900px;
+  padding: 0 2rem;
+}
+
+.title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  font-weight: 300;
+  opacity: 0.95;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Section Common Styles */
+.section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: center;
+  margin-bottom: 8rem;
+}
+
+.textContent {
+  position: relative;
+}
+
+.textContent h2 {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  margin-bottom: 2rem;
+  color: var(--foreground);
+  line-height: 1.2;
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.textContent h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 5px;
+  background: var(--accent);
+  border-radius: 10px;
+}
+
+[dir="rtl"] .textContent h2::after {
+  left: auto;
+  right: 0;
+}
+
+.textContent p {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+  margin-bottom: 1.5rem;
+}
+
+/* Image Wrapper with Visual Flare */
+.imageWrapper {
+  position: relative;
+  border-radius: 30px;
+  overflow: hidden;
+  height: 500px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+  background: var(--card);
+}
+
+.imageWrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(220, 20, 60, 0.2), transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.imageWrapper:hover .image {
+  transform: scale(1.1);
+}
+
+/* Expertise Section - Premium Grid */
+.expertiseSection {
+  background: linear-gradient(135deg, var(--card), var(--background));
+  padding: 6rem 3rem;
+  border-radius: 40px;
+  border: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 8rem;
+  text-align: center;
+}
+
+.expertiseTitle {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+}
+
+.expertiseText {
+  font-size: 1.2rem;
+  color: var(--muted-foreground);
+  max-width: 800px;
+  margin: 0 auto 4rem;
+  line-height: 1.6;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  padding: 3.5rem 2.5rem;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.card:hover {
+  transform: translateY(-15px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(220, 20, 60, 0.3);
+}
+
+.card:hover::before {
+  transform: scaleX(1);
+}
+
+.cardIcon {
+  width: 80px;
+  height: 80px;
+  background: rgba(220, 20, 60, 0.1);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 2rem;
+  transition: all 0.4s ease;
+}
+
+.cardIcon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.card:hover .cardIcon {
+  background: var(--accent);
+  color: white;
+  transform: rotateY(180deg);
+}
+
+.cardText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+/* Offices Section */
+.officesSection {
+  background: linear-gradient(135deg, rgba(220, 20, 60, 0.1) 0%, transparent 100%);
+  padding: 6rem;
+  border-radius: 40px;
+  text-align: center;
+  border: 1px solid rgba(220, 20, 60, 0.1);
+}
+
+.officesSection h2 {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+}
+
+.officesSection p {
+  font-size: 1.3rem;
+  color: var(--muted-foreground);
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .section {
+    gap: 3rem;
+  }
+  
+  .imageWrapper {
+    height: 400px;
+  }
+}
+
+@media (max-width: 900px) {
+  .section {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 2.5rem;
+    margin-bottom: 6rem;
+  }
+  
+  .textContent h2::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  [dir="rtl"] .textContent h2::after {
+    right: 50%;
+    transform: translateX(50%);
+  }
+
+  .sectionInverted .textContent {
+    order: 1;
+  }
+  
+  .sectionInverted .imageWrapper {
+    order: 2;
+  }
+
+  .officesSection {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    height: 50vh;
+  }
+
+  .heroBg {
+    background-attachment: scroll;
+  }
+
+  .container {
+    padding: 0 1.5rem;
+  }
+
+  .expertiseSection {
+    padding: 4rem 1.5rem;
+  }
+
+  .expertiseTitle {
+    font-size: 2.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .card {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .imageWrapper {
+    height: 300px;
+  }
+}

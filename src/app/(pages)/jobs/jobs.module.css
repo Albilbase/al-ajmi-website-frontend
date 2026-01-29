@@ -1,0 +1,338 @@
+.jobsSection {
+  min-height: 100vh;
+  background-color: #f8f9fc;
+  color: #1f2937;
+  padding-bottom: 8rem;
+  overflow-x: hidden;
+}
+
+.hero {
+  position: relative;
+  height: 50vh;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  margin-bottom: -5rem;
+  z-index: 10;
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  color: white;
+  max-width: 900px;
+  padding: 0 2rem;
+  margin-top: -2rem;
+}
+
+.title {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.subtitle {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 20;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 350px 1fr; /* Fixed width for sidebar for proper layout */
+  gap: 3rem;
+  align-items: start;
+}
+
+/* Sidebar / Vacancies Styles */
+.sidebar {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.05);
+  position: sticky;
+  top: 6rem;
+  /* Make sidebar scrollable if it gets too long */
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--primary-rgb), 0.5);
+  border-radius: 20px;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.jobCard {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.jobCard:hover {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.1);
+  transform: translateY(-2px);
+}
+
+.jobTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.jobDescription {
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.jobMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Form Styles - Reusing high-end style */
+.formCard {
+  background: white;
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow: 0 20px 60px -10px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+.inputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input, .select {
+  width: 100%;
+  padding: 1.25rem 1.5rem 0.5rem;
+  height: 60px;
+  border-radius: 12px;
+  border: 2px solid #e1e4e8;
+  background: #f8fafc;
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  appearance: none;
+}
+
+.label {
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: #9ca3af;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+  padding: 0 4px;
+  font-weight: 500;
+  z-index: 5;
+  white-space: nowrap;
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[dir="rtl"] .label {
+  left: auto;
+  right: 1.5rem;
+}
+
+/* Focus */
+.input:focus, .select:focus {
+  outline: none;
+  background: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+}
+
+.input:focus ~ .label,
+.input:not(:placeholder-shown) ~ .label,
+.select:focus ~ .label,
+.select:not([value=""]) ~ .label {
+  top: 12px;
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 700;
+  transform: translateY(0);
+}
+
+/* File Upload */
+.fileUploadContainer {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  perspective: 1000px;
+}
+
+.fileInput {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.fileDecor {
+  position: absolute;
+  inset: 0;
+  border: 2px dashed #cbd5e1;
+  border-radius: 20px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s ease;
+  overflow: hidden;
+}
+
+.fileInput:hover + .fileDecor {
+  border-color: var(--primary);
+  background: white;
+}
+
+.fileDecor.fileSelected {
+  border-style: solid;
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.iconWrapper {
+  margin-bottom: 0.5rem;
+  color: var(--primary);
+}
+
+.fileDecor.fileSelected .iconWrapper {
+  color: #10b981;
+}
+
+.submitButton {
+  background: linear-gradient(135deg, var(--primary) 0%, #000 200%);
+  color: white;
+  padding: 1.5rem 6rem;
+  border-radius: 100px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 20px 40px -10px rgba(var(--primary-rgb), 0.4);
+}
+
+.submitButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 30px 60px -15px rgba(var(--primary-rgb), 0.5);
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .sidebar {
+    position: static; /* Remove sticky on mobile */
+    max-height: none;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero { height: 40vh; }
+  .formCard {
+    padding: 1.5rem;
+  }
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .fullWidth {
+    grid-column: span 1;
+  }
+  .container {
+    padding: 0 1rem;
+  }
+}

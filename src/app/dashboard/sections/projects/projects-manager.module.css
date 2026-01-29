@@ -1,0 +1,384 @@
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mainLayout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.categorySidebar {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  position: sticky;
+  top: 1rem;
+}
+
+.categoryTitle {
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #DC143C 0%, #b91c1c 100%);
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 800;
+  color: white;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.categoryList {
+  display: flex;
+  flex-direction: column;
+}
+
+.categoryBtn {
+  text-align: left;
+  padding: 1rem;
+  margin-bottom: 0px;
+  background: white;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #64748b;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.categoryBtn:hover {
+  background: #f8fafc;
+  color: #1e293b;
+  padding-left: 1.25rem;
+}
+
+.activeCategory {
+  background: #fff1f2 !important;
+  color: #DC143C !important;
+  font-weight: 700;
+  border-left: 4px solid #DC143C;
+}
+
+.contentArea {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Button Component Styles */
+.saveChangesHeaderBtn, .saveBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: #DC143C;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(220, 20, 60, 0.2);
+}
+
+.saveChangesHeaderBtn:hover, .saveBtn:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.addBtnSmall {
+  background: #DC143C;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.addBtnSmall:hover {
+  background: #b91c1c;
+}
+
+.projectsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Enforcing Fixed Height for Cards */
+.projectCard {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  height: 400px; /* Fixed height for consistency */
+}
+
+.projectCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #DC143C;
+}
+
+/* Enforcing Fixed Height for Images */
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  height: 200px; /* Fixed height for images */
+  background: #f1f5f9;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.projectImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardContent {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* push actions to bottom */
+  overflow: hidden;
+}
+
+.cardTitle {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #1e293b;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.8rem; /* Reserve space for 2 lines */
+}
+
+.cardTitleAr {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  text-align: right;
+  direction: rtl;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 1.4rem;
+}
+
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.completed { background: #dcfce7; color: #166534; }
+.progress { background: #dbeafe; color: #1e40af; }
+
+.cardActions {
+  display: flex;
+  border-top: 1px solid #e2e8f0;
+  margin-top: auto; /* Push to bottom if needed, though flex space-between handles it */
+}
+
+.actionBtn, .editBtn, .deleteBtn {
+  flex: 1;
+  padding: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0;
+  margin: 0;
+}
+
+.editBtn {
+  color: #0f172a;
+  border-right: 1px solid #e2e8f0;
+}
+
+.editBtn:hover {
+  background: #f8fafc;
+  color: #DC143C;
+}
+
+.deleteBtn {
+  color: #ef4444;
+}
+
+.deleteBtn:hover {
+  background: #fee2e2;
+}
+
+
+/* Modal Base Styles removed in favor of reusable Modal component */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.formSection {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  margin-bottom: 2rem;
+}
+
+.sectionLabel {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inputGroup {
+  margin-bottom: 1.25rem;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.85rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.2s;
+  background: white;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #DC143C;
+  box-shadow: 0 0 0 4px rgba(220, 20, 60, 0.1);
+}
+
+.cancelBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.submitBtn {
+  padding: 0.75rem 1.75rem;
+  border-radius: 10px;
+  border: none;
+  background-color: #DC143C;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submitBtn:hover {
+  background-color: #b91133;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 20, 60, 0.2);
+}
+
+/* DROPZONE STYLES */
+.dropZone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: #64748b;
+}
+
+.dropZone:hover {
+  border-color: #DC143C;
+  background: #fff1f2;
+  color: #DC143C;
+}
+
+.previewImage {
+  max-height: 200px;
+  width: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,358 @@
+.hero {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+.mainSwiper {
+    width: 100%;
+    height: 100%;
+}
+
+.slideWrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.bgImage {
+    position: absolute;
+    top: -20%; /* Increased top to allow more scroll range */
+    inset-inline-start: 0;
+    width: 110%; /* Slightly larger for parallax */
+    height: 140%; /* Taller to handle the fixed scroll movement */
+    z-index: 1;
+}
+
+.vignette {
+    position: absolute;
+    top: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at var(--vignette-x, 20%) 50%,
+        rgba(0, 4, 10, 0.8) 0%,
+        rgba(0, 4, 10, 0.4) 50%,
+        rgba(0, 4, 10, 0.8) 100%
+    );
+    z-index: 2;
+}
+
+.slideContainer {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-block: 0 100px;
+    padding-inline: 4rem;
+    position: relative;
+    z-index: 10;
+}
+
+.slideContent {
+    max-width: 850px;
+}
+
+.topBadge {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.line {
+    width: 40px;
+    height: 2px;
+    background: var(--accent, #DC143C);
+}
+
+.badgeText {
+    color: var(--accent, #DC143C);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.title {
+    font-size: clamp(3rem, 10vw, 6rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+}
+
+.description {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.8;
+    margin-bottom: 3rem;
+    max-width: 600px;
+}
+
+.btnGroup {
+    display: flex;
+    gap: 1.5rem;
+}
+
+/* Premium Main Button */
+.mainBtn {
+    position: relative;
+    padding: 1.2rem 3rem;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btnContent {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btnBg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--accent, #DC143C);
+    z-index: 1;
+    transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+}
+
+.mainBtn:hover .btnBg {
+    transform: scaleX(0.95) scaleY(0.9);
+    background: #fff;
+}
+
+.mainBtn:hover {
+    color: var(--accent, #DC143C);
+}
+
+.outlineBtn {
+    padding: 1.2rem 3rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.outlineBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #fff;
+}
+
+/* Side Navigation */
+.sideNav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 80px;
+    height: 80px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+}
+
+.prevBtn {
+    inset-inline-start: 2rem;
+}
+
+.nextBtn {
+    inset-inline-end: 2rem;
+}
+
+.sideNav:hover {
+    background: var(--accent, #DC143C);
+    border-color: var(--accent, #DC143C);
+    width: 100px;
+}
+
+/* Controls & UI */
+.controlsLayer {
+    position: absolute;
+    bottom: 4rem;
+    inset-inline: 4rem;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Bottom Pagination */
+.paginationLayer {
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    width: auto;
+}
+
+.paginationWrapper {
+    display: flex !important;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.customBullet {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 50px !important;
+    height: auto !important;
+    background: transparent !important;
+    opacity: 1 !important;
+    cursor: pointer;
+    margin: 0 !important;
+}
+
+.bulletNumber {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.3);
+    transition: color 0.3s ease;
+}
+
+.bulletProgress {
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.bulletProgress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--accent, #DC143C);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+
+:global(.swiper-pagination-bullet-active) .bulletNumber {
+    color: #fff;
+}
+
+:global(.swiper-pagination-bullet-active) .bulletProgress::after {
+    transform: scaleX(1);
+    /* Autoplay progress animation */
+}
+
+/* Decorative Info */
+.yearLabel {
+    position: absolute;
+    top: 50%;
+    inset-inline-end: 4rem;
+    transform: translateY(-50%) rotate(90deg);
+    z-index: 20;
+}
+
+.yearLabel span {
+    color: rgba(255, 255, 255, 0.1);
+    font-size: 6rem;
+    font-weight: 900;
+    letter-spacing: 10px;
+    white-space: nowrap;
+}
+
+.bottomDecor {
+    position: absolute;
+    bottom: 2rem;
+    inset-inline-end: 4rem;
+    z-index: 60;
+}
+
+.scrollInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.scrollText {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 3px;
+    writing-mode: vertical-rl;
+    text-transform: uppercase;
+}
+
+.scrollLine {
+    height: 80px;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.scrollDot {
+    width: 2px;
+    height: 20px;
+    background: var(--accent, #DC143C);
+}
+
+.flipIcon {
+    transform: rotate(180deg);
+}
+
+/* RTL Adjustments */
+.hero:global([dir="rtl"]) {
+    --vignette-x: 80%;
+}
+
+.hero:global([dir="ltr"]) {
+    --vignette-x: 20%;
+}
+
+/* Ensure arrows point correctly in RTL */
+[dir="rtl"] .sideNav svg {
+    transform: rotate(180deg);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .slideContainer { padding: 0 4rem; }
+    .sideNav { width: 60px; height: 60px; }
+    .sideNav:hover { width: 70px; }
+}
+
+@media (max-width: 768px) {
+    .btnGroup { flex-direction: column; width: 100%; }
+    .mainBtn, .outlineBtn { width: 100%; }
+    .sideNav { display: none; } /* Hide side arrows on mobile for better space */
+    .paginationLayer { bottom: 2rem; }
+    .title { font-size: 2.8rem; }
+    .description { font-size: 1rem; }
+    .slideContainer { padding: 0 1.5rem; }
+}
