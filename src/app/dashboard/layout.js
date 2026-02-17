@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Settings, 
@@ -13,7 +13,7 @@ import {
   LogOut, 
   Search,
   Layers,
-  Image as ImageIcon,
+  ImageIcon,
   Briefcase,
   Trophy,
   Handshake,
@@ -33,12 +33,27 @@ import styles from './dashboard.module.css';
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [openDropdowns, setOpenDropdowns] = useState({
     home: true,
     company: false,
     media: false
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const handleLogout = (e) => {
+    if (e) e.preventDefault();
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
+  // Check for authentication
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+    }
+  }, [router]);
 
   const isActive = (path) => pathname === path;
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -195,10 +210,10 @@ export default function DashboardLayout({ children }) {
           </div>
 
           <div className={styles.navGroup} style={{ marginTop: 'auto' }}>
-            <Link href="/" className={styles.navLink} style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <button onClick={handleLogout} className={styles.navLink} style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', color: 'inherit' }}>
               <LogOut size={20} />
-              {isSidebarOpen && <span>Exit</span>}
-            </Link>
+              {isSidebarOpen && <span>Logout</span>}
+            </button>
           </div>
         </nav>
       </aside>
@@ -211,7 +226,7 @@ export default function DashboardLayout({ children }) {
               {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
             </button>
             <h1 className={styles.navbarTitle}>
-              {pathname === '/dashboard' ? 'Overview' : pathname.split('/').pop().replace('-', ' ').toUpperCase()}
+              {pathname === '/dashboard' ? 'Overview' : pathname.split('/').pop().replace(/-/g, ' ').toUpperCase()}
             </h1>
           </div>
 

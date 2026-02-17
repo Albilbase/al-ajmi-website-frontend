@@ -205,15 +205,29 @@
   border-color: #DC143C;
 }
 
-.mediaSection {
-  margin-top: 2rem;
+.fieldsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.mediaGrid {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 1.5rem;
-  margin-top: 0.75rem;
+.actionBtn {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  background: #DC143C;
+  color: white;
 }
 
 .mediaPreview {
@@ -263,22 +277,6 @@
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
 }
 
-.mediaInfoBox {
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.mediaInfoText {
-  font-size: 0.85rem;
-  color: #64748b;
-  line-height: 1.6;
-}
-
-
-/* Modal Base Styles removed in favor of reusable Modal component */
-
 .cancelBtn {
   background: transparent;
   padding: 0.8rem 1.5rem;
@@ -297,4 +295,35 @@
   border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1.5rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.loaderIcon {
+  color: #DC143C;
+  animation: spin 1s linear infinite;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1100px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
 }

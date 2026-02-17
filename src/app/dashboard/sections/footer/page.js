@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Save, 
   Plus, 
@@ -12,40 +11,110 @@ import {
   Phone, 
   Clock, 
   Newspaper,
-  Copyright
+  Copyright,
+  Loader2
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { 
+  createSectionAPI, 
+  updateSectionAPI, 
+  deleteSectionAPI 
+} from '@/lib/api';
+import useCMSStore from '@/store/useCMSStore';
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './footer-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
 
 export default function FooterManager() {
   const [footerData, setFooterData] = useState({
-    about: {
-      en: "Leading the way in infrastructure, construction, and logistics since 1980.",
-      ar: "الرائدة في مجال البنية التحتية والإنشاءات والخدمات اللوجستية منذ عام 1980."
-    },
-    news: [
-      { id: 1, en: "Signing an agreement with Roshn Group", ar: "توقيع اتفاقية مع مجموعة روشن" },
-      { id: 2, en: "Saudi Arabia wins to host 2034 World Cup", ar: "المملكة العربية السعودية تفوز باستضافة كأس العالم 2034" }
-    ],
+    about: { id: null, en: "", ar: "" },
+    news: [],
     contact: {
-      address: { en: "Saudi Arabia - Riyadh", ar: "المملكة العربية السعودية - الرياض" },
-      phone: "966-112-402-450",
-      email: "info@alajmicompany.com",
+      id: null,
+      address: { en: "", ar: "" },
+      phone: "",
+      email: "",
       hours: {
-        sat: { en: "Saturday: 09:00 - 14:00", ar: "السبت: 09:00 - 14:00" },
-        week: { en: "Sun - Thu: 08:00 - 17:00", ar: "الأحد - الخميس: 08:00 - 17:00" }
+        sat: { en: "", ar: "" },
+        week: { en: "", ar: "" }
       }
     },
-    rights: {
-      en: "Alajmi Company. All Rights Reserved.",
-      ar: "شركة العجمي. جميع الحقوق محفوظة."
-    }
+    rights: { id: null, en: "", ar: "" }
   });
 
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentNews, setCurrentNews] = useState(null);
+
+  // CMS Store
+  const sections = useCMSStore((state) => state.sections);
+  const refreshSections = useCMSStore((state) => state.refreshSections);
+
+  useEffect(() => {
+    const fetchFooterData = () => {
+      setLoading(true);
+      try {
+        if (sections && sections.length > 0) {
+          const footerSections = sections.filter(s => s.section_key === 'footer');
+          
+          // 1. About
+          const aboutSec = footerSections.find(s => s.type === 'about');
+          
+          // 2. Contact (contains address, phone, email, hours)
+          const contactSec = footerSections.find(s => s.type === 'contact');
+          let contactDetails = {
+            address: { en: "", ar: "" },
+            phone: "",
+            email: "",
+            hours: { sat: { en: "", ar: "" }, week: { en: "", ar: "" } }
+          };
+          
+          // Use 'details' field if available, fallback to 'description_en'
+          const rawDetails = contactSec?.details || contactSec?.description_en;
+          if (rawDetails) {
+            try {
+              contactDetails = typeof rawDetails === 'string' ? JSON.parse(rawDetails || '{}') : (rawDetails || {});
+            } catch (e) { console.error("Error parsing contact details", e); }
+          }
+  
+          // 3. News
+          const newsItems = footerSections.filter(s => s.type === 'news_item').map(n => ({
+            id: n.id,
+            en: n.title_en,
+            ar: n.title_ar
+          }));
+  
+          // 4. Rights
+          const rightsSec = footerSections.find(s => s.type === 'rights');
+  
+          setFooterData({
+            about: {
+              id: aboutSec?.id || null,
+              en: aboutSec?.title_en || "",
+              ar: aboutSec?.title_ar || ""
+            },
+            news: newsItems,
+            contact: {
+              id: contactSec?.id || null,
+              ...contactDetails
+            },
+            rights: {
+              id: rightsSec?.id || null,
+              en: rightsSec?.title_en || "",
+              ar: rightsSec?.title_ar || ""
+            }
+          });
+        }
+      } catch (error) {
+        toast.error("حدث خطأ أثناء تحميل بيانات الفوتر");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFooterData();
+  }, [sections]);
 
   const handleUpdateAbout = (lang, value) => {
     setFooterData(prev => ({
@@ -85,7 +154,7 @@ export default function FooterManager() {
   };
 
   const handleAddNews = () => {
-    setCurrentNews({ id: Date.now(), en: "", ar: "" });
+    setCurrentNews({ id: null, en: "", ar: "" });
     setIsModalOpen(true);
   };
 
@@ -94,27 +163,50 @@ export default function FooterManager() {
     setIsModalOpen(true);
   };
 
-  const handleSaveNews = () => {
-    if (footerData.news.find(n => n.id === currentNews.id)) {
-      setFooterData(prev => ({
-        ...prev,
-        news: prev.news.map(item => item.id === currentNews.id ? currentNews : item)
-      }));
-    } else {
-      setFooterData(prev => ({
-        ...prev,
-        news: [...prev.news, currentNews]
-      }));
+  const handleSaveNews = async () => {
+    if (!currentNews.en || !currentNews.ar) {
+      toast.warning("يرجى إدخال محتوى الخبر بالعربية والإنجليزية");
+      return;
     }
-    setIsModalOpen(false);
+
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'footer');
+    formData.append('type', 'news_item');
+    formData.append('title_en', currentNews.en);
+    formData.append('title_ar', currentNews.ar);
+    formData.append('is_active', 'true');
+
+    try {
+      if (currentNews.id) {
+        await updateSectionAPI(currentNews.id, formData);
+        toast.success("تم تحديث الخبر");
+      } else {
+        await createSectionAPI(formData);
+        toast.success("تمت إضافة الخبر");
+      }
+      await refreshSections();
+      setIsModalOpen(false);
+    } catch (error) {
+      toast.error("فشل حفظ الخبر");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDeleteNews = (id) => {
-    if (window.confirm("Are you sure you want to delete this news item?")) {
-      setFooterData(prev => ({
-        ...prev,
-        news: prev.news.filter(item => item.id !== id)
-      }));
+  const handleDeleteNews = async (id) => {
+    if (window.confirm("هل أنت متأكد من حذف هذا الخبر؟")) {
+      try {
+        await deleteSectionAPI(id);
+        await refreshSections();
+        setFooterData(prev => ({
+          ...prev,
+          news: prev.news.filter(item => item.id !== id)
+        }));
+        toast.success("تم حذف الخبر");
+      } catch (error) {
+        toast.error("فشل الحذف");
+      }
     }
   };
 
@@ -125,9 +217,62 @@ export default function FooterManager() {
     }));
   };
 
-  const handleSave = () => {
-    alert("Footer changes saved successfully!");
+  const handleSave = async () => {
+    setIsSubmitting(true);
+    try {
+      // 1. Save About
+      const aboutFD = new FormData();
+      aboutFD.append('section_key', 'footer');
+      aboutFD.append('type', 'about');
+      aboutFD.append('title_en', footerData.about.en);
+      aboutFD.append('title_ar', footerData.about.ar);
+      aboutFD.append('is_active', 'true');
+      if (footerData.about.id) await updateSectionAPI(footerData.about.id, aboutFD);
+      else await createSectionAPI(aboutFD);
+
+      // 2. Save Contact
+      const contactFD = new FormData();
+      contactFD.append('section_key', 'footer');
+      contactFD.append('type', 'contact');
+      // Pack all contact details into description_en
+      const contactDetails = {
+        address: footerData.contact.address,
+        phone: footerData.contact.phone,
+        email: footerData.contact.email,
+        hours: footerData.contact.hours
+      };
+      contactFD.append('details', JSON.stringify(contactDetails));
+      contactFD.append('is_active', 'true');
+      if (footerData.contact.id) await updateSectionAPI(footerData.contact.id, contactFD);
+      else await createSectionAPI(contactFD);
+
+      // 3. Save Rights
+      const rightsFD = new FormData();
+      rightsFD.append('section_key', 'footer');
+      rightsFD.append('type', 'rights');
+      rightsFD.append('title_en', footerData.rights.en);
+      rightsFD.append('title_ar', footerData.rights.ar);
+      rightsFD.append('is_active', 'true');
+      if (footerData.rights.id) await updateSectionAPI(footerData.rights.id, rightsFD);
+      else await createSectionAPI(rightsFD);
+
+      await refreshSections();
+      toast.success("تم حفظ جميع التغييرات بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ البيانات");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className={localStyles.loadingContainer}>
+        <Loader2 className={localStyles.loaderIcon} size={40} />
+        <p>جاري تحميل بيانات الفوتر...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={localStyles.container}>
@@ -136,8 +281,9 @@ export default function FooterManager() {
           <h2 className={dashboardStyles.sectionTitle}>Footer Management</h2>
           <p className={dashboardStyles.sectionSubtitle}>Update information displayed in the website footer.</p>
         </div>
-        <button className={localStyles.saveButton} onClick={handleSave}>
-          <Save size={20} /> Save Changes
+        <button className={localStyles.saveButton} onClick={handleSave} disabled={isSubmitting}>
+          {isSubmitting ? <Loader2 className={localStyles.spin} size={20} /> : <Save size={20} />}
+          {isSubmitting ? "Saving..." : "Save Changes"}
         </button>
       </header>
 
@@ -338,11 +484,13 @@ export default function FooterManager() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={footerData.news.find(n => n.id === currentNews?.id) ? "Edit News Item" : "Add News Item"}
+        title={currentNews?.id ? "Edit News Item" : "Add News Item"}
         footer={
           <>
             <button className={localStyles.cancelBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
-            <button className={localStyles.submitBtn} onClick={handleSaveNews}>Save News</button>
+            <button className={localStyles.submitBtn} onClick={handleSaveNews} disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save News"}
+            </button>
           </>
         }
       >

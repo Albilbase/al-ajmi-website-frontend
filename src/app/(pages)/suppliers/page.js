@@ -1,54 +1,134 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { UploadCloud, CheckCircle2, ChevronDown } from 'lucide-react'; 
+import { UploadCloud, CheckCircle2, ChevronDown, Loader2, Info } from 'lucide-react'; 
+import useCMSStore from '@/store/useCMSStore';
 import styles from './suppliers.module.css';
 
-const SuppliersPage = () => {
-  const { t, i18n } = useTranslation(); // Define the translation hook
-  const isRTL = i18n.language === 'ar'; // Define the isRTL variable
-  const [fileName, setFileName] = useState(""); // Define the file name state
+import { submitContactFormAPI } from '@/lib/api';
+import { toast } from 'react-toastify';
 
-  // Define the handleFileChange function
+const SuppliersPage = () => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  const sections = useCMSStore((state) => state.sections);
+  const [fileName, setFileName] = useState("");
+  const [file, setFile] = useState(null);
+  const storeLoading = useCMSStore((state) => state.isLoading);
+  const [hero, setHero] = useState(null);
+  const [formFields, setFormFields] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+
+  useEffect(() => {
+    const suppliersSections = (sections || []).filter(section => section.section_key === 'suppliers');
+    
+    if (suppliersSections.length > 0) {
+      const heroSection = suppliersSections.find(s => s.type === 'hero');
+      setHero(heroSection);
+
+      const fields = suppliersSections.filter(s => 
+        (s.type === 'form_input' || s.type === 'form_dropdown') && 
+        (s.is_active === true || s.is_active === 'true')
+      );
+      setFormFields(fields.sort((a, b) => a.id - b.id));
+
+      // Fetch dynamic email settings
+      const settingsSection = suppliersSections.find(s => s.type === 'form_settings');
+      if (settingsSection) {
+        try {
+          const details = typeof settingsSection.details === 'string' 
+            ? JSON.parse(settingsSection.details || '{}') 
+            : (settingsSection.details || {});
+          
+          if (details.receive_email) {
+            setRecipientEmail(details.receive_email);
+          }
+        } catch (error) {
+          console.error("Error parsing form settings:", error);
+        }
+      }
+    }
+  }, [sections]);
+
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setFileName(file.name);
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
     } else {
+      setFile(null);
       setFileName("");
     }
   };
 
-  // Define the handleSubmit function
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Form submitted! (This is a demo)");
-    setFileName("");
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      // Set the subject/form name
+      formData.append('name', 'Suppliers Registration');
+      formData.append('send_to', recipientEmail);
+
+      const dataObj = {};
+      formFields.forEach(field => {
+        const element = document.getElementById(`field-${field.id}`);
+        if (element) {
+          
+          const key = field.title_en || `field_${field.id}`;
+          dataObj[key] = element.value;
+        }
+      });
+      
+      // Append data as stringified JSON
+      formData.append('data', JSON.stringify(dataObj));
+
+      if (file) {
+        formData.append('file', file);
+      }
+
+      await submitContactFormAPI(formData);
+      
+      toast.success(isRTL ? "تم إرسال النموذج بنجاح!" : "Form submitted successfully!");
+      
+      // Reset form
+      e.target.reset();
+      setFile(null);
+      setFileName("");
+    } catch (error) {
+      console.error(error);
+      toast.error(isRTL ? "حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى." : "Error submitting form. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Define the renderInput function
-  const renderInput = (name, type = "text", required = true, placeholderKey) => (
-    <div className={styles.inputWrapper}>
-      <input 
-        type={type} 
-        id={name}
-        className={styles.input} 
-        required={required} 
-        placeholder=" "
-      />
-      <label htmlFor={name} className={styles.label}>
-        {t(`suppliersPage.form.${name}`)}
-      </label>
-    </div>
-  );
+  const getImageUrl = (path) => {
+    if (!path) return "/images/splyerbanner.jpeg";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
+  };
+
+  if (storeLoading && sections.length === 0) {
+    return (
+      <div className={styles.loadingContainer}>
+        <Loader2 className={styles.spinner} size={48} />
+      </div>
+    );
+  }
+
+  const heroImage = hero?.images?.[0] ? getImageUrl(hero.images[0]) : "/images/splyerbanner.jpeg";
 
   return (
     <div className={styles.suppliersSection} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <div 
         className={styles.hero}
-        style={{ backgroundImage: "url('/images/splyerbanner.jpeg')" }}
+        style={{ backgroundImage: `url('${heroImage}')` }}
       >
         <div className={styles.heroOverlay} />
         <motion.div 
@@ -57,8 +137,12 @@ const SuppliersPage = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className={styles.title}>{t('nav.suppliers')}</h1>
-          <p className={styles.subtitle}>{t('suppliersPage.subtitle')}</p>
+          <h1 className={styles.title}>
+            {isRTL ? (hero?.title_ar || t('nav.suppliers')) : (hero?.title_en || t('nav.suppliers'))}
+          </h1>
+          <p className={styles.subtitle}>
+            {isRTL ? (hero?.subtitle_ar || t('suppliersPage.subtitle')) : (hero?.subtitle_en || t('suppliersPage.subtitle'))}
+          </p>
         </motion.div>
       </div>
 
@@ -71,71 +155,79 @@ const SuppliersPage = () => {
         >
           <form className={styles.formGrid} onSubmit={handleSubmit}>
             
-            <div className={`${styles.formGroup} ${styles.fullWidth} sm:col-span-1`}>
-               {/* Applied fullWidth trick to span properly on desktop, CSS handles mobile grid */}
-            </div>
+            {formFields.length > 0 ? (
+              formFields.map((field) => {
+                const isDropdown = field.type === 'form_dropdown';
+                let width = "full";
+                
+                if (field.description_ar && field.description_ar.includes('|')) {
+                  const parts = field.description_ar.split('|');
+                  width = isDropdown ? (parts[1] || "full") : (parts[parts.length - 1] || "full");
+                } else if (!isDropdown) {
+                  width = field.description_ar || "full";
+                }
 
+                // If it's a textarea, it often looks better full width, but we respect the dashboard setting
+                const groupClass = `${styles.formGroup} ${width === 'full' ? styles.fullWidth : ''}`;
 
-            <div className={styles.formGroup}>
-              {renderInput("nameSupplier")}
-            </div>
-
-            <div className={styles.formGroup}>
-              <div className={styles.inputWrapper}>
-                <select 
-                  id="nickname" 
-                  className={styles.select} 
-                  required 
-                  defaultValue=""
-                >
-                  <option value="" disabled></option>
-                  <option value="consulting">{t('suppliersPage.form.nicknameOptions.consulting')}</option>
-                  <option value="subcontractors">{t('suppliersPage.form.nicknameOptions.subcontractors')}</option>
-                  <option value="spareParts">{t('suppliersPage.form.nicknameOptions.spareParts')}</option>
-                  <option value="asset">{t('suppliersPage.form.nicknameOptions.asset')}</option>
-                  <option value="material">{t('suppliersPage.form.nicknameOptions.material')}</option>
-                  <option value="transporter">{t('suppliersPage.form.nicknameOptions.transporter')}</option>
-                  <option value="rent">{t('suppliersPage.form.nicknameOptions.rent')}</option>
-                  <option value="purchasing">{t('suppliersPage.form.nicknameOptions.purchasing')}</option>
-                  <option value="hospitals">{t('suppliersPage.form.nicknameOptions.hospitals')}</option>
-                  <option value="paintsSafety">{t('suppliersPage.form.nicknameOptions.paintsSafety')}</option>
-                  <option value="fuel">{t('suppliersPage.form.nicknameOptions.fuel')}</option>
-                  <option value="other">{t('suppliersPage.form.nicknameOptions.other')}</option>
-                </select>
-                <label htmlFor="nickname" className={styles.label}>{t('suppliersPage.form.nickname')}</label>
-                <ChevronDown size={16} style={{position: 'absolute', [isRTL ? 'left' : 'right']: '1rem', top:'50%', transform:'translateY(-50%)', pointerEvents:'none', opacity:0.5}}/>
+                return (
+                  <div key={field.id} className={groupClass}>
+                    {field.type === 'form_input' ? (
+                      <div className={styles.inputWrapper}>
+                        {field.description_en === 'textarea' ? (
+                          <textarea 
+                             id={`field-${field.id}`}
+                             className={styles.textarea} 
+                             required 
+                             placeholder=" "
+                          />
+                        ) : (
+                          <input 
+                            type={field.description_en || "text"} 
+                            id={`field-${field.id}`}
+                            className={styles.input} 
+                            required 
+                            placeholder=" "
+                          />
+                        )}
+                        <label htmlFor={`field-${field.id}`} className={styles.label}>
+                          {isRTL ? field.title_ar : field.title_en}
+                        </label>
+                      </div>
+                    ) : (
+                      <div className={styles.inputWrapper}>
+                        <select 
+                          id={`field-${field.id}`} 
+                          className={styles.select} 
+                          required 
+                          defaultValue=""
+                        >
+                          <option value="" disabled></option>
+                          {(isRTL ? (field.description_ar?.split('|')[0] || "") : field.description_en || "").split(';').map((opt, idx) => {
+                            const optionValue = opt.trim();
+                            if (!optionValue) return null;
+                            return (
+                              <option key={idx} value={optionValue}>
+                                {optionValue}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        <label htmlFor={`field-${field.id}`} className={styles.label}>
+                          {isRTL ? field.title_ar : field.title_en}
+                        </label>
+                        <ChevronDown size={16} style={{position: 'absolute', [isRTL ? 'left' : 'right']: '1rem', top:'50%', transform:'translateY(-50%)', pointerEvents:'none', opacity:0.5}}/>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <div className={styles.formGroup} style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                <Info size={32} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                <p>{isRTL ? "يرجى إضافة حقول النموذج من لوحة التحكم" : "Please add form fields from the dashboard"}</p>
               </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <div className={styles.inputWrapper}>
-                <select 
-                  id="address" 
-                  className={styles.select} 
-                  required 
-                  defaultValue=""
-                >
-                  <option value="" disabled></option>
-                  <option value="saudia">{t('suppliersPage.form.addressOptions.saudia')}</option>
-                  <option value="egypt">{t('suppliersPage.form.addressOptions.egypt')}</option>
-                  <option value="uae">{t('suppliersPage.form.addressOptions.uae')}</option>
-                  <option value="jordan">{t('suppliersPage.form.addressOptions.jordan')}</option>
-                  <option value="other">{t('suppliersPage.form.addressOptions.other')}</option>
-                </select>
-                <label htmlFor="address" className={styles.label}>{t('suppliersPage.form.address')}</label>
-                <ChevronDown size={16} style={{position: 'absolute', [isRTL ? 'left' : 'right']: '1rem', top:'50%', transform:'translateY(-50%)', pointerEvents:'none', opacity:0.5}}/>
-              </div>
-            </div>
-           
-            <div className={styles.formGroup}>{renderInput("mobile", "tel")}</div>
-            <div className={styles.formGroup}>{renderInput("fax", "tel", false)}</div>
-            <div className={styles.formGroup}>{renderInput("commercialRecord")}</div>
-            <div className={styles.formGroup}>{renderInput("bankName")}</div>
-            <div className={styles.formGroup}>{renderInput("accountNo")}</div>
-            <div className={styles.formGroup}>{renderInput("iban")}</div>
-            <div className={styles.formGroup}>{renderInput("email", "email")}</div>
-            <div className={styles.formGroup}>{renderInput("communicationOfficer")}</div>
-            <div className={styles.formGroup}>{renderInput("officerMobile", "tel")}</div>
+            )}
 
             {/* Creative File Upload */}
             <div className={`${styles.formGroup} ${styles.fullWidth}`}>
@@ -158,8 +250,12 @@ const SuppliersPage = () => {
             </div>
 
             <div className={styles.buttonWrapper}>
-              <button type="submit" className={styles.submitButton}>
-                <span>{t('suppliersPage.form.submit')}</span>
+              <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  <span>{t('suppliersPage.form.submit')}</span>
+                )}
               </button>
             </div>
 

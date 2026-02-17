@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
+import useCMSStore from '@/store/useCMSStore';
 import styles from './about.module.css';
 import { Award, CheckCircle, ShieldCheck } from 'lucide-react';
 
@@ -21,32 +22,73 @@ const staggerContainer = {
   }
 }; // Define the staggered animation for the container
 
+
 const AboutPage = () => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const isAr = i18n.language === 'ar';
+  const sections = useCMSStore((state) => state.sections);
 
-  const historyImages = [
-    '/images/historysection/7.png',
-    '/images/historysection/8.png',
-    '/images/historysection/9.png',
- 
-  ];
+  const [aboutData, setAboutData] = useState({
+    hero: null,
+    intro: null,
+    certificates: [],
+    certificatesHeader: null,
+    capabilities: null,
+    partners: []
+  });
 
   const [currentImage, setCurrentImage] = useState(0);
 
   useEffect(() => {
+    const aboutSections = (sections || []).filter(section => section.section_key === 'about');
+    if (aboutSections.length > 0) {
+      const hero = aboutSections.find(item => item.type === 'hero' && item.is_active);
+      const intro = aboutSections.find(item => item.type === 'intro' && item.is_active);
+      const certificates = aboutSections.filter(item => item.type === 'certificate' && item.is_active);
+      const certificatesHeader = aboutSections.find(item => item.type === 'certificates_header' && item.is_active);
+      const capabilities = aboutSections.find(item => item.type === 'capabilities' && item.is_active);
+      const partners = aboutSections.filter(item => item.type === 'partner' && item.is_active);
+      
+      setAboutData({
+        hero,
+        intro,
+        certificates,
+        certificatesHeader,
+        capabilities,
+        partners
+      });
+    }
+  }, [sections]);
+
+  const introImages = aboutData.intro?.images && aboutData.intro.images.length > 0
+    ? aboutData.intro.images.map(img => `http://192.168.15.95:5000${img}`)
+    : [
+        '/images/historysection/7.png',
+        '/images/historysection/8.png',
+        '/images/historysection/9.png',
+      ];
+
+  useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % historyImages.length);
+      setCurrentImage((prev) => (prev + 1) % introImages.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [historyImages.length]);
+  }, [introImages.length]);
+
+  const heroBgImage = aboutData.hero?.images && aboutData.hero.images.length > 0
+    ? `url('http://192.168.15.95:5000${aboutData.hero.images[0]}')`
+    : "url('/images/historysection/1.png')";
+
+  const capabilitiesImage = aboutData.capabilities?.images && aboutData.capabilities.images.length > 0
+    ? `http://192.168.15.95:5000${aboutData.capabilities.images[0]}`
+    : "/images/historysection/7.png";
 
   return (
-    <div className={styles.aboutSection} dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Hero Section - Kept as requested */}
+    <div className={styles.aboutSection} dir={isAr ? 'rtl' : 'ltr'}>
+      {/* Hero Section */}
       <div 
         className={styles.hero}
-        style={{ backgroundImage: "url('/images/historysection/1.png')" }}
+        style={{ backgroundImage: heroBgImage }}
       >
         <div className={styles.heroOverlay} />
         <motion.div 
@@ -55,8 +97,16 @@ const AboutPage = () => {
           animate="visible"
           variants={fadeInUp}
         >
-          <h1 className={styles.title}>{t('aboutPage.title')}</h1>
-          <p className={styles.subtitle}>{t('aboutPage.subtitle')}</p>
+          <h1 className={styles.title}>
+            {aboutData.hero 
+              ? (isAr ? aboutData.hero.title_ar : aboutData.hero.title_en)
+              : t('aboutPage.title')}
+          </h1>
+          <p className={styles.subtitle}>
+            {aboutData.hero 
+              ? (isAr ? aboutData.hero.description_ar : aboutData.hero.description_en)
+              : t('aboutPage.subtitle')}
+          </p>
         </motion.div>
       </div>
 
@@ -70,9 +120,21 @@ const AboutPage = () => {
           variants={fadeInUp}
         >
           <div className={styles.textContent}>
-            <span className={styles.sectionBadge}>{isRTL ? 'تاريخنا' : 'Our Story'}</span>
-            <h2>{t('aboutPage.intro.title')}</h2>
-            <p>{t('aboutPage.intro.text')}</p>
+            <span className={styles.sectionBadge}>
+              {aboutData.intro?.details?.badge_ar && aboutData.intro?.details?.badge_en
+                ? (isAr ? aboutData.intro.details.badge_ar : aboutData.intro.details.badge_en)
+                : (isAr ? 'تاريخنا' : 'Our Story')}
+            </span>
+            <h2>
+              {aboutData.intro 
+                ? (isAr ? aboutData.intro.title_ar : aboutData.intro.title_en)
+                : t('aboutPage.intro.title')}
+            </h2>
+            <p>
+              {aboutData.intro 
+                ? (isAr ? aboutData.intro.description_ar : aboutData.intro.description_en)
+                : t('aboutPage.intro.text')}
+            </p>
           </div>
           <div className={styles.imageGallery}>
             <div className={styles.mainImageWrapper}>
@@ -86,18 +148,25 @@ const AboutPage = () => {
                   className={styles.imageGalleryInner}
                 >
                   <Image 
-                    src={historyImages[currentImage]} 
+                    src={introImages[currentImage]} 
                     alt="About Al Ajmi" 
                     width={600} 
                     height={400} 
                     className={styles.image}
                     priority
+                    unoptimized={aboutData.intro?.images && aboutData.intro.images.length > 0}
                   />
                 </motion.div>
               </AnimatePresence>
               <div className={styles.imageExperience}>
-                <span className={styles.expYears}>44</span>
-                <span className={styles.expText}>{isRTL ? 'عاماً من التميز' : 'Years of Excellence'}</span>
+                <span className={styles.expYears}>
+                  {aboutData.intro?.details?.expYears || '44'}
+                </span>
+                <span className={styles.expText}>
+                  {aboutData.intro?.details?.expText_ar && aboutData.intro?.details?.expText_en
+                    ? (isAr ? aboutData.intro.details.expText_ar : aboutData.intro.details.expText_en)
+                    : (isAr ? 'عاماً من التميز' : 'Years of Excellence')}
+                </span>
               </div>
             </div>
           </div>
@@ -112,20 +181,37 @@ const AboutPage = () => {
           variants={staggerContainer}
         >
           <motion.div variants={fadeInUp} className={styles.sectionHeader}>
-            <span className={styles.sectionBadgeCenter}>{isRTL ? 'الاعتمادات' : 'Accreditations'}</span>
-            <h2>{t('aboutPage.certificates.title')}</h2>
+            <span className={styles.sectionBadgeCenter}>{isAr ? 'الاعتمادات' : 'Accreditations'}</span>
+            <h2>
+              {aboutData.certificatesHeader 
+                ? (isAr ? aboutData.certificatesHeader.title_ar : aboutData.certificatesHeader.title_en)
+                : t('aboutPage.certificates.title')}
+            </h2>
             <p>{t('aboutPage.certificates.subtitle')}</p>
           </motion.div>
 
           <div className={styles.certGrid}>
-            {(t('aboutPage.certificates.list', { returnObjects: true }) || []).map((cert, index) => (
-              <motion.div key={index} className={styles.certCard} variants={fadeInUp}>
-                <div className={styles.certIcon}>
-                  {index % 3 === 0 ? <Award /> : index % 3 === 1 ? <ShieldCheck /> : <CheckCircle />} 
-                </div>
-                <span className={styles.certText}>{cert}</span>
-              </motion.div>
-            ))}
+            {aboutData.certificates.length > 0 ? (
+              aboutData.certificates.map((cert, index) => (
+                <motion.div key={cert.id} className={styles.certCard} variants={fadeInUp}>
+                  <div className={styles.certIcon}>
+                    {index % 3 === 0 ? <Award /> : index % 3 === 1 ? <ShieldCheck /> : <CheckCircle />} 
+                  </div>
+                  <span className={styles.certText}>
+                    {isAr ? cert.title_ar : cert.title_en}
+                  </span>
+                </motion.div>
+              ))
+            ) : (
+              (t('aboutPage.certificates.list', { returnObjects: true }) || []).map((cert, index) => (
+                <motion.div key={index} className={styles.certCard} variants={fadeInUp}>
+                  <div className={styles.certIcon}>
+                    {index % 3 === 0 ? <Award /> : index % 3 === 1 ? <ShieldCheck /> : <CheckCircle />} 
+                  </div>
+                  <span className={styles.certText}>{cert}</span>
+                </motion.div>
+              ))
+            )}
           </div>
         </motion.section>
 
@@ -140,18 +226,27 @@ const AboutPage = () => {
           <div className={`${styles.imageGallery} ${styles.orderLastMobile}`}>
              <div className={styles.mainImageWrapper}>
               <Image 
-                src="/images/historysection/7.png" 
+                src={capabilitiesImage} 
                 alt="Our Resources" 
                 width={600} 
                 height={400} 
                 className={styles.image}
+                unoptimized={aboutData.capabilities?.images && aboutData.capabilities.images.length > 0}
               />
             </div>
           </div>
           <div className={styles.textContent}>
-            <span className={styles.sectionBadge}>{isRTL ? 'قدراتنا' : 'Capabilities'}</span>
-            <h2>{t('aboutPage.resources.title')}</h2>
-            <p>{t('aboutPage.resources.text')}</p>
+            <span className={styles.sectionBadge}>{isAr ? 'قدراتنا' : 'Capabilities'}</span>
+            <h2>
+              {aboutData.capabilities 
+                ? (isAr ? aboutData.capabilities.title_ar : aboutData.capabilities.title_en)
+                : t('aboutPage.resources.title')}
+            </h2>
+            <p>
+              {aboutData.capabilities 
+                ? (isAr ? aboutData.capabilities.description_ar : aboutData.capabilities.description_en)
+                : t('aboutPage.resources.text')}
+            </p>
           </div>
         </motion.section>
 
@@ -164,18 +259,27 @@ const AboutPage = () => {
           variants={staggerContainer}
         >
           <motion.div variants={fadeInUp} className={styles.sectionHeader}>
-            <span className={styles.sectionBadgeCenter}>{isRTL ? 'شركاؤنا' : 'Our Partners'}</span>
+            <span className={styles.sectionBadgeCenter}>{isAr ? 'شركاؤنا' : 'Our Partners'}</span>
             <h2>{t('aboutPage.clients.title')}</h2>
             <p style={{ maxWidth: '800px', margin: '0 auto' }}>{t('aboutPage.clients.text')}</p>
           </motion.div>
           
           <div className={styles.clientsGrid}>
-             {(t('aboutPage.clients.list', { returnObjects: true }) || []).map((client, index) => (
-               <motion.div key={index} className={styles.clientItem} variants={fadeInUp}>
-                 <div className={styles.clientDot} />
-                 {client}
-               </motion.div>
-             ))}
+            {aboutData.partners.length > 0 ? (
+              aboutData.partners.map((partner) => (
+                <motion.div key={partner.id} className={styles.clientItem} variants={fadeInUp}>
+                  <div className={styles.clientDot} />
+                  {isAr ? partner.title_ar : partner.title_en}
+                </motion.div>
+              ))
+            ) : (
+              (t('aboutPage.clients.list', { returnObjects: true }) || []).map((client, index) => (
+                <motion.div key={index} className={styles.clientItem} variants={fadeInUp}>
+                  <div className={styles.clientDot} />
+                  {client}
+                </motion.div>
+              ))
+            )}
           </div>
         </motion.section>
       </div>

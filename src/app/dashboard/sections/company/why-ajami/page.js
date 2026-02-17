@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Save, 
   Image as ImageIcon, 
@@ -10,66 +9,177 @@ import {
   Truck, 
   Droplet, 
   Layout, 
-  Target, 
-  Activity, 
-  Zap,
   MapPin,
-  Settings
+  Settings,
+  X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './why-ajami-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 
 export default function WhyAjamiManager() {
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [content, setContent] = useState({
     hero: {
-      title_en: "Why Al-Ajmi?",
-      title_ar: "لماذا العجمي؟",
-      subtitle_en: "Efficiency, Quality, and Reliability",
-      subtitle_ar: "كفاءة، جودة، وموثوقية",
-      bgImage: "/images/whyajami/WhatsApp Image 2026-01-08 at 12.03.08 PM.jpeg"
+      id: null,
+      title_en: "",
+      title_ar: "",
+      subtitle_en: "",
+      subtitle_ar: "",
+      bgImage: null
     },
     intro: {
-      title_en: "Integrated Capabilities",
-      title_ar: "إمكانيات متكاملة",
-      text_en: "Abdul Ali Al-Ajmi owns a series of asphalt mixing plants, crushers, and readymade mix concrete plants, which have been set up in an organized manner to ensure complete coverage of all working areas and supported by a equipped fleet for the road transport.",
-      text_ar: "تمتلك شركة عبد العالي العجمي سلسلة من مصانع خلط الأسفلت والكسارات ومحطات الخرسانة الجاهزة، والتي تم إنشاؤها بشكل منظم لضمان التغطية الكاملة لجميع مناطق العمل، مدعومة بأسطول مجهز للنقل البري.",
-      image: "/images/whyajami/WhatsApp Image 2026-01-14 at 8.25.15 AM (2).jpeg"
-    },
-    transport: {
-      title_en: "Strategic Transport Fleet",
-      title_ar: "أسطول نقل استراتيجي",
-      text_en: "Means of transport are considered one of the important factors to success in the economic progress, because it is a first pillar in the fields of construction, trade, agriculture and many other fields, means of transport is the first step for the movement of goods and people from one place to another and in economic and social co-operation among the various sectors, especially in Saudi Arabia, which is similar to the continent because of its wide range and given the importance of this sector, Abdul Ali Al-Ajmi Company has given one of its priorities to the transport and established the transport division which contains a fleet of vehicles in different types and sizes.",
-      text_ar: "تعتبر وسائل النقل من أهم عوامل النجاح في التقدم الاقتصادي، لأنها الركيزة الأولى في مجالات البناء والتجارة والزراعة وغيرها من المجالات. تُعد وسائل النقل الخطوة الأولى لنقل البضائع والأفراد من مكان لآخر وللتعاون الاقتصادي والاجتماعي بين مختلف القطاعات، خاصة في المملكة العربية السعودية التي تشبه القارة نظراً لاتساع مساحتها. ونظراً لأهمية هذا القطاع، أولت شركة عبد العالي العجمي إحدى أولوياتها للنقل وأسست قسم النقل الذي يحتوي على أسطول من المركبات بمختلف أنواعها وأحجامها."
+      id: null,
+      title_en: "",
+      title_ar: "",
+      text_en: "",
+      text_ar: "",
+      image: null
     },
     petroleum: {
-      title_en: "Petroleum Services Division",
-      title_ar: "قطاع الخدمات البترولية",
-      text_en: "As a culmination of these integrated services, the company has entered a new field of challenge and excellence by starting the petroleum division which provides quality services in this field to Saudi Aramco in regards to oil, gas and industrial facilities, the division also extended the field of its services to include the countries of the Gulf Co-operation Council.",
-      text_ar: "تتويجاً لهذه الخدمات المتكاملة، دخلت الشركة مجالاً جديداً من التحدي والتميز من خلال بدء قسم الخدمات البترولية الذي يقدم خدمات عالية الجودة في هذا المجال لشركة أرامكو السعودية فيما يتعلق بالنفط والغاز والمنشآت الصناعية. وقد وسع القسم نطاق خدماته ليشمل دول مجلس التعاون الخليجي.",
-      image: "/images/whyajami/e1e855e9-b768-4f96-93e3-0e32c1de20f3.jpeg"
+      id: null,
+      title_en: "",
+      title_ar: "",
+      text_en: "",
+      text_ar: "",
+      image: null,
+      rawImage: null
     },
     expertise: {
-      title_en: "Unmatched Expertise & Reputation",
-      title_ar: "خبرة وسمعة لا تضاهى",
-      text_en: "During these years of experience in the field of business the company has achieved high reputation from its customers through its intensive care, design, management, credibility and professionalism to deliver its services to these clients. Highly Skilled engineers work with Abdul Ali Al-Ajmi Company and the company is keen to bring distinguished experiences to keep pace with the progress in this area by communicating with several countries across the world.",
-      text_ar: "خلال هذه السنوات من الخبرة في مجال الأعمال، حققت الشركة سمعة طيبة لدى عملائها من خلال الرعاية المكثفة والتصميم والإدارة والمصداقية والاحترافية في تقديم خدماتها. يعمل مهندسون ذوو مهارات عالية في شركة عبد العالي العجمي، وتعتبر الشركة حريصة على جلب تجارب متميزة لمواكبة التقدم في هذا المجال من خلال التواصل مع دول عدة عبر العالم.",
-      list: [
-        { en: "The ability to deal with all levels of clients for providing the best services.", ar: "القدرة على التعامل مع جميع مستويات العملاء لتقديم أفضل الخدمات." },
-        { en: "Enhanced ability to gather information and put in organized databases for study, use and referring to them when needed, and to demonstrate the ability to develop strategic logical solutions at critical times during the project implementation, it is still fully committed and in a constant state of efficiency and activity and ensuring the continuation of active planning for the future.", ar: "القدرة المعززة على جمع المعلومات ووضعها في قواعد بيانات منظمة للدراسة والاستخدام والرجوع إليها عند الحاجة، وإظهار القدرة على تطوير حلول منطقية استراتيجية في الأوقات الحرجة أثناء تنفيذ المشروع، مع الالتزام الكامل والبقاء في حالة دائمة من الكفاءة والنشاط وضمان استمرار التخطيط الفعال للمستقبل." }
-      ]
+      id: null,
+      title_en: "",
+      title_ar: "",
+      text_en: "",
+      text_ar: "",
+      list: []
     },
     offices: {
-      title_en: "Our Presence",
-      title_ar: "تواجدنا",
-      text_en: "Abdul Ali Al-Ajmi Company meets the needs of its clients through its offices and branch offices, the head office is located in the city of Riyadh, and there are regional offices in Al-Ahsa.",
-      text_ar: "تلبي شركة عبد العالي العجمي احتياجات عملائها من خلال مكاتبها وفروعها، حيث يقع المكتب الرئيسي في مدينة الرياض، وتوجد مكاتب إقليمية في الأحساء."
+      id: null,
+      title_en: "",
+      title_ar: "",
+      text_en: "",
+      text_ar: ""
     }
   });
 
+  // Image states
+  const [heroImageFile, setHeroImageFile] = useState(null);
+  const [heroImagePreview, setHeroImagePreview] = useState(null);
+  
+  const [introImageFile, setIntroImageFile] = useState(null);
+  const [introImagePreview, setIntroImagePreview] = useState(null);
+
+  const [petroleumImageFile, setPetroleumImageFile] = useState(null);
+  const [petroleumImagePreview, setPetroleumImagePreview] = useState(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newItem, setNewItem] = useState({ en: "", ar: "" });
+
+  // Fetch all data on mount
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        const response = await getAllSectionsAPI();
+        if (response.status === 200 && response.data) {
+          const whySections = response.data.filter(s => s.section_key === 'why_ajami');
+          
+          // 1. Hero
+          const hero = whySections.find(s => s.type === 'hero');
+          if (hero) {
+            setContent(prev => ({
+              ...prev,
+              hero: {
+                id: hero.id,
+                title_en: hero.title_en || "",
+                title_ar: hero.title_ar || "",
+                subtitle_en: hero.description_en || "",
+                subtitle_ar: hero.description_ar || "",
+                subtitle_ar: hero.description_ar || "",
+                bgImage: hero.images?.[0] ? `http://192.168.15.95:5000${hero.images[0]}` : null,
+                rawImage: hero.images?.[0] || null
+              }
+            }));
+          }
+
+          // 2. Intro
+          const intro = whySections.find(s => s.type === 'intro');
+          if (intro) {
+            setContent(prev => ({
+              ...prev,
+              intro: {
+                id: intro.id,
+                title_en: intro.title_en || "",
+                title_ar: intro.title_ar || "",
+                text_en: intro.description_en || "",
+                text_ar: intro.description_ar || "",
+                image: intro.images?.[0] ? `http://192.168.15.95:5000${intro.images[0]}` : null,
+                rawImage: intro.images?.[0] || null
+              }
+            }));
+          }
+
+          // 4. Petroleum
+          const petroleum = whySections.find(s => s.type === 'petroleum');
+          if (petroleum) {
+            setContent(prev => ({
+              ...prev,
+              petroleum: {
+                id: petroleum.id,
+                title_en: petroleum.title_en || "",
+                title_ar: petroleum.title_ar || "",
+                text_en: petroleum.description_en || "",
+                text_ar: petroleum.description_ar || "",
+                image: petroleum.images?.[0] ? `http://192.168.15.95:5000${petroleum.images[0]}` : null,
+                rawImage: petroleum.images?.[0] || null
+              }
+            }));
+          }
+
+          // 5. Expertise Header
+          const expertiseHeader = whySections.find(s => s.type === 'expertise_header');
+          const expertiseItems = whySections.filter(s => s.type === 'expertise_item');
+          setContent(prev => ({
+            ...prev,
+            expertise: {
+              id: expertiseHeader?.id || null,
+              title_en: expertiseHeader?.title_en || "",
+              title_ar: expertiseHeader?.title_ar || "",
+              text_en: expertiseHeader?.description_en || "",
+              text_ar: expertiseHeader?.description_ar || "",
+              list: expertiseItems.map(e => ({ id: e.id, en: e.title_en, ar: e.title_ar }))
+            }
+          }));
+
+          // 6. Offices
+          const offices = whySections.find(s => s.type === 'offices');
+          if (offices) {
+            setContent(prev => ({
+              ...prev,
+              offices: {
+                id: offices.id,
+                title_en: offices.title_en || "",
+                title_ar: offices.title_ar || "",
+                text_en: offices.description_en || "",
+                text_ar: offices.description_ar || ""
+              }
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        toast.error("حدث خطأ أثناء تحميل البيانات");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllData();
+  }, []);
 
   const handleUpdate = (section, field, value) => {
     setContent(prev => ({
@@ -81,24 +191,382 @@ export default function WhyAjamiManager() {
     }));
   };
 
-  const handleListUpdate = (index, lang, value) => {
-    const newList = [...content.expertise.list];
-    newList[index] = { ...newList[index], [lang]: value };
-    handleUpdate('expertise', 'list', newList);
-  };
-
-  const addExpertiseItemFromModal = () => {
-    if (newItem.en && newItem.ar) {
-      handleUpdate('expertise', 'list', [...content.expertise.list, newItem]);
-      setIsModalOpen(false);
-      setNewItem({ en: "", ar: "" });
+  const handleHeroImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setHeroImageFile(file);
+      setHeroImagePreview(URL.createObjectURL(file));
     }
   };
 
-  const removeExpertiseItem = (index) => {
-    const newList = content.expertise.list.filter((_, i) => i !== index);
-    handleUpdate('expertise', 'list', newList);
+  const handleIntroImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIntroImageFile(file);
+      setIntroImagePreview(URL.createObjectURL(file));
+    }
   };
+
+  const handlePetroleumImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPetroleumImageFile(file);
+      setPetroleumImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = async (section) => {
+    // Local preview removal
+    if (section === 'hero' && (heroImageFile || (content.hero.bgImage && content.hero.bgImage.startsWith('blob:')))) {
+      setHeroImageFile(null);
+      setHeroImagePreview(null);
+      setContent(prev => ({ ...prev, hero: { ...prev.hero, bgImage: null } }));
+      const input = document.getElementById('heroImageInput');
+      if (input) input.value = '';
+      return;
+    }
+    if (section === 'intro' && (introImageFile || (content.intro.image && content.intro.image.startsWith('blob:')))) {
+      setIntroImageFile(null);
+      setIntroImagePreview(null);
+      setContent(prev => ({ ...prev, intro: { ...prev.intro, image: null } }));
+      const input = document.getElementById('introImageInput');
+      if (input) input.value = '';
+      return;
+    }
+    if (section === 'petroleum' && (petroleumImageFile || (content.petroleum.image && content.petroleum.image.startsWith('blob:')))) {
+      setPetroleumImageFile(null);
+      setPetroleumImagePreview(null);
+      setContent(prev => ({ ...prev, petroleum: { ...prev.petroleum, image: null } }));
+      const input = document.getElementById('petroleumImageInput');
+      if (input) input.value = '';
+      return;
+    }
+
+    // Server image removal
+    let targetId = null;
+    let targetImage = null;
+    let targetRawImage = null;
+
+    if (section === 'hero') {
+      targetId = content.hero.id;
+      targetImage = content.hero.bgImage;
+      targetRawImage = content.hero.rawImage;
+    } else if (section === 'intro') {
+      targetId = content.intro.id;
+      targetImage = content.intro.image;
+      targetRawImage = content.intro.rawImage;
+    } else if (section === 'petroleum') {
+      targetId = content.petroleum.id;
+      targetImage = content.petroleum.image;
+      targetRawImage = content.petroleum.rawImage;
+    }
+
+    if (targetId && targetImage) {
+      if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+        try {
+          const rawPath = targetRawImage || targetImage.replace('http://192.168.15.95:5000', '');
+          await deleteImageAPI(targetId, rawPath);
+          
+          setContent(prev => ({
+            ...prev,
+            [section]: { ...prev[section], [section === 'hero' ? 'bgImage' : 'image']: null, rawImage: null }
+          }));
+          toast.success("تم حذف الصورة");
+        } catch (e) {
+          console.error(e);
+          toast.error("فشل حذف الصورة");
+        }
+      }
+    }
+  };
+
+  const handleSaveHero = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'why_ajami');
+    formData.append('type', 'hero');
+    formData.append('title_en', content.hero.title_en);
+    formData.append('title_ar', content.hero.title_ar);
+    formData.append('description_en', content.hero.subtitle_en);
+    formData.append('description_ar', content.hero.subtitle_ar);
+    formData.append('is_active', 'true');
+
+    if (heroImageFile) {
+      formData.append('images', heroImageFile);
+    }
+
+    try {
+      let response;
+      if (content.hero.id) {
+        response = await updateSectionAPI(content.hero.id, formData);
+      } else {
+        response = await createSectionAPI(formData);
+      }
+      
+      // Update state with new data from server to reflect image immediately
+      if (response && response.data) {
+        const newImage = response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : content.hero.bgImage;
+        const newRawImage = response.data.images?.[0] || content.hero.rawImage;
+        
+        setContent(prev => ({
+          ...prev,
+          hero: {
+            ...prev.hero,
+            id: response.data.id,
+            bgImage: newImage,
+            rawImage: newRawImage
+          }
+        }));
+      }
+
+      toast.success("تم حفظ قسم البانر بنجاح");
+      setHeroImageFile(null);
+      setHeroImagePreview(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("حدث خطأ أثناء حفظ البانر");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveIntro = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'why_ajami');
+    formData.append('type', 'intro');
+    formData.append('title_en', content.intro.title_en);
+    formData.append('title_ar', content.intro.title_ar);
+    formData.append('description_en', content.intro.text_en);
+    formData.append('description_ar', content.intro.text_ar);
+    formData.append('is_active', 'true');
+
+    if (introImageFile) {
+      formData.append('images', introImageFile);
+    }
+
+    try {
+      let response;
+      if (content.intro.id) {
+        response = await updateSectionAPI(content.intro.id, formData);
+      } else {
+        response = await createSectionAPI(formData);
+      }
+
+      if (response && response.data) {
+        const newImage = response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : content.intro.image;
+        const newRawImage = response.data.images?.[0] || content.intro.rawImage;
+
+        setContent(prev => ({
+          ...prev,
+          intro: {
+            ...prev.intro,
+            id: response.data.id,
+            image: newImage,
+            rawImage: newRawImage
+          }
+        }));
+      }
+
+      toast.success("تم حفظ قسم الإمكانيات بنجاح");
+      setIntroImageFile(null);
+      setIntroImagePreview(null);
+    } catch (error) {
+       console.error(error);
+      toast.error("حدث خطأ أثناء حفظ الإمكانيات");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSavePetroleum = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'why_ajami');
+    formData.append('type', 'petroleum');
+    formData.append('title_en', content.petroleum.title_en);
+    formData.append('title_ar', content.petroleum.title_ar);
+    formData.append('description_en', content.petroleum.text_en);
+    formData.append('description_ar', content.petroleum.text_ar);
+    formData.append('is_active', 'true');
+
+    if (petroleumImageFile) {
+      formData.append('images', petroleumImageFile);
+    }
+
+    try {
+      let response;
+      if (content.petroleum.id) {
+        response = await updateSectionAPI(content.petroleum.id, formData);
+      } else {
+        response = await createSectionAPI(formData);
+      }
+
+      if (response && response.data) {
+        const newImage = response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : content.petroleum.image;
+        const newRawImage = response.data.images?.[0] || content.petroleum.rawImage;
+
+        setContent(prev => ({
+          ...prev,
+          petroleum: {
+            ...prev.petroleum,
+            id: response.data.id,
+            image: newImage,
+            rawImage: newRawImage
+          }
+        }));
+      }
+
+      toast.success("تم حفظ قسم البترول بنجاح");
+      setPetroleumImageFile(null);
+      setPetroleumImagePreview(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("حدث خطأ أثناء حفظ البترول");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveExpertiseHeader = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'why_ajami');
+    formData.append('type', 'expertise_header');
+    formData.append('title_en', content.expertise.title_en);
+    formData.append('title_ar', content.expertise.title_ar);
+    formData.append('description_en', content.expertise.text_en);
+    formData.append('description_ar', content.expertise.text_ar);
+    formData.append('is_active', 'true');
+
+    try {
+      if (content.expertise.id) {
+        await updateSectionAPI(content.expertise.id, formData);
+      } else {
+        await createSectionAPI(formData);
+      }
+      toast.success("تم حفظ عنوان الخبرات بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ عنوان الخبرات");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveOffices = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'why_ajami');
+    formData.append('type', 'offices');
+    formData.append('title_en', content.offices.title_en);
+    formData.append('title_ar', content.offices.title_ar);
+    formData.append('description_en', content.offices.text_en);
+    formData.append('description_ar', content.offices.text_ar);
+    formData.append('is_active', 'true');
+
+    try {
+      if (content.offices.id) {
+        await updateSectionAPI(content.offices.id, formData);
+      } else {
+        await createSectionAPI(formData);
+      }
+      toast.success("تم حفظ قسم المكاتب بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ المكاتب");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const addExpertiseItemFromModal = async () => {
+    if (!newItem.en || !newItem.ar) {
+      toast.error("Please fill in both English and Arabic fields");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'why_ajami');
+    formData.append('type', 'expertise_item');
+    formData.append('title_en', newItem.en);
+    formData.append('title_ar', newItem.ar);
+    formData.append('is_active', 'true');
+
+    try {
+      const response = await createSectionAPI(formData);
+      const addedItem = { id: response.data.id, en: newItem.en, ar: newItem.ar };
+      
+      setContent(prev => ({
+        ...prev,
+        expertise: { ...prev.expertise, list: [...prev.expertise.list, addedItem] }
+      }));
+      
+      toast.success("تمت الإضافة بنجاح");
+      setIsModalOpen(false);
+      setNewItem({ en: "", ar: "" });
+    } catch (error) {
+      toast.error("حدث خطأ أثناء الإضافة");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const removeExpertiseItem = async (id, index) => {
+    if (!id) return;
+
+    if (confirm('هل أنت متأكد من الحذف؟')) {
+      try {
+        await deleteSectionAPI(id);
+        const newList = content.expertise.list.filter((_, i) => i !== index);
+        setContent(prev => ({
+          ...prev,
+          expertise: { ...prev.expertise, list: newList }
+        }));
+        toast.success("تم الحذف بنجاح");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الحذف");
+      }
+    }
+  };
+
+  const handleListUpdate = (index, lang, value) => {
+    const newList = [...content.expertise.list];
+    newList[index] = { ...newList[index], [lang]: value };
+    setContent(prev => ({
+      ...prev,
+      expertise: { ...prev.expertise, list: newList }
+    }));
+  };
+
+  const saveListItem = async (index) => {
+    const item = content.expertise.list[index];
+    if (!item.id) return;
+
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'why_ajami');
+    formData.append('type', 'expertise_item');
+    formData.append('title_en', item.en);
+    formData.append('title_ar', item.ar);
+    formData.append('is_active', 'true');
+
+    try {
+      await updateSectionAPI(item.id, formData);
+      toast.success("تم التحديث بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء التحديث");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#64748b' }}>
+        <p>Loading Why Al-Ajmi Management...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -107,9 +575,6 @@ export default function WhyAjamiManager() {
           <h2 className={dashboardStyles.sectionTitle}>Why Al-Ajmi Management</h2>
           <p className={dashboardStyles.sectionSubtitle}>Manage the unique selling points, transport fleet, and petroleum services.</p>
         </div>
-        <button className={localStyles.saveButton}>
-          <Save size={20} /> Save Changes
-        </button>
       </div>
 
       <div className={localStyles.sectionGrid}>
@@ -120,6 +585,9 @@ export default function WhyAjamiManager() {
                 <Layout size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Hero Banner</h3>
               </div>
+              <button onClick={handleSaveHero} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Banner'}
+              </button>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
@@ -144,9 +612,23 @@ export default function WhyAjamiManager() {
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Banner Image</label>
               <div className={localStyles.mediaPreview} style={{ aspectRatio: '21/9' }}>
-                <img src={content.hero.bgImage} alt="" />
-                <div className={localStyles.mediaOverlay}>
-                   <button className={localStyles.changeMediaBtn}><ImageIcon size={18} /> Change Banner</button>
+                <img src={heroImagePreview || content.hero.bgImage || "/images/placeholder.png"} alt="" />
+                <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
+                   <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
+                        <ImageIcon size={18} /> Change
+                        <input id="heroImageInput" type="file" accept="image/*" onChange={handleHeroImageChange} style={{ display: 'none' }} />
+                      </label>
+                      <button 
+                        onClick={() => removeImage('hero')}
+                        className={localStyles.deleteBtn}
+                        style={{ height: '42px', padding: '0 1rem', background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2' }}
+                        type="button"
+                        title="Remove Image"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                   </div>
                 </div>
               </div>
            </div>
@@ -159,6 +641,9 @@ export default function WhyAjamiManager() {
                 <Truck size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Capabilities & Transport Fleet</h3>
               </div>
+              <button onClick={handleSaveIntro} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Intro'}
+              </button>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
@@ -183,9 +668,23 @@ export default function WhyAjamiManager() {
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Fleet Image</label>
               <div className={localStyles.mediaPreview} style={{ maxWidth: '500px' }}>
-                <img src={content.intro.image} alt="" />
-                <div className={localStyles.mediaOverlay}>
-                   <button className={localStyles.changeMediaBtn}><ImageIcon size={18} /> Change Image</button>
+                <img src={introImagePreview || content.intro.image || "/images/placeholder.png"} alt="" />
+                <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
+                   <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
+                        <ImageIcon size={18} /> Change
+                        <input id="introImageInput" type="file" accept="image/*" onChange={handleIntroImageChange} style={{ display: 'none' }} />
+                      </label>
+                       <button 
+                        onClick={() => removeImage('intro')}
+                        className={localStyles.deleteBtn}
+                        style={{ height: '42px', padding: '0 1rem', background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2' }}
+                        type="button"
+                        title="Remove Image"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                   </div>
                 </div>
               </div>
            </div>
@@ -198,6 +697,9 @@ export default function WhyAjamiManager() {
                 <Droplet size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Petroleum Services Division</h3>
               </div>
+              <button onClick={handleSavePetroleum} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Petroleum'}
+              </button>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
@@ -222,9 +724,23 @@ export default function WhyAjamiManager() {
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Petroleum Image</label>
               <div className={localStyles.mediaPreview} style={{ maxWidth: '500px' }}>
-                <img src={content.petroleum.image} alt="" />
-                <div className={localStyles.mediaOverlay}>
-                   <button className={localStyles.changeMediaBtn}><ImageIcon size={18} /> Change Image</button>
+                <img src={petroleumImagePreview || content.petroleum.image || "/images/placeholder.png"} alt="" />
+                <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
+                   <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
+                        <ImageIcon size={18} /> Change
+                         <input id="petroleumImageInput" type="file" accept="image/*" onChange={handlePetroleumImageChange} style={{ display: 'none' }} />
+                      </label>
+                       <button 
+                        onClick={() => removeImage('petroleum')}
+                        className={localStyles.deleteBtn}
+                        style={{ height: '42px', padding: '0 1rem', background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2' }}
+                        type="button"
+                        title="Remove Image"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                   </div>
                 </div>
               </div>
            </div>
@@ -237,13 +753,23 @@ export default function WhyAjamiManager() {
                 <Settings size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Expertise & Features Grid</h3>
               </div>
-              <button 
-                onClick={() => setIsModalOpen(true)} 
-                className={localStyles.saveButton} 
-                style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
-              >
-                <Plus size={16} /> Add Feature
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  onClick={handleSaveExpertiseHeader}
+                  disabled={isSubmitting}
+                  className={localStyles.saveButton} 
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', backgroundColor: '#64748b' }}
+                >
+                  <Save size={16} /> Save Header
+                </button>
+                <button 
+                  onClick={() => setIsModalOpen(true)} 
+                  className={localStyles.saveButton} 
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                >
+                  <Plus size={16} /> Add Feature
+                </button>
+              </div>
            </div>
            
            <div className={localStyles.formGrid}>
@@ -289,7 +815,7 @@ export default function WhyAjamiManager() {
            <div className={localStyles.listManager}>
               <div className={localStyles.scrollableList}>
                 {content.expertise.list.map((item, idx) => (
-                  <div key={idx} className={localStyles.listItem}>
+                  <div key={item.id || idx} className={localStyles.listItem}>
                      <textarea 
                        placeholder="Feature (EN)"
                        value={item.en}
@@ -306,9 +832,14 @@ export default function WhyAjamiManager() {
                          rows="2"
                        />
                      </div>
-                     <button onClick={() => removeExpertiseItem(idx)} className={localStyles.removeBtn}>
-                         <Trash2 size={18} />
-                     </button>
+                     <div style={{ display: 'flex', gap: '0.5rem' }}>
+                       <button onClick={() => saveListItem(idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
+                          <Save size={18} color="#22c55e" />
+                       </button>
+                       <button onClick={() => removeExpertiseItem(item.id, idx)} className={localStyles.removeBtn}>
+                          <Trash2 size={18} />
+                       </button>
+                     </div>
                   </div>
                 ))}
               </div>
@@ -322,6 +853,9 @@ export default function WhyAjamiManager() {
                 <MapPin size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Our Presence (Offices)</h3>
               </div>
+              <button onClick={handleSaveOffices} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Offices'}
+              </button>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
@@ -354,7 +888,9 @@ export default function WhyAjamiManager() {
         footer={
           <>
             <button onClick={() => setIsModalOpen(false)} className={localStyles.cancelBtn}>Cancel</button>
-            <button onClick={addExpertiseItemFromModal} className={localStyles.submitBtn}>Add Feature</button>
+            <button onClick={addExpertiseItemFromModal} className={localStyles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Adding...' : 'Add Feature'}
+            </button>
           </>
         }
       >

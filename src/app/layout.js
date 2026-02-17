@@ -2,6 +2,7 @@
 import { Outfit, Almarai, Inter } from "next/font/google";
 import "./globals.css";
 import TranslationProvider from "@/components/TranslationProvider";
+import CMSInitializer from "@/components/CMSInitializer";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -32,6 +33,9 @@ export const metadata = {
   },
 };
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 export default function RootLayout({ children }) {
   return (
     <html lang="ar" suppressHydrationWarning>
@@ -41,8 +45,22 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${outfit.variable} ${almarai.variable} ${inter.variable}`}>
         <TranslationProvider>
-          {children}
+          <CMSInitializer>
+            {children}
+          </CMSInitializer>
         </TranslationProvider>
+        <ToastContainer 
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={true}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </body>
     </html>
   );

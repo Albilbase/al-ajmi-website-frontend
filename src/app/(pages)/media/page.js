@@ -1,9 +1,10 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
+import useCMSStore from '@/store/useCMSStore';
 import styles from './media.module.css';
 
 // Define the animation variants
@@ -24,17 +25,50 @@ const staggerContainer = {
 };
 
 const MediaPage = () => {
-  const { t, i18n } = useTranslation(); // Use the translation hook
-  const isRTL = i18n.language === 'ar'; // Check if the language is Arabic
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  const sections = useCMSStore((state) => state.sections);
+  const storeLoading = useCMSStore((state) => state.isLoading);
+  
+  const [banner, setBanner] = useState(null);
+  const [items, setItems] = useState([]);
 
-  const mediaImages = t('mediaPage.items', { returnObjects: true }) || []; // Get the media images from the translation file
+  useEffect(() => {
+    const mediaSections = (sections || []).filter(section => section.section_key === 'media');
+    if (mediaSections.length > 0) {
+      const fetchedBanner = mediaSections.find(s => s.type === 'banner');
+      const fetchedItems = mediaSections.filter(s => s.type === 'item');
+      
+      setBanner(fetchedBanner);
+      setItems(fetchedItems);
+    }
+  }, [sections]);
+
+  const getImageUrl = (path) => {
+    if (!path) return "/images/placeholder.png";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
+  };
+
+  if (storeLoading && (sections || []).length === 0) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+      </div>
+    );
+  }
+
+  const bannerImage = banner?.images?.[0] 
+    ? getImageUrl(banner.images[0]) 
+    : "/images/mediacenterbanner.jpg";
 
   return (
     <div className={styles.mediaSection} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <div 
         className={styles.hero}
-        style={{ backgroundImage: "url('/images/mediacenterbanner.jpg')" }}
+        style={{ backgroundImage: `url('${bannerImage}')` }}
       >
         <div className={styles.heroOverlay} />
         <motion.div 
@@ -43,7 +77,12 @@ const MediaPage = () => {
           animate="visible"
           variants={fadeInUp}
         >
-          <h1 className={styles.title}>{t('nav.mediaSub.mediaItem')}</h1>
+          <h1 className={styles.title}>
+            {isRTL 
+              ? (banner?.title_ar || t('nav.mediaSub.mediaItem')) 
+              : (banner?.title_en || t('nav.mediaSub.mediaItem'))
+            }
+          </h1>
         </motion.div>
       </div>
 
@@ -55,11 +94,16 @@ const MediaPage = () => {
           viewport={{ once: true }}
           variants={staggerContainer}
         >
-          {mediaImages.map((item, index) => {
+          {items.map((item) => {
+            const itemTitle = isRTL ? item.title_ar : item.title_en;
+            const itemImage = item.images?.[0] 
+              ? getImageUrl(item.images[0]) 
+              : "/images/placeholder.png";
+
             return (
               <Link 
-                key={index} 
-                href={`/media/${index}`}
+                key={item.id} 
+                href={`/media/${item.id}`}
                 className={styles.cardLink}
               >
                 <motion.div 
@@ -68,14 +112,15 @@ const MediaPage = () => {
                 >
                   <div className={styles.imageWrapper}>
                     <Image 
-                      src={`/images/media/${item.src}`} 
-                      alt={item.title} 
+                      src={itemImage} 
+                      alt={itemTitle} 
                       fill
                       className={styles.image}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      unoptimized
                     />
                     <div className={styles.contentOverlay}>
-                      <h3 className={styles.cardTitle}>{item.title}</h3>
+                      <h3 className={styles.cardTitle}>{itemTitle}</h3>
                     </div>
                     <div className={styles.borderDecoration} />
                   </div>

@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -16,57 +15,220 @@ import { motion } from 'framer-motion';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './news-ticker.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import { toast } from 'react-toastify';
+import { createSectionAPI, updateSectionAPI, getAllSectionsAPI, deleteSectionAPI } from '@/lib/api';
 
 export default function NewsTickerManager() {
-  const [data, setData] = useState({
-    label_en: "Latest News",
-    label_ar: "آخر الأخبار",
-    items: [
-      { id: 1, text_en: "Alajmi Company wins new infrastructure project in Riyadh", text_ar: "شركة العجمي تفوز بمشروع بنية تحتية جديد في الرياض" },
-      { id: 2, text_en: "Celebrating 40 years of excellence in construction", text_ar: "نحتفل بمرور 40 عاماً من التميز في مجال الإنشاءات" },
-      { id: 3, text_en: "New heavy equipment fleet added to our logistics division", text_ar: "إضافة أسطول معدات ثقيلة جديد لقطاع الخدمات اللوجستية" }
-    ]
+  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newsItems, setNewsItems] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Ticker Label state
+  const [tickerLabel, setTickerLabel] = useState({
+    id: null,
+    label_en: "",
+    label_ar: ""
+  });
+  
+  // For new news item
+  const [newItem, setNewItem] = useState({
+    text_en: "",
+    text_ar: ""
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newItem, setNewItem] = useState({ text_en: "", text_ar: "" });
+  // Fetch all news ticker data on mount
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        const response = await getAllSectionsAPI();
+        if (response.status === 200 && response.data) {
+          // Fetch news items
+          const newsSections = response.data.filter(s => s.section_key === 'news_ticker' && s.type === 'news_ticker');
+          if (newsSections.length > 0) {
+            const mappedNews = newsSections.map(s => ({
+              id: s.id,
+              text_en: s.title_en,
+              text_ar: s.title_ar
+            }));
+            setNewsItems(mappedNews);
+          }
+
+          // Fetch ticker label
+          const labelSection = response.data.find(s => s.section_key === 'news_ticker' && s.type === 'news_ticker_label');
+          if (labelSection) {
+            setTickerLabel({
+              id: labelSection.id,
+              label_en: labelSection.title_en || "",
+              label_ar: labelSection.title_ar || ""
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        toast.error('فشل تحميل البيانات');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllData();
+  }, []);
+
+  const handleAddItem = async () => {
+    if (!newItem.text_en || !newItem.text_ar) {
+      toast.error("Please fill in both English and Arabic messages");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('title_en', newItem.text_en);
+      formData.append('title_ar', newItem.text_ar);
+      formData.append('section_key', 'news_ticker');
+      formData.append('type', 'news_ticker');
+      formData.append('is_active', 'true');
+
+      const response = await createSectionAPI(formData);
+      
+      const newId = response.data?.id || response.id || Date.now();
+      const addedItem = {
+        id: newId,
+        text_en: newItem.text_en,
+        text_ar: newItem.text_ar
+      };
+      
+      setNewsItems([...newsItems, addedItem]);
+      toast.success(response.message || 'تمت إضافة الخبر بنجاح');
+      setIsModalOpen(false);
+      
+      setNewItem({
+        text_en: "",
+        text_ar: ""
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'حدث خطأ أثناء إضافة الخبر');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveItem = async (id, text_en, text_ar) => {
+    if (!id) {
+      toast.error("لا يمكن تحديث خبر غير محفوظ.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('title_en', text_en);
+      formData.append('title_ar', text_ar);
+      formData.append('section_key', 'news_ticker');
+      formData.append('type', 'news_ticker');
+      formData.append('is_active', 'true');
+
+      const response = await updateSectionAPI(id, formData);
+      // toast.success(response.message || 'تم تحديث الخبر بنجاح');
+    } catch (error) {
+      console.error("Update Error:", error.response?.data || error);
+      toast.error(error.response?.data?.message || 'حدث خطأ أثناء التحديث');
+    }
+  };
+
+  const removeItem = async (id) => {
+    if (!id) return;
+
+    if (confirm('هل أنت متأكد من رغبتك في حذف هذا الخبر؟')) {
+      try {
+        await deleteSectionAPI(id);
+        const updatedItems = newsItems.filter(item => item.id !== id);
+        setNewsItems(updatedItems);
+        toast.success('تم حذف الخبر بنجاح');
+      } catch (error) {
+        console.error(error);
+        toast.error('حدث خطأ أثناء الحذف');
+      }
+    }
+  };
+
+  const updateItem = (id, lang, value) => {
+    const updatedItems = newsItems.map(item => 
+      item.id === id ? { ...item, [`text_${lang}`]: value } : item
+    );
+    setNewsItems(updatedItems);
+  };
 
   const updateLabel = (lang, value) => {
-    setData(prev => ({
+    setTickerLabel(prev => ({
       ...prev,
       [`label_${lang}`]: value
     }));
   };
 
-  const updateItem = (id, lang, value) => {
-    setData(prev => ({
-      ...prev,
-      items: prev.items.map(item => 
-        item.id === id ? { ...item, [`text_${lang}`]: value } : item
-      )
-    }));
-  };
+  const handleSaveLabel = async () => {
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('title_en', tickerLabel.label_en);
+      formData.append('title_ar', tickerLabel.label_ar);
+      formData.append('section_key', 'news_ticker');
+      formData.append('type', 'news_ticker_label');
+      formData.append('is_active', 'true');
 
-  const handleAddItem = () => {
-    if (newItem.text_en && newItem.text_ar) {
-      const newId = data.items.length > 0 ? Math.max(...data.items.map(i => i.id)) + 1 : 1;
-      setData(prev => ({
-        ...prev,
-        items: [...prev.items, { ...newItem, id: newId }]
-      }));
-      setNewItem({ text_en: "", text_ar: "" });
-      setIsModalOpen(false);
+      let response;
+      if (tickerLabel.id) {
+        response = await updateSectionAPI(tickerLabel.id, formData);
+      } else {
+        response = await createSectionAPI(formData);
+      }
+
+      // toast.success(response.message || 'تم حفظ عنوان التيكر بنجاح');
+      
+      if (response.data) {
+        setTickerLabel({
+          id: response.data.id || tickerLabel.id,
+          label_en: response.data.title_en || tickerLabel.label_en,
+          label_ar: response.data.title_ar || tickerLabel.label_ar
+        });
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ عنوان التيكر');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const removeItem = (id) => {
-    if (data.items.length > 1) {
-      setData(prev => ({
-        ...prev,
-        items: prev.items.filter(item => item.id !== id)
-      }));
+  const handleSaveAllChanges = async () => {
+    setIsSubmitting(true);
+    try {
+      // Save label
+      await handleSaveLabel();
+      
+      // Save all news items
+      for (const item of newsItems) {
+        if (item.id) {
+          await handleSaveItem(item.id, item.text_en, item.text_ar);
+        }
+      }
+      
+      toast.success('تم حفظ جميع التغييرات بنجاح');
+    } catch (error) {
+      toast.error('حدث خطأ أثناء حفظ التغييرات');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <p>Loading news ticker...</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -75,8 +237,12 @@ export default function NewsTickerManager() {
           <h2 className={dashboardStyles.sectionTitle}>News Ticker Manager</h2>
           <p className={dashboardStyles.sectionSubtitle}>Manage the scrolling news bar on the homepage accurately.</p>
         </div>
-        <button className={localStyles.saveButton}>
-          <Save size={20} /> Save Changes
+        <button 
+          className={localStyles.saveButton}
+          onClick={handleSaveAllChanges}
+          disabled={isSubmitting}
+        >
+          <Save size={20} /> {isSubmitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
@@ -95,7 +261,7 @@ export default function NewsTickerManager() {
                    <label className={localStyles.fieldLabel}>Label (EN)</label>
                    <input 
                      className={localStyles.inputField} 
-                     value={data.label_en} 
+                     value={tickerLabel.label_en} 
                      onChange={(e) => updateLabel('en', e.target.value)}
                    />
                 </div>
@@ -103,7 +269,7 @@ export default function NewsTickerManager() {
                    <label className={localStyles.fieldLabel}>العنوان (AR)</label>
                    <input 
                      className={localStyles.inputField} 
-                     value={data.label_ar} 
+                     value={tickerLabel.label_ar} 
                      onChange={(e) => updateLabel('ar', e.target.value)}
                    />
                 </div>
@@ -115,7 +281,7 @@ export default function NewsTickerManager() {
              <div className={localStyles.sectionHeader}>
                 <div className={localStyles.headerLeft}>
                    <Layout size={20} color="#DC143C" />
-                   <h3 className={localStyles.sectionTitle}>Active News Stream ({data.items.length})</h3>
+                   <h3 className={localStyles.sectionTitle}>Active News Stream ({newsItems.length})</h3>
                 </div>
                 <button className={localStyles.addBtnPrimary} onClick={() => setIsModalOpen(true)}>
                    <Plus size={18} /> Add News Item
@@ -123,34 +289,40 @@ export default function NewsTickerManager() {
              </div>
              
              <div className={localStyles.itemsList}>
-                {data.items.map((item, index) => (
-                   <div key={item.id} className={localStyles.newsCard}>
-                      <div className={localStyles.cardIndex}>{index + 1}</div>
-                      <div className={localStyles.cardContent}>
-                        <div className={localStyles.formGrid}>
-                           <div className={localStyles.inputGroup}>
-                              <input 
-                                className={localStyles.inputField} 
-                                value={item.text_en} 
-                                placeholder="Message in English"
-                                onChange={(e) => updateItem(item.id, 'en', e.target.value)}
-                              />
-                           </div>
-                           <div dir="rtl" className={localStyles.inputGroup}>
-                              <input 
-                                className={localStyles.inputField} 
-                                value={item.text_ar} 
-                                placeholder="الرسالة بالعربية"
-                                onChange={(e) => updateItem(item.id, 'ar', e.target.value)}
-                              />
-                           </div>
-                        </div>
-                      </div>
-                      <button className={localStyles.removeBtn} onClick={() => removeItem(item.id)}>
-                         <Trash2 size={18} />
-                      </button>
-                   </div>
-                ))}
+                {newsItems.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+                    No news items found. Add one to get started.
+                  </p>
+                ) : (
+                  newsItems.map((item, index) => (
+                    <div key={item.id} className={localStyles.newsCard}>
+                       <div className={localStyles.cardIndex}>{index + 1}</div>
+                       <div className={localStyles.cardContent}>
+                         <div className={localStyles.formGrid}>
+                            <div className={localStyles.inputGroup}>
+                               <input 
+                                 className={localStyles.inputField} 
+                                 value={item.text_en} 
+                                 placeholder="Message in English"
+                                 onChange={(e) => updateItem(item.id, 'en', e.target.value)}
+                               />
+                            </div>
+                            <div dir="rtl" className={localStyles.inputGroup}>
+                               <input 
+                                 className={localStyles.inputField} 
+                                 value={item.text_ar} 
+                                 placeholder="الرسالة بالعربية"
+                                 onChange={(e) => updateItem(item.id, 'ar', e.target.value)}
+                               />
+                            </div>
+                         </div>
+                       </div>
+                       <button className={localStyles.removeBtn} onClick={() => removeItem(item.id)}>
+                          <Trash2 size={18} />
+                       </button>
+                    </div>
+                  ))
+                )}
              </div>
           </div>
         </div>
@@ -175,10 +347,16 @@ export default function NewsTickerManager() {
                     <div className={localStyles.previewBox}>
                        <span className={localStyles.previewTag}>ENGLISH VERSION</span>
                        <div className={localStyles.tickerPreview}>
-                          <div className={localStyles.previewLabel}>{data.label_en}</div>
+                          <div className={localStyles.previewLabel}>{tickerLabel.label_en || "Latest News"}</div>
                           <div className={localStyles.previewTextWrapper}>
                              <div className={localStyles.previewText}>
-                                {data.items.map(i => i.text_en).join(' • ')} • {data.items.map(i => i.text_en).join(' • ')}
+                                {newsItems.length > 0 ? (
+                                  <>
+                                    {newsItems.map(i => i.text_en).join(' • ')} • {newsItems.map(i => i.text_en).join(' • ')}
+                                  </>
+                                ) : (
+                                  "No news items added yet"
+                                )}
                              </div>
                           </div>
                        </div>
@@ -188,10 +366,16 @@ export default function NewsTickerManager() {
                     <div className={localStyles.previewBox}>
                        <span className={localStyles.previewTag}>النسخة العربية</span>
                        <div className={localStyles.tickerPreview} dir="rtl">
-                          <div className={localStyles.previewLabel}>{data.label_ar}</div>
+                          <div className={localStyles.previewLabel}>{tickerLabel.label_ar || "آخر الأخبار"}</div>
                           <div className={localStyles.previewTextWrapper}>
                              <div className={localStyles.previewText} style={{ animationDirection: 'reverse' }}>
-                                {data.items.map(i => i.text_ar).join(' • ')} • {data.items.map(i => i.text_ar).join(' • ')}
+                                {newsItems.length > 0 ? (
+                                  <>
+                                    {newsItems.map(i => i.text_ar).join(' • ')} • {newsItems.map(i => i.text_ar).join(' • ')}
+                                  </>
+                                ) : (
+                                  "لم تتم إضافة أخبار بعد"
+                                )}
                              </div>
                           </div>
                        </div>
@@ -215,8 +399,8 @@ export default function NewsTickerManager() {
         footer={
           <>
             <button onClick={() => setIsModalOpen(false)} className={localStyles.cancelBtn}>Cancel</button>
-            <button onClick={handleAddItem} className={localStyles.submitBtn}>
-                Add to Ticker
+            <button onClick={handleAddItem} className={localStyles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Adding...' : 'Add to Ticker'}
             </button>
           </>
         }

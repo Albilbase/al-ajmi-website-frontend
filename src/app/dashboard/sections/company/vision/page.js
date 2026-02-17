@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Save,
   Image as ImageIcon, 
@@ -14,94 +13,231 @@ import {
   TrendingUp, 
   Sparkles, 
   Rocket, 
-  Award
+  Award,
+  X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './vision-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 
 export default function VisionManager() {
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [content, setContent] = useState({
     hero: {
-      title_en: "COMPANY AL-AJMI",
-      title_ar: "شركة العجمي",
-      subtitle_en: "Vision, Mission & Values",
-      subtitle_ar: "الرؤية، الرسالة، والقيم",
-      images: [
-        "/images/vision/1.png",
-        "/images/vision/2.png",
-        "/images/vision/3.png",
-        "/images/vision/4.png"
-      ]
+      id: null,
+      title_en: "",
+      title_ar: "",
+      subtitle_en: "",
+      subtitle_ar: "",
+      subtitle_ar: "",
+      images: [],
+      rawImages: []
     },
     vision: {
-      title_en: "Vision",
-      title_ar: "الرؤية",
-      text_en: "Abdul Ali Al-Ajmi believes that its customers and employees are the source of its strength after the help of The Almighty Allah, so the company seeks to the following:",
-      text_ar: "تؤمن شركة عبد العالي العجمي بأن عملائها وموظفيها هم مصدر قوتها بعد عون الله عز وجل، لذلك تسعى الشركة لتحقيق ما يلي:",
-      list: [
-        { 
-          en: "To provide excellent experience for its customers through the quality of good performance regarding the implementation of their projects with the best technical solutions, lowest financial costs and purest environmental services.",
-          ar: "تقديم تجربة مميزة لعملائها من خلال جودة الأداء في تنفيذ مشاريعهم بأفضل الحلول التقنية وأقل التكاليف المالية وأنقى الخدمات البيئية."
-        },
-        { 
-          en: "To develop its employees in all aspects, whether it related to their incomes, work knowledge or the stability of their current and future career",
-          ar: "تطوير موظفيها في كافة الجوانب، سواء فيما يتعلق بدخولهم أو معارفهم العملية أو استقرار مسيرتهم المهنية الحالية والمستقبلية."
-        }
-      ]
+      id: null,
+      title_en: "",
+      title_ar: "",
+      text_en: "",
+      text_ar: "",
+      list: []
     },
     mission: {
-      title_en: "Mission",
-      title_ar: "الرسالة",
-      text_en: "Abdul Ali Al-Ajmi Company seeks continuously to develop its activities, experiences and the efficiency of its employees in order to become the best company in the region due to its excellent works.",
-      text_ar: "تسعى شركة عبد العالي العجمي باستمرار لتطوير أنشطتها وخبراتها وكفاءة موظفيها لتصبح الشركة الأفضل في المنطقة نظراً لأعمالها المتميزة."
+      id: null,
+      title_en: "",
+      title_ar: "",
+      text_en: "",
+      text_ar: ""
     },
     valuesHeader: {
-      title_en: "Our Core Values",
-      title_ar: "قيمنا المؤسسية",
-      subtitle_en: "The principles that drive us towards excellence",
-      subtitle_ar: "المبادئ التي تقودنا نحو التميز"
+      id: null,
+      title_en: "",
+      title_ar: "",
+      subtitle_en: "",
+      subtitle_ar: ""
     },
     values: {
       transparency: {
-        title_en: "Values of Transparency",
-        title_ar: "قيم الشفافية",
-        list: [
-          { en: "Executing its works in an excellent manner with a high level of the transparency whether its clients present or not on the site.", ar: "تنفيذ أعمالها بأسلوب متميز وبدرجة عالية من الشفافية سواء كان عملاؤها متواجدين في الموقع أم لا." },
-          { en: "Ensuring fair treatment to its all employees.", ar: "ضمان المعاملة العادلة لجميع موظفيها." },
-          { en: "Providing information to all partners timely.", ar: "توفير المعلومات لجميع الشركاء في الوقت المناسب." }
-        ]
+        id: null,
+        title_en: "",
+        title_ar: "",
+        list: []
       },
       responsibility: {
-        title_en: "Responsibility",
-        title_ar: "المسؤولية",
-        list: [
-          { en: "The company makes all expectations clear to its all customers and maintains its commitments with a great sense of responsibility.", ar: "توضح الشركة كافة التوقعات لجميع عملائها وتحافظ على التزاماتها بحس كبير من المسؤولية." },
-          { en: "It respects its employees, as well as their opinions and ideas and works on developing them by training.", ar: "تحترم موظفيها وآراءهم وأفكارهم وتعمل على تطويرهم بالتدريب." },
-          { en: "It fulfills its obligations towards the partners with a great respect.", ar: "الوفاء بالتزاماتها تجاه الشركاء باحترام كبير." }
-        ]
+        id: null,
+        title_en: "",
+        title_ar: "",
+        list: []
       },
       profitability: {
-        title_en: "Profitability",
-        title_ar: "الربحية",
-        list: [
-          { en: "The company offers the actual cost its client.", ar: "تقدم الشركة التكلفة الفعلية لعملائها." },
-          { en: "It encourages the spirit of initiative in its staff and gives them equal opportunity.", ar: "تشجيع روح المبادرة لدى موظفيها ومنحهم فرصة متساوية." },
-          { en: "It gives its partners reasonable profits.", ar: "منح الشركاء أرباحاً معقولة." },
-          { en: "It makes significant contributions to serve the community.", ar: "تقديم مساهمات كبيرة لخدمة المجتمع." }
-        ]
+        id: null,
+        title_en: "",
+        title_ar: "",
+        list: []
       }
     },
     stats: {
-      number: "25+",
-      label_en: "Years of Excellence",
-      label_ar: "عاماً من التميز"
+      id: null,
+      number: "",
+      label_en: "",
+      label_ar: ""
     }
   });
 
-  const [activeModal, setActiveModal] = useState(null); // 'vision', 'transparency', 'responsibility', 'profitability'
+  // Image states
+  const [heroImageFiles, setHeroImageFiles] = useState([]);
+  const [heroImagePreviews, setHeroImagePreviews] = useState([]);
+
+  const [activeModal, setActiveModal] = useState(null);
   const [newItem, setNewItem] = useState({ en: "", ar: "" });
+
+  // Fetch all data on mount
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        const response = await getAllSectionsAPI();
+        if (response.status === 200 && response.data) {
+          const visionSections = response.data.filter(s => s.section_key === 'vision');
+          
+          // 1. Hero
+          const hero = visionSections.find(s => s.type === 'hero');
+          if (hero) {
+            setContent(prev => ({
+              ...prev,
+              hero: {
+                id: hero.id,
+                title_en: hero.title_en || "",
+                title_ar: hero.title_ar || "",
+                subtitle_en: hero.description_en || "",
+                subtitle_ar: hero.description_ar || "",
+                subtitle_ar: hero.description_ar || "",
+                images: hero.images?.map(img => `http://192.168.15.95:5000${img}`) || [],
+                rawImages: hero.images || []
+              }
+            }));
+          }
+
+          // 2. Vision
+          const visionHeader = visionSections.find(s => s.type === 'vision_header');
+          const visionItems = visionSections.filter(s => s.type === 'vision_item');
+          setContent(prev => ({
+            ...prev,
+            vision: {
+              id: visionHeader?.id || null,
+              title_en: visionHeader?.title_en || "",
+              title_ar: visionHeader?.title_ar || "",
+              text_en: visionHeader?.description_en || "",
+              text_ar: visionHeader?.description_ar || "",
+              list: visionItems.map(v => ({ id: v.id, en: v.title_en, ar: v.title_ar }))
+            }
+          }));
+
+          // 3. Mission
+          const mission = visionSections.find(s => s.type === 'mission');
+          if (mission) {
+            setContent(prev => ({
+              ...prev,
+              mission: {
+                id: mission.id,
+                title_en: mission.title_en || "",
+                title_ar: mission.title_ar || "",
+                text_en: mission.description_en || "",
+                text_ar: mission.description_ar || ""
+              }
+            }));
+          }
+
+          // 4. Values Header
+          const valuesHeader = visionSections.find(s => s.type === 'values_header');
+          if (valuesHeader) {
+            setContent(prev => ({
+              ...prev,
+              valuesHeader: {
+                id: valuesHeader.id,
+                title_en: valuesHeader.title_en || "",
+                title_ar: valuesHeader.title_ar || "",
+                subtitle_en: valuesHeader.description_en || "",
+                subtitle_ar: valuesHeader.description_ar || ""
+              }
+            }));
+          }
+
+          // 5. Values - Transparency
+          const transparencyHeader = visionSections.find(s => s.type === 'transparency_header');
+          const transparencyItems = visionSections.filter(s => s.type === 'transparency_item');
+          setContent(prev => ({
+            ...prev,
+            values: {
+              ...prev.values,
+              transparency: {
+                id: transparencyHeader?.id || null,
+                title_en: transparencyHeader?.title_en || "",
+                title_ar: transparencyHeader?.title_ar || "",
+                list: transparencyItems.map(t => ({ id: t.id, en: t.title_en, ar: t.title_ar }))
+              }
+            }
+          }));
+
+          // 6. Values - Responsibility
+          const responsibilityHeader = visionSections.find(s => s.type === 'responsibility_header');
+          const responsibilityItems = visionSections.filter(s => s.type === 'responsibility_item');
+          setContent(prev => ({
+            ...prev,
+            values: {
+              ...prev.values,
+              responsibility: {
+                id: responsibilityHeader?.id || null,
+                title_en: responsibilityHeader?.title_en || "",
+                title_ar: responsibilityHeader?.title_ar || "",
+                list: responsibilityItems.map(r => ({ id: r.id, en: r.title_en, ar: r.title_ar }))
+              }
+            }
+          }));
+
+          // 7. Values - Profitability
+          const profitabilityHeader = visionSections.find(s => s.type === 'profitability_header');
+          const profitabilityItems = visionSections.filter(s => s.type === 'profitability_item');
+          setContent(prev => ({
+            ...prev,
+            values: {
+              ...prev.values,
+              profitability: {
+                id: profitabilityHeader?.id || null,
+                title_en: profitabilityHeader?.title_en || "",
+                title_ar: profitabilityHeader?.title_ar || "",
+                list: profitabilityItems.map(p => ({ id: p.id, en: p.title_en, ar: p.title_ar }))
+              }
+            }
+          }));
+
+          // 8. Stats
+          const stats = visionSections.find(s => s.type === 'stats');
+          if (stats) {
+            setContent(prev => ({
+              ...prev,
+              stats: {
+                id: stats.id,
+                number: stats.details?.number || "",
+                label_en: stats.title_en || "",
+                label_ar: stats.title_ar || ""
+              }
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        toast.error("حدث خطأ أثناء تحميل البيانات");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllData();
+  }, []);
 
   const handleUpdate = (path, value) => {
     const keys = path.split('.');
@@ -116,6 +252,254 @@ export default function VisionManager() {
     });
   };
 
+  const handleHeroImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setHeroImageFiles(prev => [...prev, ...files]);
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setHeroImagePreviews(prev => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeHeroImage = async (index, isServerImage = false) => {
+    if (!isServerImage) {
+      // Local file removal
+      setHeroImageFiles(prev => prev.filter((_, i) => i !== index));
+      setHeroImagePreviews(prev => prev.filter((_, i) => i !== index));
+      return;
+    }
+
+    // Server image removal
+    const imageToDelete = content.hero.rawImages[index];
+    if (content.hero.id && imageToDelete) {
+      if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+        try {
+          await deleteImageAPI(content.hero.id, imageToDelete);
+          
+          setContent(prev => ({
+            ...prev,
+            hero: {
+              ...prev.hero,
+              images: prev.hero.images.filter((_, i) => i !== index),
+              rawImages: prev.hero.rawImages.filter((_, i) => i !== index)
+            }
+          }));
+          toast.success("تم حذف الصورة");
+        } catch (e) {
+          console.error(e);
+          toast.error("فشل حذف الصورة");
+        }
+      }
+    }
+  };
+
+  const handleSaveHero = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'vision');
+    formData.append('type', 'hero');
+    formData.append('title_en', content.hero.title_en);
+    formData.append('title_ar', content.hero.title_ar);
+    formData.append('description_en', content.hero.subtitle_en);
+    formData.append('description_ar', content.hero.subtitle_ar);
+    formData.append('is_active', 'true');
+
+    if (heroImageFiles.length > 0) {
+      heroImageFiles.forEach(file => {
+        formData.append('images', file);
+      });
+    }
+
+    try {
+      let response;
+      if (content.hero.id) {
+        response = await updateSectionAPI(content.hero.id, formData);
+      } else {
+        response = await createSectionAPI(formData);
+      }
+      
+      if (response && response.data) {
+         setContent(prev => ({
+           ...prev,
+           hero: {
+             ...prev.hero,
+             id: response.data.id,
+             images: response.data.images?.map(img => `http://192.168.15.95:5000${img}`) || [],
+             rawImages: response.data.images || []
+           }
+         }));
+      }
+
+      toast.success("تم حفظ قسم البانر بنجاح");
+      setHeroImageFiles([]);
+      setHeroImagePreviews([]);
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ البانر");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveVisionHeader = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'vision');
+    formData.append('type', 'vision_header');
+    formData.append('title_en', content.vision.title_en);
+    formData.append('title_ar', content.vision.title_ar);
+    formData.append('description_en', content.vision.text_en);
+    formData.append('description_ar', content.vision.text_ar);
+    formData.append('is_active', 'true');
+
+    try {
+      if (content.vision.id) {
+        await updateSectionAPI(content.vision.id, formData);
+      } else {
+        await createSectionAPI(formData);
+      }
+      toast.success("تم حفظ عنوان الرؤية بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ عنوان الرؤية");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveMission = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'vision');
+    formData.append('type', 'mission');
+    formData.append('title_en', content.mission.title_en);
+    formData.append('title_ar', content.mission.title_ar);
+    formData.append('description_en', content.mission.text_en);
+    formData.append('description_ar', content.mission.text_ar);
+    formData.append('is_active', 'true');
+
+    try {
+      if (content.mission.id) {
+        await updateSectionAPI(content.mission.id, formData);
+      } else {
+        await createSectionAPI(formData);
+      }
+      toast.success("تم حفظ الرسالة بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ الرسالة");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveValuesHeader = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'vision');
+    formData.append('type', 'values_header');
+    formData.append('title_en', content.valuesHeader.title_en);
+    formData.append('title_ar', content.valuesHeader.title_ar);
+    formData.append('description_en', content.valuesHeader.subtitle_en);
+    formData.append('description_ar', content.valuesHeader.subtitle_ar);
+    formData.append('is_active', 'true');
+
+    try {
+      if (content.valuesHeader.id) {
+        await updateSectionAPI(content.valuesHeader.id, formData);
+      } else {
+        await createSectionAPI(formData);
+      }
+      toast.success("تم حفظ عنوان القيم بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ عنوان القيم");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveStats = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'vision');
+    formData.append('type', 'stats');
+    formData.append('title_en', content.stats.label_en);
+    formData.append('title_ar', content.stats.label_ar);
+    formData.append('is_active', 'true');
+    
+    const details = { number: content.stats.number };
+    formData.append('details', JSON.stringify(details));
+
+    try {
+      if (content.stats.id) {
+        await updateSectionAPI(content.stats.id, formData);
+      } else {
+        await createSectionAPI(formData);
+      }
+      toast.success("تم حفظ الإحصائيات بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ الإحصائيات");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddItemFromModal = async () => {
+    if (!newItem.en || !newItem.ar) {
+      toast.error("Please fill in both English and Arabic fields");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    let type = '';
+    
+    if (activeModal === 'vision') {
+      type = 'vision_item';
+    } else {
+      type = `${activeModal}_item`;
+    }
+    
+    const formData = new FormData();
+    formData.append('section_key', 'vision');
+    formData.append('type', type);
+    formData.append('title_en', newItem.en);
+    formData.append('title_ar', newItem.ar);
+    formData.append('is_active', 'true');
+
+    try {
+      const response = await createSectionAPI(formData);
+      const addedItem = { id: response.data.id, en: newItem.en, ar: newItem.ar };
+      
+      if (activeModal === 'vision') {
+        handleUpdate('vision.list', [...content.vision.list, addedItem]);
+      } else {
+        handleUpdate(`values.${activeModal}.list`, [...content.values[activeModal].list, addedItem]);
+      }
+      
+      toast.success("تمت الإضافة بنجاح");
+      setActiveModal(null);
+      setNewItem({ en: "", ar: "" });
+    } catch (error) {
+      toast.error("حدث خطأ أثناء الإضافة");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const removeListItem = async (section, subSection, id, index) => {
+    if (!id) return;
+
+    if (confirm('هل أنت متأكد من الحذف؟')) {
+      try {
+        await deleteSectionAPI(id);
+        const target = subSection ? content[section][subSection] : content[section];
+        const newList = target.list.filter((_, i) => i !== index);
+        const path = subSection ? `${section}.${subSection}.list` : `${section}.list`;
+        handleUpdate(path, newList);
+        toast.success("تم الحذف بنجاح");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الحذف");
+      }
+    }
+  };
+
   const updateListItem = (section, subSection, index, lang, value) => {
     const target = subSection ? content[section][subSection] : content[section];
     const newList = [...target.list];
@@ -124,24 +508,43 @@ export default function VisionManager() {
     handleUpdate(path, newList);
   };
 
-  const handleAddItemFromModal = () => {
-    if (newItem.en && newItem.ar) {
-      if (activeModal === 'vision') {
-        handleUpdate('vision.list', [...content.vision.list, newItem]);
-      } else {
-        handleUpdate(`values.${activeModal}.list`, [...content.values[activeModal].list, newItem]);
-      }
-      setActiveModal(null);
-      setNewItem({ en: "", ar: "" });
+  const saveListItem = async (section, subSection, index) => {
+    const target = subSection ? content[section][subSection] : content[section];
+    const item = target.list[index];
+    if (!item.id) return;
+
+    setIsSubmitting(true);
+    let type = '';
+    if (section === 'vision') {
+      type = 'vision_item';
+    } else {
+      type = `${subSection}_item`;
+    }
+
+    const formData = new FormData();
+    formData.append('section_key', 'vision');
+    formData.append('type', type);
+    formData.append('title_en', item.en);
+    formData.append('title_ar', item.ar);
+    formData.append('is_active', 'true');
+
+    try {
+      await updateSectionAPI(item.id, formData);
+      toast.success("تم التحديث بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء التحديث");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const removeListItem = (section, subSection, index) => {
-    const target = subSection ? content[section][subSection] : content[section];
-    const newList = target.list.filter((_, i) => i !== index);
-    const path = subSection ? `${section}.${subSection}.list` : `${section}.list`;
-    handleUpdate(path, newList);
-  };
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#64748b' }}>
+        <p>Loading Vision Management...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={localStyles.container}>
@@ -150,9 +553,6 @@ export default function VisionManager() {
           <h2 className={dashboardStyles.sectionTitle}>Vision & Mission Management</h2>
           <p className={dashboardStyles.sectionSubtitle}>Manage your company goals, core values, and vision statements.</p>
         </div>
-        <button className={localStyles.saveButton}>
-          <Save size={20} /> Save Changes
-        </button>
       </div>
 
       <div className={localStyles.sectionGrid}>
@@ -163,6 +563,9 @@ export default function VisionManager() {
                 <Sparkles size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Hero Banner Content</h3>
               </div>
+              <button onClick={handleSaveHero} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Banner'}
+              </button>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
@@ -190,11 +593,31 @@ export default function VisionManager() {
               {content.hero.images.map((img, idx) => (
                   <div key={idx} className={localStyles.mediaItem}>
                       <img src={img} alt="" />
-                      <div className={localStyles.mediaOverlay}>
-                          <button className={localStyles.changeMediaBtn}><ImageIcon size={16} /> Change</button>
+                      <div className={localStyles.mediaOverlay} style={{ opacity: 1, flexDirection: 'column', gap: '5px' }}>
+                          <button 
+                            onClick={() => removeHeroImage(idx, true)}
+                            style={{ background: 'white', border: '1px solid #fee2e2', borderRadius: '50%', padding: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="Delete from server"
+                          >
+                            <Trash2 size={16} color="#DC143C" />
+                          </button>
                       </div>
                   </div>
               ))}
+              {heroImagePreviews.map((preview, idx) => (
+                <div key={`new-${idx}`} className={localStyles.mediaItem}>
+                  <img src={preview} alt="" />
+                  <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
+                     <button onClick={() => removeHeroImage(idx, false)} style={{ background: 'white', border: 'none', borderRadius: '50%', padding: '4px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                        <X size={14} color="#DC143C" />
+                     </button>
+                  </div>
+                </div>
+              ))}
+              <label className={localStyles.mediaItem} style={{ borderStyle: 'dashed', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Plus size={32} color="#cbd5e1" />
+                <input type="file" multiple accept="image/*" onChange={handleHeroImagesChange} style={{ display: 'none' }} />
+              </label>
            </div>
         </div>
 
@@ -205,9 +628,19 @@ export default function VisionManager() {
                 <Eye size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Our Vision</h3>
               </div>
-              <button onClick={() => setActiveModal('vision')} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-                <Plus size={16} /> Add Vision Point
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  onClick={handleSaveVisionHeader}
+                  disabled={isSubmitting}
+                  className={localStyles.saveButton} 
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', backgroundColor: '#64748b' }}
+                >
+                  <Save size={16} /> Save Header
+                </button>
+                <button onClick={() => setActiveModal('vision')} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                  <Plus size={16} /> Add Vision Point
+                </button>
+              </div>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
@@ -234,12 +667,17 @@ export default function VisionManager() {
               <label className={localStyles.fieldLabel}>Vision Highlights</label>
               <div className={localStyles.scrollableList}>
                 {content.vision.list.map((item, idx) => (
-                   <div key={idx} className={localStyles.listItem}>
+                   <div key={item.id || idx} className={localStyles.listItem}>
                       <textarea rows="2" value={item.en} onChange={(e) => updateListItem('vision', '', idx, 'en', e.target.value)} className={localStyles.textareaField} />
                       <div dir="rtl">
                          <textarea rows="2" value={item.ar} onChange={(e) => updateListItem('vision', '', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
                       </div>
-                      <button onClick={() => removeListItem('vision', '', idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => saveListItem('vision', '', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
+                           <Save size={18} color="#22c55e" />
+                        </button>
+                        <button onClick={() => removeListItem('vision', '', item.id, idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
+                      </div>
                    </div>
                 ))}
               </div>
@@ -253,6 +691,9 @@ export default function VisionManager() {
                 <Target size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Our Mission</h3>
               </div>
+              <button onClick={handleSaveMission} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Mission'}
+              </button>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
@@ -283,6 +724,9 @@ export default function VisionManager() {
                 <Rocket size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Core Values Management</h3>
               </div>
+              <button onClick={handleSaveValuesHeader} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Header'}
+              </button>
            </div>
            
            <div className={localStyles.formGrid}>
@@ -319,12 +763,17 @@ export default function VisionManager() {
            <div className={localStyles.listManager}>
               <div className={localStyles.scrollableList}>
                 {content.values.transparency.list.map((item, idx) => (
-                   <div key={idx} className={localStyles.listItem}>
+                   <div key={item.id || idx} className={localStyles.listItem}>
                       <textarea rows="2" value={item.en} onChange={(e) => updateListItem('values', 'transparency', idx, 'en', e.target.value)} className={localStyles.textareaField} />
                       <div dir="rtl">
                          <textarea rows="2" value={item.ar} onChange={(e) => updateListItem('values', 'transparency', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
                       </div>
-                      <button onClick={() => removeListItem('values', 'transparency', idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => saveListItem('values', 'transparency', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
+                           <Save size={18} color="#22c55e" />
+                        </button>
+                        <button onClick={() => removeListItem('values', 'transparency', item.id, idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
+                      </div>
                    </div>
                 ))}
               </div>
@@ -343,12 +792,17 @@ export default function VisionManager() {
            <div className={localStyles.listManager}>
               <div className={localStyles.scrollableList}>
                 {content.values.responsibility.list.map((item, idx) => (
-                   <div key={idx} className={localStyles.listItem}>
+                   <div key={item.id || idx} className={localStyles.listItem}>
                       <textarea rows="2" value={item.en} onChange={(e) => updateListItem('values', 'responsibility', idx, 'en', e.target.value)} className={localStyles.textareaField} />
                       <div dir="rtl">
                          <textarea rows="2" value={item.ar} onChange={(e) => updateListItem('values', 'responsibility', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
                       </div>
-                      <button onClick={() => removeListItem('values', 'responsibility', idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => saveListItem('values', 'responsibility', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
+                           <Save size={18} color="#22c55e" />
+                        </button>
+                        <button onClick={() => removeListItem('values', 'responsibility', item.id, idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
+                      </div>
                    </div>
                 ))}
               </div>
@@ -367,12 +821,17 @@ export default function VisionManager() {
            <div className={localStyles.listManager}>
               <div className={localStyles.scrollableList}>
                 {content.values.profitability.list.map((item, idx) => (
-                   <div key={idx} className={localStyles.listItem}>
+                   <div key={item.id || idx} className={localStyles.listItem}>
                       <textarea rows="2" value={item.en} onChange={(e) => updateListItem('values', 'profitability', idx, 'en', e.target.value)} className={localStyles.textareaField} />
                       <div dir="rtl">
                          <textarea rows="2" value={item.ar} onChange={(e) => updateListItem('values', 'profitability', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
                       </div>
-                      <button onClick={() => removeListItem('values', 'profitability', idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => saveListItem('values', 'profitability', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
+                           <Save size={18} color="#22c55e" />
+                        </button>
+                        <button onClick={() => removeListItem('values', 'profitability', item.id, idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
+                      </div>
                    </div>
                 ))}
               </div>
@@ -386,6 +845,9 @@ export default function VisionManager() {
                 <Award size={20} color="#DC143C" />
                 <h3 className={localStyles.cardTitle}>Achievement Stats</h3>
               </div>
+              <button onClick={handleSaveStats} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Stats'}
+              </button>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
@@ -414,7 +876,9 @@ export default function VisionManager() {
         footer={
           <>
             <button onClick={() => setActiveModal(null)} className={localStyles.cancelBtn}>Cancel</button>
-            <button onClick={handleAddItemFromModal} className={localStyles.submitBtn}>Add Item</button>
+            <button onClick={handleAddItemFromModal} className={localStyles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Adding...' : 'Add Item'}
+            </button>
           </>
         }
       >

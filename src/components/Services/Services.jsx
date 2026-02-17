@@ -5,23 +5,61 @@ import { motion, AnimatePresence } from "framer-motion"; // animation library
 import { useTranslation } from "react-i18next"; // i18next library
 import Image from "next/image";
 import styles from "./Services.module.css"; // styles
+import { getSectionsBySectionKey } from "@/lib/api";
 
-export default function Services() {
-  const { t } = useTranslation(); // translation function
+export default function Services({ homeData }) {
+  const { t, i18n } = useTranslation(); // translation function
+  const isAr = i18n.language === 'ar';
   const [activeService, setActiveService] = useState(0); // active service state
   const [hoveredService, setHoveredService] = useState(null); // hovered service state
 
-  const services = t("services.items", { returnObjects: true }); // services data
-  const title = t("services.title"); // title data
-  const subtitle = t("services.subtitle"); // subtitle data
+  const [apiData, setApiData] = useState({
+      header: null,
+      services: []
+  });
+
+  useEffect(() => {
+      if (homeData) {
+          const header = homeData.find(item => item.type === 'service_header' && item.is_active);
+          const items = homeData.filter(item => item.type === 'service' && item.is_active);
+          setApiData({ header, services: items });
+      }
+  }, [homeData]);
+
+  // Fallback to translation if no API data
+  const staticServices = t("services.items", { returnObjects: true });
+  
+  const displayServices = apiData.services.length > 0 ? apiData.services : (Array.isArray(staticServices) ? staticServices : []);
+  
+  const title = apiData.header 
+      ? (isAr ? apiData.header.title_ar : apiData.header.title_en) 
+      : t("services.title");
+
+  const subtitle = apiData.header 
+      ? (isAr ? (apiData.header.subtitle_ar || apiData.header.description_ar) : (apiData.header.subtitle_en || apiData.header.description_en)) 
+      : t("services.subtitle");
+
+  const getServiceImage = (service) => {
+      if (apiData.services.length > 0) {
+          if (service.images && service.images.length > 0) {
+              return `http://192.168.15.95:5000${service.images[0]}`;
+          }
+          return "/images/placeholder.png"; 
+      }
+      return service.image || "/images/hero/hero1.jpg";
+  };
 
   // Auto-rotate services
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveService((prev) => (prev + 1) % services.length); 
-    }, 8000); // 8 seconds per service
-    return () => clearInterval(interval);
-  }, [services.length]);
+    if (displayServices.length > 0) {
+        const interval = setInterval(() => {
+            setActiveService((prev) => (prev + 1) % displayServices.length); 
+        }, 8000); // 8 seconds per service
+        return () => clearInterval(interval);
+    }
+  }, [displayServices.length]);
+
+  if (displayServices.length === 0) return null;
 
   return (
     <section className={styles.servicesSection}>
@@ -58,15 +96,16 @@ export default function Services() {
                 exit={{ opacity: 0, x: -50 }} // exit state
                 transition={{ duration: 0.5 }} // transition duration
               >
-                <div className={styles.imageWrapper}>
+                  <div className={styles.imageWrapper}>
                     <Image
-                      src={services[activeService]?.image }
-                      alt={services[activeService]?.title}
+                      src={getServiceImage(displayServices[activeService])}
+                      alt={isAr ? (displayServices[activeService]?.title_ar || displayServices[activeService]?.title) : (displayServices[activeService]?.title_en || displayServices[activeService]?.title)}
                       fill
                       className={styles.featuredImage}
                       style={{ objectFit: "cover" }}
                       priority
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 1200px"
+                      unoptimized={apiData.services.length > 0}
                     />
                   <div className={styles.imageOverlay}></div>
                   
@@ -90,7 +129,7 @@ export default function Services() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                   >
-                    {services[activeService]?.title}
+                    {isAr ? (displayServices[activeService]?.title_ar || displayServices[activeService]?.title) : (displayServices[activeService]?.title_en || displayServices[activeService]?.title)}
                   </motion.h3>
                   <motion.p 
                     className={styles.featuredDescription}
@@ -98,7 +137,7 @@ export default function Services() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    {services[activeService]?.description}
+                    {isAr ? (displayServices[activeService]?.description_ar || displayServices[activeService]?.description) : (displayServices[activeService]?.description_en || displayServices[activeService]?.description)}
                   </motion.p>
 
                   {/* Animated Progress Bar */}
@@ -116,9 +155,9 @@ export default function Services() {
 
           {/* Service Navigation Grid */}
           <div className={styles.servicesGrid}>
-            {services.map((service, index) => (
+            {displayServices.map((service, index) => (
               <motion.div
-                key={service.id}
+                key={service.id || index}
                 className={`${styles.serviceCard} ${
                   activeService === index ? styles.active : ""
                 } ${hoveredService === index ? styles.hovered : ""}`}
@@ -136,12 +175,13 @@ export default function Services() {
                   {/* Mini Image Preview */}
                   <div className={styles.miniImageWrapper}>
                     <Image
-                      src={service.image || "/images/hero/hero1.jpg"}
-                      alt={service.title}
+                      src={getServiceImage(service)}
+                      alt={isAr ? (service.title_ar || service.title) : (service.title_en || service.title)}
                       fill
                       className={styles.miniImage}
                       style={{ objectFit: "cover" }}
                       sizes="(max-width: 768px) 120px, 200px"
+                      unoptimized={apiData.services.length > 0}
                     />
                     <div className={styles.miniOverlay}></div>
                   </div>
@@ -152,7 +192,9 @@ export default function Services() {
                   </div>
 
                   {/* Service Title */}
-                  <h4 className={styles.cardTitle}>{service.title}</h4>
+                  <h4 className={styles.cardTitle}>
+                      {isAr ? (service.title_ar || service.title) : (service.title_en || service.title)}
+                  </h4>
 
                   {/* Hover Indicator */}
                   <motion.div 

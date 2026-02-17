@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -13,117 +12,224 @@ import {
   Upload
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { 
+  createSectionAPI, 
+  updateSectionAPI, 
+  deleteSectionAPI,
+  deleteImageAPI 
+} from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './gallery-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import useCMSStore from '@/store/useCMSStore';
 
 export default function GalleryManager() {
   const [data, setData] = useState({
-    banner: {
-      image: "/images/piclaybrary/piclaybrary banner.webp",
-      title_en: "Picture Library",
-      title_ar: "مكتبة الصور"
-    },
-    categories: [
-      {
-        id: 'infrastructure',
-        name_en: "Infrastructure Projects",
-        name_ar: "مشاريع البنية التحتية",
-        folder: "Infrastructure Projects",
-        images: [
-          "/images/piclaybrary/Infrastructure Projects/Image_dec_129-1.jpg",
-          "/images/piclaybrary/Infrastructure Projects/Image_dec_129.jpg",
-          "/images/piclaybrary/Infrastructure Projects/Image_dec_148.jpg",
-          "/images/piclaybrary/Infrastructure Projects/Image_dec_151.jpg"
-        ]
-      },
-      {
-        id: 'road',
-        name_en: "Road Projects",
-        name_ar: "مشاريع الطرق",
-        folder: "Road Projects",
-        images: [
-          "/images/piclaybrary/Road Projects/01-2jan2018-1.png",
-          "/images/piclaybrary/Road Projects/01-2jan2018-2.png",
-          "/images/piclaybrary/Road Projects/02-2jan2018-1.png",
-          "/images/piclaybrary/Road Projects/02-2jan2018-2.png"
-        ]
-      }
-    ]
+    banner: { id: null, image: "", rawImage: null, title_en: "", title_ar: "" },
+    categories: []
   });
 
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState({ name_en: "", name_ar: "", images: [] });
+  const [newCategory, setNewCategory] = useState({ name_en: "", name_ar: "", files: [] });
+  const [bannerFile, setBannerFile] = useState(null);
 
-  const updateBanner = (field, value) => {
-    setData(prev => ({
-      ...prev,
-      banner: { ...prev.banner, [field]: value }
-    }));
+  const bannerInputRef = useRef(null);
+  const imagesInputRef = useRef(null);
+
+  // CMS Store
+  const sections = useCMSStore((state) => state.sections);
+  const refreshSections = useCMSStore((state) => state.refreshSections);
+
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
   };
+
+  useEffect(() => {
+    const fetchGalleryData = () => {
+      setLoading(true);
+      try {
+        if (sections && sections.length > 0) {
+          const gallerySections = sections.filter(s => s.section_key === 'gallery');
+          
+          const bannerSec = gallerySections.find(s => s.type === 'banner');
+          const itemSections = gallerySections.filter(s => s.type === 'item');
+  
+          setData({
+            banner: {
+              id: bannerSec?.id || null,
+              image: getImageUrl(bannerSec?.images?.[0]),
+              rawImage: bannerSec?.images?.[0] || null,
+              title_en: bannerSec?.title_en || "",
+              title_ar: bannerSec?.title_ar || ""
+            },
+            categories: itemSections.map(s => ({
+              id: s.id,
+              name_en: s.title_en || "",
+              name_ar: s.title_ar || "",
+              images: s.images?.map(img => getImageUrl(img)) || [],
+              rawImages: s.images || []
+            }))
+          });
+        }
+      } catch (error) {
+        toast.error("حدث خطأ أثناء تحميل البيانات");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGalleryData();
+  }, [sections]);
 
   const handleBannerUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      updateBanner('image', URL.createObjectURL(file));
+      setBannerFile(file);
+      setData(prev => ({
+        ...prev,
+        banner: { ...prev.banner, image: URL.createObjectURL(file) }
+      }));
     }
   };
 
-  const handleAddCategory = () => {
+  const saveBanner = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'gallery');
+    formData.append('type', 'banner');
+    formData.append('title_en', data.banner.title_en);
+    formData.append('title_ar', data.banner.title_ar);
+    formData.append('is_active', 'true');
+    if (bannerFile) {
+      formData.append('images', bannerFile);
+    }
+
+    try {
+      if (data.banner.id) {
+        await updateSectionAPI(data.banner.id, formData);
+      } else {
+        await createSectionAPI(formData);
+      }
+      
+      await refreshSections();
+      setBannerFile(null);
+      toast.success("تم حفظ البانر بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const removeBannerImage = async () => {
+    if (!data.banner.image) return;
+    if (bannerFile || !data.banner.id) {
+       setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", rawImage: null } }));
+       setBannerFile(null);
+       return;
+    }
+    if (window.confirm("هل أنت متأكد من حذف صورة البانر؟")) {
+      try {
+        await deleteImageAPI(data.banner.id, data.banner.rawImage);
+        setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", rawImage: null } }));
+        await refreshSections();
+        toast.success("تم الحذف بنجاح");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الحذف");
+      }
+    }
+  };
+
+  const handleAddCategory = async () => {
     if (newCategory.name_en && newCategory.name_ar) {
-      const id = newCategory.name_en.toLowerCase().replace(/\s+/g, '-');
-      setData(prev => ({
-        ...prev,
-        categories: [...prev.categories, {
-          id,
-          name_en: newCategory.name_en,
-          name_ar: newCategory.name_ar,
-          folder: newCategory.name_en,
-          images: newCategory.images
-        }]
-      }));
-      setIsModalOpen(false);
-      setNewCategory({ name_en: "", name_ar: "", images: [] });
-    }
-  };
-
-  const removeCategory = (id) => {
-    if (data.categories.length > 1) {
-      setData(prev => ({
-        ...prev,
-        categories: prev.categories.filter(c => c.id !== id)
-      }));
-      setActiveTab(0);
-    }
-  };
-
-  const removeImage = (imgIndex) => {
-    setData(prev => {
-      const updatedCategories = [...prev.categories];
-      const currentCategory = { ...updatedCategories[activeTab] };
-      currentCategory.images = currentCategory.images.filter((_, i) => i !== imgIndex);
-      updatedCategories[activeTab] = currentCategory;
-      return { ...prev, categories: updatedCategories };
-    });
-  };
-
-  const handleFileUpload = (e, target = 'main') => {
-    const files = Array.from(e.target.files);
-    const newUrls = files.map(file => URL.createObjectURL(file));
-
-    if (target === 'main') {
-      setData(prev => {
-        const updatedCategories = [...prev.categories];
-        const currentCategory = { ...updatedCategories[activeTab] };
-        currentCategory.images = [...currentCategory.images, ...newUrls];
-        updatedCategories[activeTab] = currentCategory;
-        return { ...prev, categories: updatedCategories };
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('section_key', 'gallery');
+      formData.append('type', 'item');
+      formData.append('title_en', newCategory.name_en);
+      formData.append('title_ar', newCategory.name_ar);
+      formData.append('is_active', 'true');
+      newCategory.files.forEach(file => {
+        formData.append('images', file);
       });
+
+      try {
+        await createSectionAPI(formData);
+        await refreshSections();
+        setIsModalOpen(false);
+        setNewCategory({ name_en: "", name_ar: "", files: [] });
+        toast.success("تمت إضافة المجموعة بنجاح");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الإضافة");
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const removeCategory = async (id) => {
+    if (window.confirm("هل أنت متأكد من حذف هذه المجموعة بالكامل؟")) {
+      try {
+        await deleteSectionAPI(id);
+        await refreshSections();
+        setActiveTab(0);
+        toast.success("تم حذف المجموعة");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الحذف");
+      }
+    }
+  };
+
+  const removeImage = async (imgIndex) => {
+    const category = data.categories[activeTab];
+    const imagePath = category.rawImages[imgIndex];
+
+    if (window.confirm("هل أنت متأكد من حذف هذه الصورة؟")) {
+      try {
+        await deleteImageAPI(category.id, imagePath);
+        await refreshSections();
+        toast.success("تم حذف الصورة");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الحذف");
+      }
+    }
+  };
+
+  const handleFileUpload = async (e, target = 'main') => {
+    const files = Array.from(e.target.files);
+    
+    if (target === 'main') {
+      const category = data.categories[activeTab];
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('section_key', 'gallery');
+      formData.append('type', 'item');
+      formData.append('title_en', category.name_en);
+      formData.append('title_ar', category.name_ar);
+      formData.append('is_active', 'true');
+      files.forEach(file => {
+        formData.append('images', file);
+      });
+
+      try {
+        await updateSectionAPI(category.id, formData);
+        await refreshSections();
+        toast.success("تمت إضافة الصور بنجاح");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الرفع");
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setNewCategory(prev => ({
         ...prev,
-        images: [...prev.images, ...newUrls]
+        files: [...prev.files, ...files]
       }));
     }
   };
@@ -135,8 +241,8 @@ export default function GalleryManager() {
           <h2 className={dashboardStyles.sectionTitle}>Media Gallery Manager</h2>
           <p className={dashboardStyles.sectionSubtitle}>Organize your company visual library by categories.</p>
         </div>
-        <button className={localStyles.saveButton}>
-          <Save size={20} /> Save Changes
+        <button className={localStyles.saveButton} onClick={saveBanner} disabled={isSubmitting}>
+          <Save size={20} /> {isSubmitting ? 'Saving...' : 'Save All Changes'}
         </button>
       </div>
 
@@ -177,81 +283,100 @@ export default function GalleryManager() {
                 <ImageIcon size={20} color="#DC143C" />
                 <h3 className={localStyles.sectionTitle}>Main Hero Banner</h3>
              </div>
-             <div className={localStyles.imageCard} style={{ aspectRatio: '16/9', marginBottom: '1rem' }}>
-                <img src={data.banner.image} alt="Gallery Banner" />
-                <div className={localStyles.imageOverlay}>
-                   <label style={{ cursor: 'pointer' }}>
-                      <input type="file" hidden onChange={handleBannerUpload} accept="image/*" />
-                      <div className={dashboardStyles.secondaryBtn} style={{ background: 'white' }}>
-                         <Upload size={16} /> Change Image
-                      </div>
-                   </label>
-                </div>
-             </div>
-             <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
-                <label className={localStyles.fieldLabel}>Main Title (EN)</label>
-                <input className={localStyles.inputField} value={data.banner.title_en} onChange={(e) => updateBanner('title_en', e.target.value)} />
-             </div>
-             <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
-                <input className={localStyles.inputField} value={data.banner.title_ar} onChange={(e) => updateBanner('title_ar', e.target.value)} />
-             </div>
+              <div className={localStyles.imageCard} style={{ aspectRatio: '16/9', marginBottom: '1rem', position: 'relative' }}>
+                 <img src={data.banner.image || "/images/placeholder.png"} alt="Gallery Banner" onClick={() => bannerInputRef.current?.click()} />
+                 {data.banner.image && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); removeBannerImage(); }}
+                      style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(220,20,60,0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <X size={16} />
+                    </button>
+                 )}
+                 <div className={localStyles.imageOverlay} onClick={() => bannerInputRef.current?.click()}>
+                    <label style={{ cursor: 'pointer' }}>
+                       <input type="file" hidden ref={bannerInputRef} onChange={handleBannerUpload} accept="image/*" />
+                       <div className={dashboardStyles.secondaryBtn} style={{ background: 'white' }}>
+                          <Upload size={16} /> Change Image
+                       </div>
+                    </label>
+                 </div>
+              </div>
+              <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
+                 <label className={localStyles.fieldLabel}>Main Title (EN)</label>
+                 <input className={localStyles.inputField} value={data.banner.title_en} onChange={(e) => setData(prev => ({...prev, banner: {...prev.banner, title_en: e.target.value}}))} />
+              </div>
+              <div dir="rtl" className={localStyles.inputGroup}>
+                 <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
+                 <input className={localStyles.inputField} value={data.banner.title_ar} onChange={(e) => setData(prev => ({...prev, banner: {...prev.banner, title_ar: e.target.value}}))} />
+              </div>
           </div>
         </div>
 
         {/* Main: Gallery Grid */}
         <div className={localStyles.galleryContainer}>
-          <div className={dashboardStyles.contentCard} style={{ padding: 0 }}>
-            <div className={localStyles.editorHeader}>
-              <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>{data.categories[activeTab]?.name_en}</h3>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.2rem' }}>
-                   Managing {data.categories[activeTab]?.images.length} images in this collection.
-                </p>
+          {data.categories.length > 0 ? (
+            <div className={dashboardStyles.contentCard} style={{ padding: 0 }}>
+              <div className={localStyles.editorHeader}>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>{data.categories[activeTab]?.name_en}</h3>
+                  <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.2rem' }}>
+                    Managing {data.categories[activeTab]?.images?.length || 0} images in this collection.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => removeCategory(data.categories[activeTab].id)} 
+                  className={localStyles.deleteCollectionBtn}
+                >
+                  <Trash2 size={18} /> Delete Collection
+                </button>
               </div>
-              <button 
-                onClick={() => removeCategory(data.categories[activeTab].id)} 
-                className={localStyles.deleteCollectionBtn}
-              >
-                <Trash2 size={18} /> Delete Collection
-              </button>
-            </div>
 
-            <div style={{ padding: '0 1.5rem 1.5rem' }}>
-              <div className={localStyles.imageGrid}>
-                {/* Upload Item */}
-                <label className={localStyles.uploadPlaceholder}>
-                  <input type="file" hidden multiple onChange={(e) => handleFileUpload(e, 'main')} accept="image/*" />
-                  <div className={localStyles.uploadIcon}><Upload size={24} /></div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Add Photos</div>
-                    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Click to Browse</div>
-                  </div>
-                </label>
-
-                {/* Image Items */}
-                {data.categories[activeTab]?.images.map((img, idx) => (
-                  <motion.div 
-                    key={`${activeTab}-${idx}`} 
-                    className={localStyles.imageCard}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                  >
-                    <img src={img} alt="Gallery" />
-                    <div className={localStyles.imageOverlay}>
-                        <button 
-                          className={localStyles.removeImageBtn}
-                          onClick={() => removeImage(idx)}
-                          title="Remove from gallery"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+              <div style={{ padding: '0 1.5rem 1.5rem' }}>
+                <div className={localStyles.imageGrid}>
+                  {/* Upload Item */}
+                  <label className={localStyles.uploadPlaceholder}>
+                    <input type="file" hidden multiple onChange={(e) => handleFileUpload(e, 'main')} accept="image/*" />
+                    <div className={localStyles.uploadIcon}><Upload size={24} /></div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Add Photos</div>
+                      <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Click to Browse</div>
                     </div>
-                  </motion.div>
-                ))}
+                  </label>
+
+                  {/* Image Items */}
+                  {data.categories[activeTab]?.images?.map((img, idx) => (
+                    <motion.div 
+                      key={`${activeTab}-${idx}`} 
+                      className={localStyles.imageCard}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                    >
+                      <img src={img} alt="Gallery" />
+                      <div className={localStyles.imageOverlay}>
+                          <button 
+                            className={localStyles.removeImageBtn}
+                            onClick={() => removeImage(idx)}
+                            title="Remove from gallery"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className={dashboardStyles.contentCard} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem', textAlign: 'center', background: '#f8fafc' }}>
+               <FolderOpen size={48} color="#cbd5e1" style={{ marginBottom: '1.5rem' }} />
+               <h3 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>No Collections Found</h3>
+               <p style={{ color: '#64748b', marginBottom: '2rem' }}>Start by creating your first media collection to organize your photos.</p>
+               <button onClick={() => setIsModalOpen(true)} className={localStyles.submitBtn} style={{ padding: '0.8rem 2rem' }}>
+                  <Plus size={18} /> Create New Collection
+               </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -263,7 +388,9 @@ export default function GalleryManager() {
         footer={
           <>
             <button onClick={() => setIsModalOpen(false)} className={localStyles.cancelBtn}>Cancel</button>
-            <button onClick={handleAddCategory} className={localStyles.submitBtn}>Create & Add Photos</button>
+            <button onClick={handleAddCategory} className={localStyles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create & Add Photos'}
+            </button>
           </>
         }
       >
@@ -292,13 +419,15 @@ export default function GalleryManager() {
               <input type="file" hidden multiple onChange={(e) => handleFileUpload(e, 'modal')} accept="image/*" />
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <Upload size={20} />
-                  <span style={{ fontWeight: '600' }}>Select Images</span>
+                  <span style={{ fontWeight: '600' }}>Select Images ({newCategory.files.length})</span>
               </div>
             </label>
-            {newCategory.images.length > 0 && (
+            {newCategory.files.length > 0 && (
               <div className={localStyles.modalImagePreview}>
-                  {newCategory.images.map((img, i) => (
-                    <img key={i} src={img} className={localStyles.previewThumb} alt="preview" />
+                  {newCategory.files.map((file, i) => (
+                    <div key={i} style={{ position: 'relative' }}>
+                       <img src={URL.createObjectURL(file)} className={localStyles.previewThumb} alt="preview" />
+                    </div>
                   ))}
               </div>
             )}

@@ -6,6 +6,12 @@
   margin-bottom: 2.5rem;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .saveButton {
   display: flex;
   align-items: center;
@@ -183,13 +189,26 @@
 }
 
 .deleteImageBtn {
-  padding: 0.4rem;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  padding: 6px;
   background-color: white;
-  border-radius: 6px;
-  border: none;
+  border-radius: 50%;
+  border: 1px solid #fee2e2;
   color: #ef4444;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.deleteImageBtn:hover {
+  background-color: #fee2e2;
+  transform: scale(1.1);
 }
 
 .uploadPlaceholder {

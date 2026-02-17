@@ -118,44 +118,7 @@
   border-color: #DC143C;
 }
 
-/* Stats Card */
-.statsCard {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-}
-
-.statsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.statItem {
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.statValue {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #DC143C;
-}
-
-.statLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-}
-
-/* Registrations Table */
+/* Form Fields Builder */
 .tableCard {
   background: white;
   border-radius: 20px;
@@ -171,42 +134,10 @@
   align-items: center;
 }
 
-.tableWrapper {
-  overflow-x: auto;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.table th {
-  background: #f8fafc;
-  padding: 1rem 1.5rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-}
-
-.table td {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f8fafc;
-  font-size: 0.9rem;
-  color: #1e293b;
-}
-
-.status {
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.statusNew {
-  background: #ecfdf5;
-  color: #059669;
+.fieldsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .actionBtn {
@@ -228,37 +159,22 @@
   color: white;
 }
 
-/* Detail Modal */
-
-/* Modal Base Styles removed in favor of reusable Modal component */
-
-.detailGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-
-.detailItem {
+.loadingContainer {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.detailLabel {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  height: 60vh;
+  color: #64748b;
+  gap: 1rem;
 }
 
-.detailValue {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1e293b;
-  background: #f8fafc;
-  padding: 0.75rem;
-  border-radius: 10px;
+.spinner {
+  animation: spin 1s linear infinite;
+  color: #DC143C;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

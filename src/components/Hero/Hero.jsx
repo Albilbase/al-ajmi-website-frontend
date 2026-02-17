@@ -1,10 +1,11 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Navigation, Pagination, Parallax } from 'swiper/modules';  // swiper modules ( options )
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';  // animation library
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';  // icons library
 import { useTranslation } from 'react-i18next';
+
 
 // Import Swiper styles
 import 'swiper/css';
@@ -15,27 +16,45 @@ import 'swiper/css/pagination';
 import Image from 'next/image';
 import styles from './Hero.module.css';
 
-const Hero = () => {
+const Hero = ({ homeData }) => {
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
+    // State for dynamic slides
+    const [apiSlides, setApiSlides] = useState([]);
+
+    useEffect(() => {
+        if (homeData) {
+            const sliderItems = homeData.filter(item => item.type === 'hero_slider' && item.is_active);
+            if (sliderItems.length > 0) {
+                setApiSlides(sliderItems);
+            }
+        }
+    }, [homeData]);
+
     const slidesData = t('hero.slides', { returnObjects: true });
     
-    // Fallback if translations are not loaded yet
-    const slides = Array.isArray(slidesData) ? slidesData : [
+    // Use API slides if available, otherwise fallback to translation/static
+    const activeSlides = apiSlides.length > 0 ? apiSlides : (Array.isArray(slidesData) ? slidesData : [
         { title: "Alajmi Company", description: "Loading...", cta: "Loading..." }
-    ];
-     // images array
-    // const images = [
-    //     "/images/hero/construction.png",
-    //     "/images/hero/engineering.png",
-    //     "/images/hero/logistics.png"
-    // ];
-      const images = [
-          "/images/hero/WhatsApp Image 2026-01-08 at 12.03.08 PM (1).jpeg",
-        "/images/hero/WhatsApp Image 2025-12-07 at 9.54.28 AM.jpeg",
-        "/images/hero/25af59d5-9685-42a0-9796-43467e710885.jpeg",
-      
-    ];
+    ]);
+
+    // Helper to get image URL
+    const getSlideImage = (slide, index) => {
+        if (apiSlides.length > 0) {
+            // API Image
+            if (slide.images && slide.images.length > 0) {
+                return `http://192.168.15.95:5000${slide.images[0]}`;
+            }
+            return "/images/placeholder.png";
+        }
+        // Static Image Fallback
+        const staticImages = [
+            "/images/hero/WhatsApp Image 2026-01-08 at 12.03.08 PM (1).jpeg",
+            "/images/hero/WhatsApp Image 2025-12-07 at 9.54.28 AM.jpeg",
+            "/images/hero/25af59d5-9685-42a0-9796-43467e710885.jpeg",
+        ];
+        return staticImages[index % staticImages.length];
+    };
     // scrollY for parallax effect 
     const { scrollY } = useScroll();
     const bgY = useTransform(scrollY, [0, 800], [0, 300]);
@@ -74,8 +93,8 @@ const Hero = () => {
                 className={styles.mainSwiper}
             >
                 {/* slides data mapping  */}
-                {slides.map((slide, index) => (
-                    <SwiperSlide key={index}>
+                {activeSlides.map((slide, index) => (
+                    <SwiperSlide key={slide.id || index}>
                         {({ isActive }) => (
                             <div className={styles.slideWrapper}>
                                 <motion.div 
@@ -84,8 +103,8 @@ const Hero = () => {
                                     data-swiper-parallax="20%"
                                 >
                                     <Image
-                                        src={images[index % images.length]}
-                                        alt={slide.title}
+                                        src={getSlideImage(slide, index)}
+                                        alt={isAr ? (slide.title_ar || slide.title) : (slide.title_en || slide.title)}
                                         fill
                                         style={{ objectFit: 'cover' }}
                                         priority={index === 0}
@@ -93,6 +112,7 @@ const Hero = () => {
                                         loading={index === 0 ? "eager" : "lazy"}
                                         quality={index === 0 ? 85 : 75}
                                         sizes="100vw"
+                                        unoptimized={apiSlides.length > 0} // Add unoptimized for external API images if not configured in next.config
                                     />
                                 </motion.div>
                                 <div className={styles.vignette} />
@@ -130,7 +150,7 @@ const Hero = () => {
                                                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                                                         className={styles.title}
                                                     >
-                                                        {slide.title}
+                                                        {isAr ? (slide.title_ar || slide.title) : (slide.title_en || slide.title)}
                                                     </motion.h1>
 
                                                     <motion.p 
@@ -141,7 +161,7 @@ const Hero = () => {
                                                         transition={{ duration: 0.8, delay: 0.2 }}
                                                         className={styles.description}
                                                     >
-                                                        {slide.description}
+                                                        {isAr ? (slide.description_ar || slide.description) : (slide.description_en || slide.description)}
                                                     </motion.p>
 
                                                     <motion.div 
@@ -154,7 +174,9 @@ const Hero = () => {
                                                     >
                                                         <button className={styles.mainBtn}>
                                                             <span className={styles.btnContent}>
-                                                                {slide.cta}
+                                                                {apiSlides.length > 0 
+                                                                    ? (isAr ? slide.details?.cta_ar : slide.details?.cta_en) 
+                                                                    : slide.cta}
                                                                 <ArrowRight size={20} className={isAr ? styles.flipIcon : ''} />
                                                             </span>
                                                             <div className={styles.btnBg} />

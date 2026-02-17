@@ -79,6 +79,74 @@
   border-left: 4px solid #DC143C;
 }
 
+.addCategoryBtn {
+  width: 100%;
+  padding: 1rem;
+  background: #f8fafc;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  color: #DC143C;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addCategoryBtn:hover {
+  background: #fff1f2;
+}
+
+.categoryBtnWrapper {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.2s;
+}
+
+.categoryBtnWrapper:hover {
+  background: #f8fafc;
+}
+
+.categoryBtnWrapper .categoryBtn {
+  flex: 1;
+  border-bottom: none;
+}
+
+.categoryActions {
+  display: flex;
+  gap: 0.5rem;
+  padding-right: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.categoryBtnWrapper:hover .categoryActions {
+  opacity: 1;
+}
+
+.categoryActions button {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.categoryActions button:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.categoryActions button:last-child:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
 .contentArea {
   display: flex;
   flex-direction: column;

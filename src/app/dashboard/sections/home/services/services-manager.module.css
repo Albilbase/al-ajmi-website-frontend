@@ -6,6 +6,12 @@
   margin-bottom: 2.5rem;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .saveButton {
   display: flex;
   align-items: center;

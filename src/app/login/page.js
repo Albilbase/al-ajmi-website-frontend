@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -7,20 +6,36 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import styles from './login.module.css';
+import { toast } from 'react-toastify';
+import { loginAPI } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
+  const { i18n } = useTranslation();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = (e) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login delay
-    setTimeout(() => {
+    try {
+      const data = await loginAPI({ email, password });
+      // The token is already stored inside loginAPI, but we can use the back-end message if available
+      toast.success(data?.message || 'تم تسجيل الدخول بنجاح');
       router.push('/dashboard');
-    }, 1000);
+    } catch (error) {
+      // Use a generic message for security (don't reveal if account exists or password is wrong)
+      const genericMessage = i18n?.language === 'ar' 
+        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.' 
+        : 'Invalid email or password. Please try again.';
+      toast.error(genericMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -57,6 +72,8 @@ export default function LoginPage() {
                 type="email" 
                 placeholder="admin@alajmi.com" 
                 className={styles.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -70,6 +87,8 @@ export default function LoginPage() {
                 type={showPassword ? "text" : "password"} 
                 placeholder="••••••••" 
                 className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
               <button 

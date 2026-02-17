@@ -2,12 +2,19 @@
 const nextConfig = {
   /* config options here */
   reactCompiler: true,
-  output: "standalone",
-
   images: {
-    formats: ["image/avif", "image/webp"],
+    formats: ['image/avif', 'image/webp'],
     qualities: [70, 75, 80, 85, 90],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: '192.168.15.95',
+        port: '5000',
+        pathname: '/uploads/**',
+      },
+    ],
   },
 };
+
 
 export default nextConfig;

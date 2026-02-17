@@ -16,8 +16,7 @@ import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './services-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import { toast } from 'react-toastify';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
-import useCMSStore from '@/store/useCMSStore';
+import { createSectionAPI, updateSectionAPI, getAllSectionsAPI, deleteSectionAPI } from '@/lib/api';
 
 export default function ServicesManager() {
   const [loading, setLoading] = useState(false);
@@ -25,10 +24,6 @@ export default function ServicesManager() {
   const [services, setServices] = useState([]);
   const [activeItem, setActiveItem] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // CMS Store
-  const sections = useCMSStore((state) => state.sections);
-  const refreshSections = useCMSStore((state) => state.refreshSections);
   
   // Banner state (for /services page)
   const [banner, setBanner] = useState({
@@ -73,12 +68,13 @@ export default function ServicesManager() {
 
   // Fetch all services data on mount
   useEffect(() => {
-    const fetchAllData = () => {
+    const fetchAllData = async () => {
       setLoading(true);
       try {
-        if (sections && sections.length > 0) {
+        const response = await getAllSectionsAPI();
+        if (response.status === 200 && response.data) {
           // Fetch service items
-          const servicesSections = sections.filter(s => s.section_key === 'home' && s.type === 'service');
+          const servicesSections = response.data.filter(s => s.section_key === 'home' && s.type === 'service');
           if (servicesSections.length > 0) {
             const mappedServices = servicesSections.map(s => ({
               id: s.id,
@@ -92,7 +88,7 @@ export default function ServicesManager() {
           }
 
           // Fetch banner
-          const bannerSection = sections.find(s => s.section_key === 'home' && s.type === 'service_banner');
+          const bannerSection = response.data.find(s => s.section_key === 'home' && s.type === 'service_banner');
           if (bannerSection) {
             setBanner({
               id: bannerSection.id,
@@ -102,13 +98,12 @@ export default function ServicesManager() {
               subtitle_ar: bannerSection.description_ar || "",
               image: bannerSection.images && bannerSection.images.length > 0 
                 ? `http://192.168.15.95:5000${bannerSection.images[bannerSection.images.length - 1]}` 
-                : null,
-              rawImage: bannerSection.images && bannerSection.images.length > 0 ? bannerSection.images[bannerSection.images.length - 1] : null
+                : null
             });
           }
 
           // Fetch section header
-          const headerSection = sections.find(s => s.section_key === 'home' && s.type === 'service_header');
+          const headerSection = response.data.find(s => s.section_key === 'home' && s.type === 'service_header');
           if (headerSection) {
             setSectionHeader({
               id: headerSection.id,
@@ -126,7 +121,7 @@ export default function ServicesManager() {
       }
     };
     fetchAllData();
-  }, [sections]);
+  }, []);
 
   const handleAddService = async () => {
     if (!newService.title_en || !newService.title_ar) {
@@ -149,10 +144,17 @@ export default function ServicesManager() {
         formData.append('images', newService.imageFile);
       }
 
-      await createSectionAPI(formData);
-      await refreshSections();
+      const response = await createSectionAPI(formData);
       
-      toast.success('تمت إضافة الخدمة بنجاح');
+      const newId = response.data?.id || response.id || Date.now();
+      const addedService = {
+        id: newId,
+        ...newService,
+        image: newService.imagePreview
+      };
+      
+      setServices([...services, addedService]);
+      toast.success(response.message || 'تمت إضافة الخدمة بنجاح');
       setIsModalOpen(false);
       
       setNewService({
@@ -163,7 +165,7 @@ export default function ServicesManager() {
         imageFile: null,
         imagePreview: null
       });
-      // Optionally update activeItem if you want to focus on the new one, but fetching fresh data handles the list.
+      setActiveItem(services.length);
     } catch (error) {
       toast.error(error.response?.data?.message || 'حدث خطأ أثناء إضافة الخدمة');
     } finally {
@@ -193,9 +195,18 @@ export default function ServicesManager() {
         formData.append('images', editorFile);
       }
 
-      await updateSectionAPI(currentService.id, formData);
-      await refreshSections();
-      toast.success('تم تحديث الخدمة بنجاح');
+      const response = await updateSectionAPI(currentService.id, formData);
+      toast.success(response.message || 'تم تحديث الخدمة بنجاح');
+      
+      if (response.data && response.data.images && response.data.images.length > 0) {
+        const updatedServices = [...services];
+        updatedServices[activeItem].image = `http://192.168.15.95:5000${response.data.images[response.data.images.length - 1]}`;
+        setServices(updatedServices);
+      } else if (editorPreview) {
+        const updatedServices = [...services];
+        updatedServices[activeItem].image = editorPreview;
+        setServices(updatedServices);
+      }
       
       setEditorFile(null);
       setEditorPreview(null);
@@ -213,7 +224,8 @@ export default function ServicesManager() {
     if (confirm('هل أنت متأكد من رغبتك في حذف هذه الخدمة؟')) {
       try {
         await deleteSectionAPI(id);
-        await refreshSections();
+        const updatedServices = services.filter(service => service.id !== id);
+        setServices(updatedServices);
         setActiveItem(0);
         toast.success('تم حذف الخدمة بنجاح');
       } catch (error) {
@@ -269,73 +281,6 @@ export default function ServicesManager() {
     setSectionHeader(prev => ({ ...prev, [field]: value }));
   };
 
-  const removeImage = async (type, id = null) => {
-    if (type === 'service') {
-      const currentService = services[activeItem];
-      // Local preview only
-      if (editorFile || (currentService?.image && currentService.image.startsWith('blob:'))) {
-        setEditorFile(null);
-        setEditorPreview(null);
-        
-        // Remove the blob from the service state to show empty state
-        const updatedServices = [...services];
-        updatedServices[activeItem].image = null;
-        setServices(updatedServices);
-
-        const fileInput = document.getElementById('serviceImageInput');
-        if (fileInput) fileInput.value = '';
-        return;
-      }
-      
-      // Server image
-      if (currentService && currentService.image && currentService.id) {
-        if (window.confirm("حذف صورة الخدمة نهائياً من السيرفر؟")) {
-          try {
-             const rawPath = currentService.image.replace('http://192.168.15.95:5000', '');
-             await deleteImageAPI(currentService.id, rawPath);
-             await refreshSections();
-             
-             const updatedServices = [...services];
-             updatedServices[activeItem].image = null;
-             setServices(updatedServices);
-             toast.success("تم حذف الصورة");
-          } catch (e) {
-             console.error(e);
-             toast.error("فشل حذف الصورة");
-          }
-        }
-      }
-    } else if (type === 'banner') {
-       // Local preview
-       if (bannerFile || (banner.image && banner.image.startsWith('blob:'))) {
-         setBannerFile(null);
-         setBannerPreview(null);
-         
-         // Remove blob from banner state
-         setBanner(prev => ({ ...prev, image: null }));
-
-         const fileInput = document.getElementById('bannerImageInput');
-         if (fileInput) fileInput.value = '';
-         return;
-       }
-       
-       // Server image
-       if (banner.id && banner.image) {
-         if (window.confirm("حذف صورة البانر نهائياً من السيرفر؟")) {
-           try {
-              await deleteImageAPI(banner.id, banner.rawImage || banner.image.replace('http://192.168.15.95:5000', ''));
-              await refreshSections();
-              setBanner(prev => ({ ...prev, image: null, rawImage: null }));
-              toast.success("تم حذف البانر");
-           } catch (e) {
-              console.error(e);
-              toast.error("فشل حذف البانر");
-           }
-         }
-       }
-    }
-  };
-
   const handleSaveBanner = async () => {
     setIsSubmitting(true);
     try {
@@ -359,11 +304,23 @@ export default function ServicesManager() {
         response = await createSectionAPI(formData);
       }
 
-      await refreshSections();
       toast.success(response.message || 'تم حفظ البانر بنجاح');
       
-      setBannerFile(null);
-      setBannerPreview(null);
+      // Refresh banner data
+      if (response.data) {
+        setBanner({
+          id: response.data.id || banner.id,
+          title_en: response.data.title_en || banner.title_en,
+          title_ar: response.data.title_ar || banner.title_ar,
+          subtitle_en: response.data.description_en || banner.subtitle_en,
+          subtitle_ar: response.data.description_ar || banner.subtitle_ar,
+          image: response.data.images && response.data.images.length > 0 
+            ? `http://192.168.15.95:5000${response.data.images[response.data.images.length - 1]}` 
+            : banner.image
+        });
+        setBannerFile(null);
+        setBannerPreview(null);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ البانر');
     } finally {
@@ -383,14 +340,24 @@ export default function ServicesManager() {
       formData.append('type', 'service_header');
       formData.append('is_active', 'true');
 
+      let response;
       if (sectionHeader.id) {
-        await updateSectionAPI(sectionHeader.id, formData);
+        response = await updateSectionAPI(sectionHeader.id, formData);
       } else {
-        await createSectionAPI(formData);
+        response = await createSectionAPI(formData);
       }
 
-      await refreshSections();
-      toast.success('تم حفظ عنوان القسم بنجاح');
+      toast.success(response.message || 'تم حفظ عنوان القسم بنجاح');
+      
+      if (response.data) {
+        setSectionHeader({
+          id: response.data.id || sectionHeader.id,
+          title_en: response.data.title_en || sectionHeader.title_en,
+          title_ar: response.data.title_ar || sectionHeader.title_ar,
+          subtitle_en: response.data.description_en || sectionHeader.subtitle_en,
+          subtitle_ar: response.data.description_ar || sectionHeader.subtitle_ar
+        });
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ عنوان القسم');
     } finally {
@@ -408,7 +375,6 @@ export default function ServicesManager() {
       setLoading(true);
       try {
         await deleteSectionAPI(banner.id);
-        await refreshSections();
         toast.success('تم حذف البانر بنجاح');
         setBanner({
           id: null,
@@ -439,7 +405,6 @@ export default function ServicesManager() {
       setLoading(true);
       try {
         await deleteSectionAPI(sectionHeader.id);
-        await refreshSections();
         toast.success('تم حذف عنوان القسم بنجاح');
         setSectionHeader({
           id: null,
@@ -533,120 +498,99 @@ export default function ServicesManager() {
         {/* Right: Active Service Editor */}
         <div className={localStyles.editorContainer}>
           {services.length > 0 && services[activeItem] ? (
-            <div className={dashboardStyles.contentCard}>
-              <div className={localStyles.editorHeader}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>Editing: {services[activeItem]?.title_en}</h3>
-                <button 
-                  onClick={() => removeService(services[activeItem].id)} 
-                  className={localStyles.deleteBtn}
-                  title="Remove this service"
-                >
-                  <Trash2 size={18} /> Delete
-                </button>
-              </div>
+            <>
+              <div className={dashboardStyles.contentCard}>
+                <div className={localStyles.editorHeader}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>Editing: {services[activeItem]?.title_en}</h3>
+                  <button 
+                    onClick={() => removeService(services[activeItem].id)} 
+                    className={localStyles.deleteBtn}
+                    title="Remove this service"
+                  >
+                    <Trash2 size={18} /> Delete
+                  </button>
+                </div>
 
-              {/* Title Fields */}
-              <div className={localStyles.formGrid}>
-                <div className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>Service Title (EN)</label>
-                  <input 
-                    type="text" 
-                    value={services[activeItem].title_en}
-                    onChange={(e) => updateActiveService('title_en', e.target.value)}
-                    className={localStyles.inputField}
-                    style={{ fontWeight: '700' }}
-                  />
+                {/* Title Fields */}
+                <div className={localStyles.formGrid}>
+                  <div className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>Service Title (EN)</label>
+                    <input 
+                      type="text" 
+                      value={services[activeItem].title_en}
+                      onChange={(e) => updateActiveService('title_en', e.target.value)}
+                      className={localStyles.inputField}
+                      style={{ fontWeight: '700' }}
+                    />
+                  </div>
+                  <div dir="rtl" className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>عنوان الخدمة (AR)</label>
+                    <input 
+                      type="text" 
+                      value={services[activeItem].title_ar}
+                      onChange={(e) => updateActiveService('title_ar', e.target.value)}
+                      className={localStyles.inputField}
+                      style={{ fontWeight: '700' }}
+                    />
+                  </div>
                 </div>
-                <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>عنوان الخدمة (AR)</label>
-                  <input 
-                    type="text" 
-                    value={services[activeItem].title_ar}
-                    onChange={(e) => updateActiveService('title_ar', e.target.value)}
-                    className={localStyles.inputField}
-                    style={{ fontWeight: '700' }}
-                  />
-                </div>
-              </div>
 
-              {/* Description Fields */}
-              <div className={localStyles.formGrid}>
-                <div className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>Description (EN)</label>
-                  <textarea 
-                    rows="4"
-                    value={services[activeItem].description_en}
-                    onChange={(e) => updateActiveService('description_en', e.target.value)}
-                    className={localStyles.textareaField}
-                  />
+                {/* Description Fields */}
+                <div className={localStyles.formGrid}>
+                  <div className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>Description (EN)</label>
+                    <textarea 
+                      rows="4"
+                      value={services[activeItem].description_en}
+                      onChange={(e) => updateActiveService('description_en', e.target.value)}
+                      className={localStyles.textareaField}
+                    />
+                  </div>
+                  <div dir="rtl" className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>وصف الخدمة (AR)</label>
+                    <textarea 
+                      rows="4"
+                      value={services[activeItem].description_ar}
+                      onChange={(e) => updateActiveService('description_ar', e.target.value)}
+                      className={localStyles.textareaField}
+                    />
+                  </div>
                 </div>
-                <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>وصف الخدمة (AR)</label>
-                  <textarea 
-                    rows="4"
-                    value={services[activeItem].description_ar}
-                    onChange={(e) => updateActiveService('description_ar', e.target.value)}
-                    className={localStyles.textareaField}
-                  />
-                </div>
-              </div>
 
-              {/* Image Preview */}
-              <div className={localStyles.mediaSection}>
-                <label className={localStyles.fieldLabel}>Featured Image</label>
-                <div className={localStyles.mediaGrid}>
-                  <div className={localStyles.mediaPreview}>
-                    {services[activeItem].image || editorPreview ? (
-                      <>
-                        <img src={editorPreview || services[activeItem].image} alt="" />
-                        <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                              <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                                <ImageIcon size={20} /> Change
-                                <input 
-                                  id="serviceImageInput"
-                                  type="file" 
-                                  accept="image/*" 
-                                  onChange={handleEditorImageChange}
-                                  style={{ display: 'none' }}
-                                />
-                              </label>
-                              <button 
-                                onClick={() => removeImage('service')}
-                                className={localStyles.deleteBtn}
-                                style={{ background: 'white', color: '#DC143C', width: '40px', display: 'flex', justifyContent: 'center' }}
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                           </div>
+                {/* Image Preview */}
+                <div className={localStyles.mediaSection}>
+                  <label className={localStyles.fieldLabel}>Featured Image</label>
+                  <div className={localStyles.mediaGrid}>
+                    <div className={localStyles.mediaPreview}>
+                      {services[activeItem].image ? (
+                        <img src={services[activeItem].image} alt="" />
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9' }}>
+                          <ImageIcon size={48} color="#94a3b8" />
                         </div>
-                      </>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9', cursor: 'pointer' }}>
-                        <label style={{ cursor: 'pointer', textAlign: 'center' }}>
-                           <ImageIcon size={48} color="#94a3b8" />
-                           <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>Click to Upload</p>
-                           <input 
-                              id="serviceImageInput"
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleEditorImageChange}
-                              style={{ display: 'none' }}
-                            />
+                      )}
+                      <div className={localStyles.mediaOverlay}>
+                        <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
+                          <ImageIcon size={20} /> Change Image
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleEditorImageChange}
+                            style={{ display: 'none' }}
+                          />
                         </label>
                       </div>
-                    )}
-                  </div>
-                  <div className={localStyles.mediaInfoBox}>
-                    <p className={localStyles.mediaInfoText}>
-                      <strong>Current Image:</strong> <br/>
-                      {services[activeItem].image || 'No image uploaded'} <br/><br/>
-                      Recommended format: <strong>WEBP/PNG</strong>
-                    </p>
+                    </div>
+                    <div className={localStyles.mediaInfoBox}>
+                      <p className={localStyles.mediaInfoText}>
+                        <strong>Current Image:</strong> <br/>
+                        {services[activeItem].image || 'No image uploaded'} <br/><br/>
+                        Recommended format: <strong>WEBP/PNG</strong>
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
           ) : (
             <div className={dashboardStyles.contentCard}>
               <p style={{ textAlign: 'center', color: '#64748b', padding: '3rem' }}>
@@ -656,211 +600,196 @@ export default function ServicesManager() {
           )}
 
           {/* Services Page Banner - Always visible */}
-          <div className={dashboardStyles.contentCard} style={{ marginTop: '1.5rem' }}>
-            <div className={localStyles.sectionHeader}>
-              <ImageIcon size={20} color="#DC143C" />
-              <h3 className={localStyles.sectionTitle}>Services Page Hero Banner</h3>
-            </div>
-            
-            <div className={localStyles.mediaGrid} style={{ marginBottom: '1.5rem' }}>
-               <div className={localStyles.mediaPreview} style={{ height: '180px' }}>
-                {banner.image || bannerPreview ? (
-                  <>
-                    <img src={bannerPreview || banner.image} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                            <ImageIcon size={20} /> Change
-                            <input 
-                              id="bannerImageInput"
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleBannerImageChange}
-                              style={{ display: 'none' }}
-                            />
-                          </label>
-                          <button 
-                            onClick={() => removeImage('banner')}
-                            className={localStyles.deleteBtn}
-                            style={{ background: 'white', color: '#DC143C', width: '40px', display: 'flex', justifyContent: 'center' }}
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                       </div>
-                    </div>
-                  </>
-                ) : (
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9' }}>
-                     <label style={{ cursor: 'pointer', textAlign: 'center' }}>
+              <div className={dashboardStyles.contentCard} style={{ marginTop: '1.5rem' }}>
+                <div className={localStyles.sectionHeader}>
+                  <ImageIcon size={20} color="#DC143C" />
+                  <h3 className={localStyles.sectionTitle}>Services Page Hero Banner</h3>
+                </div>
+                
+                <div className={localStyles.mediaGrid} style={{ marginBottom: '1.5rem' }}>
+                  <div className={localStyles.mediaPreview} style={{ height: '180px' }}>
+                    {banner.image ? (
+                      <img src={banner.image} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9' }}>
                         <ImageIcon size={48} color="#94a3b8" />
-                        <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>Click to Upload Banner</p>
+                      </div>
+                    )}
+                    <div className={localStyles.mediaOverlay}>
+                      <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
+                        <ImageIcon size={20} /> Change Banner Image
                         <input 
-                          id="bannerImageInput"
                           type="file" 
                           accept="image/*" 
                           onChange={handleBannerImageChange}
                           style={{ display: 'none' }}
                         />
-                     </label>
-                   </div>
-                )}
-              </div>
-              <div className={localStyles.mediaInfoBox}>
-                <p className={localStyles.mediaInfoText}>
-                  <strong>Banner Image:</strong> <br/>
-                  {banner.image || 'No image uploaded'} <br/><br/>
-                  This banner appears only on the <strong>/services</strong> page.
-                </p>
-              </div>
-            </div>
+                      </label>
+                    </div>
+                  </div>
+                  <div className={localStyles.mediaInfoBox}>
+                    <p className={localStyles.mediaInfoText}>
+                      <strong>Banner Image:</strong> <br/>
+                      {banner.image || 'No image uploaded'} <br/><br/>
+                      This banner appears only on the <strong>/services</strong> page.
+                    </p>
+                  </div>
+                </div>
 
-            <div className={localStyles.formGrid}>
-              <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Banner Title (EN)</label>
-                <input 
-                  type="text" 
-                  value={banner.title_en}
-                  onChange={(e) => updateBanner('title_en', e.target.value)}
-                  className={localStyles.inputField}
-                />
+                <div className={localStyles.formGrid}>
+                  <div className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>Banner Title (EN)</label>
+                    <input 
+                      type="text" 
+                      value={banner.title_en}
+                      onChange={(e) => updateBanner('title_en', e.target.value)}
+                      className={localStyles.inputField}
+                    />
+                  </div>
+                  <div dir="rtl" className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>عنوان البانر (AR)</label>
+                    <input 
+                      type="text" 
+                      value={banner.title_ar}
+                      onChange={(e) => updateBanner('title_ar', e.target.value)}
+                      className={localStyles.inputField}
+                    />
+                  </div>
+                </div>
+                <div className={localStyles.formGrid}>
+                  <div className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>Banner Subtitle (EN)</label>
+                    <input 
+                      type="text" 
+                      value={banner.subtitle_en}
+                      onChange={(e) => updateBanner('subtitle_en', e.target.value)}
+                      className={localStyles.inputField}
+                    />
+                  </div>
+                  <div dir="rtl" className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>العنوان الفرعي للبانر (AR)</label>
+                    <input 
+                      type="text" 
+                      value={banner.subtitle_ar}
+                      onChange={(e) => updateBanner('subtitle_ar', e.target.value)}
+                      className={localStyles.inputField}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                  {banner.id && (
+                    <button 
+                      onClick={handleDeleteBanner}
+                      style={{ 
+                        backgroundColor: 'white', 
+                        color: '#DC143C', 
+                        border: '1px solid #DC143C',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '12px',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <Trash2 size={18} /> Delete Banner
+                    </button>
+                  )}
+                  <button 
+                    onClick={handleSaveBanner}
+                    className={localStyles.saveButton}
+                    disabled={isSubmitting}
+                    style={{ marginLeft: 'auto' }}
+                  >
+                    <Save size={18} /> {isSubmitting ? 'Saving...' : 'Save Banner'}
+                  </button>
+                </div>
               </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>عنوان البانر (AR)</label>
-                <input 
-                  type="text" 
-                  value={banner.title_ar}
-                  onChange={(e) => updateBanner('title_ar', e.target.value)}
-                  className={localStyles.inputField}
-                />
-              </div>
-            </div>
-            <div className={localStyles.formGrid}>
-              <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Banner Subtitle (EN)</label>
-                <input 
-                  type="text" 
-                  value={banner.subtitle_en}
-                  onChange={(e) => updateBanner('subtitle_en', e.target.value)}
-                  className={localStyles.inputField}
-                />
-              </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الفرعي للبانر (AR)</label>
-                <input 
-                  type="text" 
-                  value={banner.subtitle_ar}
-                  onChange={(e) => updateBanner('subtitle_ar', e.target.value)}
-                  className={localStyles.inputField}
-                />
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-              {banner.id && (
-                <button 
-                  onClick={handleDeleteBanner}
-                  style={{ 
-                    backgroundColor: 'white', 
-                    color: '#DC143C', 
-                    border: '1px solid #DC143C',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '12px',
-                    fontWeight: '800',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                >
-                  <Trash2 size={18} /> Delete Banner
-                </button>
-              )}
-              <button 
-                onClick={handleSaveBanner}
-                className={localStyles.saveButton}
-                disabled={isSubmitting}
-                style={{ marginLeft: 'auto' }}
-              >
-                <Save size={18} /> {isSubmitting ? 'Saving...' : 'Save Banner'}
-              </button>
-            </div>
-          </div>
 
-          {/* Section Header Editor */}
-          <div className={dashboardStyles.contentCard} style={{ marginTop: '1.5rem' }}>
-            <div className={localStyles.sectionHeader}>
-              <Layout size={20} color="#DC143C" />
-              <h3 className={localStyles.sectionTitle}>Section Titles Control (Home Page)</h3>
-            </div>
-            <div className={localStyles.formGrid}>
-              <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Section Title (EN)</label>
-                <input 
-                  type="text" 
-                  value={sectionHeader.title_en}
-                  onChange={(e) => updateSectionHeader('title_en', e.target.value)}
-                  className={localStyles.inputField}
-                />
+              {/* Section Header Editor */}
+              <div className={dashboardStyles.contentCard} style={{ marginTop: '1.5rem' }}>
+                <div className={localStyles.sectionHeader}>
+                  <Layout size={20} color="#DC143C" />
+                  <h3 className={localStyles.sectionTitle}>Section Titles Control (Home Page)</h3>
+                </div>
+                <div className={localStyles.formGrid}>
+                  <div className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>Section Title (EN)</label>
+                    <input 
+                      type="text" 
+                      value={sectionHeader.title_en}
+                      onChange={(e) => updateSectionHeader('title_en', e.target.value)}
+                      className={localStyles.inputField}
+                    />
+                  </div>
+                  <div dir="rtl" className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>العنوان الرئيسي للقسم (AR)</label>
+                    <input 
+                      type="text" 
+                      value={sectionHeader.title_ar}
+                      onChange={(e) => updateSectionHeader('title_ar', e.target.value)}
+                      className={localStyles.inputField}
+                    />
+                  </div>
+                </div>
+                <div className={localStyles.formGrid}>
+                  <div className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>Section Subtitle (EN)</label>
+                    <textarea 
+                      rows="2"
+                      value={sectionHeader.subtitle_en}
+                      onChange={(e) => updateSectionHeader('subtitle_en', e.target.value)}
+                      className={localStyles.textareaField}
+                    />
+                  </div>
+                  <div dir="rtl" className={localStyles.inputGroup}>
+                    <label className={localStyles.fieldLabel}>العنوان الفرعي للقسم (AR)</label>
+                    <textarea 
+                      rows="2"
+                      value={sectionHeader.subtitle_ar}
+                      onChange={(e) => updateSectionHeader('subtitle_ar', e.target.value)}
+                      className={localStyles.textareaField}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                  {sectionHeader.id && (
+                    <button 
+                      onClick={handleDeleteSectionHeader}
+                      style={{ 
+                        backgroundColor: 'white', 
+                        color: '#DC143C', 
+                        border: '1px solid #DC143C',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '12px',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <Trash2 size={18} /> Delete Section Header
+                    </button>
+                  )}
+                  <button 
+                    onClick={handleSaveSectionHeader}
+                    className={localStyles.saveButton}
+                    disabled={isSubmitting}
+                    style={{ marginLeft: 'auto' }}
+                  >
+                    <Save size={18} /> {isSubmitting ? 'Saving...' : 'Save Section Header'}
+                  </button>
+                </div>
               </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الرئيسي للقسم (AR)</label>
-                <input 
-                  type="text" 
-                  value={sectionHeader.title_ar}
-                  onChange={(e) => updateSectionHeader('title_ar', e.target.value)}
-                  className={localStyles.inputField}
-                />
-              </div>
+          ) : (
+            <div className={dashboardStyles.contentCard}>
+              <p style={{ textAlign: 'center', color: '#64748b', padding: '3rem' }}>
+                No services available. Click "Add New Service" to create one.
+              </p>
             </div>
-            <div className={localStyles.formGrid}>
-              <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Section Subtitle (EN)</label>
-                <textarea 
-                  rows="2"
-                  value={sectionHeader.subtitle_en}
-                  onChange={(e) => updateSectionHeader('subtitle_en', e.target.value)}
-                  className={localStyles.textareaField}
-                />
-              </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الفرعي للقسم (AR)</label>
-                <textarea 
-                  rows="2"
-                  value={sectionHeader.subtitle_ar}
-                  onChange={(e) => updateSectionHeader('subtitle_ar', e.target.value)}
-                  className={localStyles.textareaField}
-                />
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-              {sectionHeader.id && (
-                <button 
-                  onClick={handleDeleteSectionHeader}
-                  style={{ 
-                    backgroundColor: 'white', 
-                    color: '#DC143C', 
-                    border: '1px solid #DC143C',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '12px',
-                    fontWeight: '800',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                >
-                  <Trash2 size={18} /> Delete Section Header
-                </button>
-              )}
-              <button 
-                onClick={handleSaveSectionHeader}
-                className={localStyles.saveButton}
-                disabled={isSubmitting}
-                style={{ marginLeft: 'auto' }}
-              >
-                <Save size={18} /> {isSubmitting ? 'Saving...' : 'Save Section Header'}
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 

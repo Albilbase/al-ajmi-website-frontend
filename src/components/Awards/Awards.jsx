@@ -7,21 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { X, ZoomIn } from 'lucide-react';
 import styles from './Awards.module.css';
 
-const awardsData = [
-  { id: 1, src: '/images/Our-Owards/1feb2023-1.png', category: 'Certification', title: 'ISO Certification 2023' },
-  { id: 2, src: '/images/Our-Owards/1feb2023-2.png', category: 'Certification', title: 'Quality Management' },
-  { id: 3, src: '/images/Our-Owards/1feb2023-3.png', category: 'Certification', title: 'Safety Excellence' },
-  { id: 4, src: '/images/Our-Owards/ND91.jpg', category: 'National Recognition', title: 'Saudi National Day 91' },
-  { id: 5, src: '/images/Our-Owards/aramco-23feb2021-a.png', category: 'Elite Partner', title: 'Aramco Quality Award' },
-  { id: 6, src: '/images/Our-Owards/cert7_2015.jpg', category: 'Legacy Award', title: 'Project Excellence 2015' },
-  { id: 7, src: '/images/Our-Owards/image25feb2021-a.png', category: 'Excellence', title: 'Best Contractor Award' },
-  { id: 8, src: '/images/Our-Owards/iso-45001-2018-23feb2021-d.png', category: 'Global Standards', title: 'ISO 45001:2018' },
-  { id: 9, src: '/images/Our-Owards/pic19dec2021.png', category: 'Acknowledgment', title: 'Strategic Partnership' },
-  { id: 10, src: '/images/Our-Owards/picture-12may2018.png', category: 'Industry Leader', title: 'Construction Leadership' },
-  { id: 11, src: '/images/Our-Owards/picture3oct2018_1-1.jpg', category: 'Outstanding Performance', title: 'Safety Award 2018' }
-];
 
-const AwardCard = ({ award, index, onClick }) => {
+
+
+const AwardCard = ({ award, index, onClick, isAr, isFromAPI }) => {
   const cardRef = useRef(null);
   
   // Motion values for 3D tilt
@@ -87,10 +76,11 @@ const AwardCard = ({ award, index, onClick }) => {
         <div className={styles.imageContainer}>
           <Image 
             src={award.src} 
-            alt={award.title}
+            alt={isAr ? (award.title_ar || award.title || 'Award') : (award.title_en || award.title || 'Award')}
             fill
             className={styles.awardImage}
             sizes="(max-width: 768px) 100vw, 33vw"
+            unoptimized={isFromAPI}
           />
           <div className={styles.zoomIcon}>
             <ZoomIn size={24} />
@@ -98,8 +88,12 @@ const AwardCard = ({ award, index, onClick }) => {
         </div>
         
         <div className={styles.overlay}>
-          <span className={styles.category}>{award.category}</span>
-          <h3 className={styles.awardTitle}>{award.title}</h3>
+          <span className={styles.category}>
+            {isAr ? (award.subtitle_ar || award.category) : (award.subtitle_en || award.category)}
+          </span>
+          <h3 className={styles.awardTitle}>
+            {isAr ? (award.title_ar || award.title) : (award.title_en || award.title)}
+          </h3>
         </div>
         
         <div className={styles.glow} />
@@ -108,10 +102,54 @@ const AwardCard = ({ award, index, onClick }) => {
   );
 };
 
-const Awards = () => {
+const Awards = ({ homeData }) => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const isAr = i18n.language === 'ar';
   const [selectedAward, setSelectedAward] = useState(null);
+
+  const [apiData, setApiData] = useState({
+    header: null,
+    awards: []
+  });
+
+  useEffect(() => {
+    if (homeData) {
+      const header = homeData.find(item => item.type === 'award_header' && item.is_active);
+      const items = homeData.filter(item => item.type === 'award' && item.is_active);
+      setApiData({ header, awards: items });
+    }
+  }, [homeData]);
+
+  const staticAwards = [
+    { id: 1, src: '/images/Our-Owards/1feb2023-1.png', category: 'Certification', title: 'ISO Certification 2023' },
+    { id: 2, src: '/images/Our-Owards/1feb2023-2.png', category: 'Certification', title: 'Quality Management' },
+    { id: 3, src: '/images/Our-Owards/1feb2023-3.png', category: 'Certification', title: 'Safety Excellence' },
+    { id: 4, src: '/images/Our-Owards/ND91.jpg', category: 'National Recognition', title: 'Saudi National Day 91' },
+    { id: 5, src: '/images/Our-Owards/aramco-23feb2021-a.png', category: 'Elite Partner', title: 'Aramco Quality Award' },
+    { id: 6, src: '/images/Our-Owards/cert7_2015.jpg', category: 'Legacy Award', title: 'Project Excellence 2015' },
+    { id: 7, src: '/images/Our-Owards/image25feb2021-a.png', category: 'Excellence', title: 'Best Contractor Award' },
+    { id: 8, src: '/images/Our-Owards/iso-45001-2018-23feb2021-d.png', category: 'Global Standards', title: 'ISO 45001:2018' },
+    { id: 9, src: '/images/Our-Owards/pic19dec2021.png', category: 'Acknowledgment', title: 'Strategic Partnership' },
+    { id: 10, src: '/images/Our-Owards/picture-12may2018.png', category: 'Industry Leader', title: 'Construction Leadership' },
+    { id: 11, src: '/images/Our-Owards/picture3oct2018_1-1.jpg', category: 'Outstanding Performance', title: 'Safety Award 2018' }
+  ];
+
+  const displayAwards = apiData.awards.length > 0 
+    ? apiData.awards.map(award => ({
+        ...award,
+        src: award.images && award.images.length > 0 
+          ? `http://192.168.15.95:5000${award.images[0]}` 
+          : '/images/placeholder.png'
+      }))
+    : staticAwards;
+
+  const headerTitle = apiData.header 
+    ? (isAr ? apiData.header.title_ar : apiData.header.title_en) 
+    : (isAr ? 'إنجازات ونجــاحات' : 'Awards & Recognition');
+
+  const headerSubtitle = apiData.header 
+    ? (isAr ? (apiData.header.subtitle_ar || apiData.header.description_ar) : (apiData.header.subtitle_en || apiData.header.description_en)) 
+    : t('awards.subtitle');
 
   useEffect(() => {
     if (selectedAward) {
@@ -123,7 +161,7 @@ const Awards = () => {
   }, [selectedAward]);
 
   return (
-    <section id="awards" className={styles.section} dir={isRTL ? 'rtl' : 'ltr'}>
+    <section id="awards" className={styles.section} dir={isAr ? 'rtl' : 'ltr'}>
       <div className={styles.container}>
         <div className={styles.header}>
           <motion.span 
@@ -139,7 +177,7 @@ const Awards = () => {
             transition={{ delay: 0.1 }}
             className={styles.title}
           >
-            {isRTL ? 'إنجازات ونجــاحات' : 'Awards & Recognition'}
+            {headerTitle}
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -147,13 +185,20 @@ const Awards = () => {
             transition={{ delay: 0.2 }}
             className={styles.description}
           >
-            {t('awards.subtitle')}
+            {headerSubtitle}
           </motion.p>
         </div>
 
         <div className={styles.grid}>
-          {awardsData.map((award, index) => (
-            <AwardCard key={award.id} award={award} index={index} onClick={setSelectedAward} />
+          {displayAwards.map((award, index) => (
+            <AwardCard 
+              key={award.id || index} 
+              award={award} 
+              index={index} 
+              onClick={setSelectedAward} 
+              isAr={isAr}
+              isFromAPI={apiData.awards.length > 0}
+            />
           ))}
         </div>
       </div>
@@ -180,15 +225,19 @@ const Awards = () => {
               <div className={styles.modalImageContainer}>
                 <Image 
                   src={selectedAward.src} 
-                  alt={selectedAward.title}
+                  alt={isAr ? (selectedAward.title_ar || selectedAward.title) : (selectedAward.title_en || selectedAward.title)}
                   fill
                   className={styles.modalImage}
                   priority
                 />
               </div>
               <div className={styles.modalInfo}>
-                <span className={styles.modalCategory}>{selectedAward.category}</span>
-                <h3 className={styles.modalTitle}>{selectedAward.title}</h3>
+                <span className={styles.modalCategory}>
+                  {isAr ? (selectedAward.subtitle_ar || selectedAward.category) : (selectedAward.subtitle_en || selectedAward.category)}
+                </span>
+                <h3 className={styles.modalTitle}>
+                  {isAr ? (selectedAward.title_ar || selectedAward.title) : (selectedAward.title_en || selectedAward.title)}
+                </h3>
               </div>
             </motion.div>
           </motion.div>

@@ -157,6 +157,12 @@
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
+  resize: none;
+}
+
+.textarea {
+  height: 120px;
+  padding-top: 1.75rem;
 }
 
 .select {
@@ -190,7 +196,7 @@
 }
 
 /* Focused / Filled State Logic */
-.input:focus, .select:focus {
+.input:focus, .select:focus, .textarea:focus {
   outline: none;
   background: #ffffff;
   border-color: var(--accent);
@@ -199,6 +205,8 @@
 
 .input:focus ~ .label,
 .input:not(:placeholder-shown) ~ .label,
+.textarea:focus ~ .label,
+.textarea:not(:placeholder-shown) ~ .label,
 .select:focus ~ .label,
 .select:not([value=""]) ~ .label {
   top: 12px;
@@ -411,6 +419,23 @@
   .fileUploadContainer {
     height: 120px;
   }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: var(--primary);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
 }
 
 @media (max-width: 480px) {

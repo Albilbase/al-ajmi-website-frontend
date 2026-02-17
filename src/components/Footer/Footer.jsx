@@ -5,15 +5,42 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import useCMSStore from '@/store/useCMSStore';
 import styles from './Footer.module.css';
 
 const Footer = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
   const [mounted, setMounted] = useState(false);
+  
+  const sections = useCMSStore((state) => state.sections);
+  const [footerData, setFooterData] = useState({
+    about: null,
+    contact: null,
+    rights: null,
+    news: []
+  });
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const footerSections = (sections || []).filter(section => section.section_key === 'footer');
+    if (footerSections.length > 0) {
+      const about = footerSections.find(item => item.type === 'about' && item.is_active);
+      const contact = footerSections.find(item => item.type === 'contact' && item.is_active);
+      const rights = footerSections.find(item => item.type === 'rights' && item.is_active);
+      const newsItems = footerSections.filter(item => item.type === 'news_item' && item.is_active);
+      
+      setFooterData({
+        about,
+        contact,
+        rights,
+        news: newsItems
+      });
+    }
+  }, [sections]);
 
   const getTranslation = (key, fallback) => (mounted ? t(key) : fallback);
 
@@ -28,7 +55,9 @@ const Footer = () => {
               <span className={styles.companyName}>ALAJMI <span>COMPANY</span></span>
             </div>
             <p className={styles.description}>
-              {getTranslation('footer.aboutText', 'Leading the way in infrastructure, construction, and logistics since 1980.')}
+              {footerData.about 
+                ? (isAr ? footerData.about.title_ar : footerData.about.title_en)
+                : getTranslation('footer.aboutText', 'Leading the way in infrastructure, construction, and logistics since 1980.')}
             </p>
           </div>
 
@@ -48,8 +77,18 @@ const Footer = () => {
           <div className={styles.footerColumn}>
             <h3>{getTranslation('footer.lastNews', 'Last News')}</h3>
             <ul className={styles.newsList}>
-              <li>{getTranslation('footer.news1', 'Signing an agreement with Roshn Group')}</li>
-              <li>{getTranslation('footer.news2', 'Saudi Arabia wins to host 2034 World Cup')}</li>
+              {footerData.news.length > 0 ? (
+                footerData.news.map((newsItem) => (
+                  <li key={newsItem.id}>
+                    {isAr ? newsItem.title_ar : newsItem.title_en}
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li>{getTranslation('footer.news1', 'Signing an agreement with Roshn Group')}</li>
+                  <li>{getTranslation('footer.news2', 'Saudi Arabia wins to host 2034 World Cup')}</li>
+                </>
+              )}
             </ul>
           </div>
 
@@ -61,29 +100,49 @@ const Footer = () => {
                 <div className={styles.contactIcon}>📍</div>
                 <div className={styles.contactInfoText}>
                   <label>{getTranslation('footer.address', 'Address')}</label>
-                  <span>{getTranslation('footer.addressText', 'Saudi Arabia - Riyadh')}</span>
+                  <span>
+                    {footerData.contact && footerData.contact.details?.address
+                      ? (isAr ? footerData.contact.details.address.ar : footerData.contact.details.address.en)
+                      : getTranslation('footer.addressText', 'Saudi Arabia - Riyadh')}
+                  </span>
                 </div>
               </div>
               <div className={styles.contactItem}>
                 <div className={styles.contactIcon}>📞</div>
                 <div className={styles.contactInfoText}>
                   <label>{getTranslation('footer.phone', 'Phone')}</label>
-                  <span>{getTranslation('contact.phone', '966-112-402-450')}</span>
+                  <span>
+                    {footerData.contact && footerData.contact.details?.phone
+                      ? footerData.contact.details.phone
+                      : getTranslation('contact.phone', '966-112-402-450')}
+                  </span>
                 </div>
               </div>
               <div className={styles.contactItem}>
                 <div className={styles.contactIcon}>📧</div>
                 <div className={styles.contactInfoText}>
                   <label>{getTranslation('footer.email', 'Email')}</label>
-                  <span>{getTranslation('contact.email', 'info@alajmicompany.com')}</span>
+                  <span>
+                    {footerData.contact && footerData.contact.details?.email
+                      ? footerData.contact.details.email
+                      : getTranslation('contact.email', 'info@alajmicompany.com')}
+                  </span>
                 </div>
               </div>
               <div className={styles.contactItem}>
                 <div className={styles.contactIcon}>⏰</div>
                 <div className={styles.contactInfoText}>
                   <label>{getTranslation('footer.workingHours', 'Working Hours')}</label>
-                  <span className={styles.workHours}>{getTranslation('footer.sat', 'Saturday: 09:00 - 14:00')}</span>
-                  <span className={styles.workHours}>{getTranslation('footer.sunThu', 'Sun - Thu: 08:00 - 17:00')}</span>
+                  <span className={styles.workHours}>
+                    {footerData.contact && footerData.contact.details?.hours?.sat
+                      ? (isAr ? footerData.contact.details.hours.sat.ar : footerData.contact.details.hours.sat.en)
+                      : getTranslation('footer.sat', 'Saturday: 09:00 - 14:00')}
+                  </span>
+                  <span className={styles.workHours}>
+                    {footerData.contact && footerData.contact.details?.hours?.week
+                      ? (isAr ? footerData.contact.details.hours.week.ar : footerData.contact.details.hours.week.en)
+                      : getTranslation('footer.sunThu', 'Sun - Thu: 08:00 - 17:00')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -102,7 +161,12 @@ const Footer = () => {
         />
 
         <div className={styles.footerBottom}>
-          <p>&copy; {new Date().getFullYear()} {getTranslation('footer.rights', 'Alajmi Company. All Rights Reserved.')}</p>
+          <p>
+            &copy; {new Date().getFullYear()} {' '}
+            {footerData.rights 
+              ? (isAr ? footerData.rights.title_ar : footerData.rights.title_en)
+              : getTranslation('footer.rights', 'Alajmi Company. All Rights Reserved.')}
+          </p>
         </div>
       </div>
     </footer>

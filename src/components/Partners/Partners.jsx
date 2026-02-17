@@ -1,21 +1,41 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import Image from "next/image";
 import styles from "./Partners.module.css";
 
-const partners = [
-  "/images/partners/partner1.jpg",
-  "/images/partners/partner2.jpg",
-  "/images/partners/partner3.jpg",
-  "/images/partners/partner4.jpg",
-  "/images/partners/partner5.jpg",
-];
 
-const Partners = () => {
+const Partners = ({ homeData }) => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const isAr = i18n.language === 'ar';
+
+  const [partners, setPartners] = useState([]);
+
+  useEffect(() => {
+    if (homeData) {
+      const items = homeData.filter(item => item.type === 'partner' && item.is_active);
+      if (items.length > 0) {
+        const partnerData = items.map(item => ({
+          id: item.id,
+          src: item.images && item.images.length > 0 
+            ? `http://192.168.15.95:5000${item.images[0]}` 
+            : '/images/placeholder.png',
+          title: isAr ? (item.title_ar || item.title_en || 'Partner') : (item.title_en || item.title_ar || 'Partner')
+        }));
+        setPartners(partnerData);
+      } else {
+        // Fallback to static partners
+        setPartners([
+          { id: 1, src: "/images/partners/partner1.jpg", title: "Partner 1" },
+          { id: 2, src: "/images/partners/partner2.jpg", title: "Partner 2" },
+          { id: 3, src: "/images/partners/partner3.jpg", title: "Partner 3" },
+          { id: 4, src: "/images/partners/partner4.jpg", title: "Partner 4" },
+          { id: 5, src: "/images/partners/partner5.jpg", title: "Partner 5" },
+        ]);
+      }
+    }
+  }, [homeData, isAr]);
 
   // Repeat the partners to ensure seamless loop on all screen sizes
   const duplicatedPartners = [...partners, ...partners, ...partners, ...partners];
@@ -47,16 +67,17 @@ const Partners = () => {
               },
             }}
           >
-            {duplicatedPartners.map((src, index) => (
-              <div key={index} className={styles.partnerLogo}>
+            {duplicatedPartners.map((partner, index) => (
+              <div key={`${partner.id}-${index}`} className={styles.partnerLogo}>
                 <Image 
-                  src={src} 
-                  alt={`Partner ${index}`} 
+                  src={partner.src} 
+                  alt={partner.title} 
                   className={styles.image} 
                   width={150}
                   height={80}
                   style={{ objectFit: 'contain' }}
                   sizes="150px"
+                  unoptimized
                 />
               </div>
             ))}

@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'next/navigation';
@@ -8,6 +8,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 import { Calendar, Tag, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import useCMSStore from '@/store/useCMSStore';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -26,10 +27,48 @@ const MediaDetailPage = () => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const params = useParams();
-  const mediaId = parseInt(params.id);
+  const mediaId = params.id;
+  const sections = useCMSStore((state) => state.sections);
+  const storeLoading = useCMSStore((state) => state.isLoading);
 
-  const mediaImages = t('mediaPage.items', { returnObjects: true }) || [];
-  const currentMedia = mediaImages[mediaId];
+  const [banner, setBanner] = useState(null);
+  const [currentMedia, setCurrentMedia] = useState(null);
+
+  useEffect(() => {
+    const mediaSections = (sections || []).filter(section => section.section_key === 'media');
+    if (mediaSections.length > 0) {
+      const fetchedBanner = mediaSections.find(s => s.type === 'banner');
+      const fetchedItem = mediaSections.find(s => s.id == mediaId && s.type === 'item');
+      
+      setBanner(fetchedBanner);
+      setCurrentMedia(fetchedItem);
+    }
+  }, [sections, mediaId]);
+
+  const getImageUrl = (path) => {
+    if (!path) return "/images/placeholder.png";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(dateStr).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', options);
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  if (storeLoading && (sections || []).length === 0) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+      </div>
+    );
+  }
 
   if (!currentMedia) {
     return (
@@ -42,19 +81,22 @@ const MediaDetailPage = () => {
     );
   }
 
-  // Duplicate the image 3 times for slider
-  const sliderImages = [
-    currentMedia.src,
-    currentMedia.src,
-    currentMedia.src
-  ];
+  const sliderImages = currentMedia.images || [];
+  const bannerImage = banner?.images?.[0] 
+    ? getImageUrl(banner.images[0]) 
+    : "/images/mediacenterbanner.jpg";
+
+  const itemTitle = isRTL ? currentMedia.title_ar : currentMedia.title_en;
+  const itemDesc = isRTL ? currentMedia.description_ar : currentMedia.description_en;
+  const itemDate = currentMedia.details?.date;
+  const itemTag = isRTL ? currentMedia.details?.tag_ar : currentMedia.details?.tag_en;
 
   return (
     <div className={styles.mediaDetailSection} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Hero Banner */}
       <div 
         className={styles.hero}
-        style={{ backgroundImage: "url('/images/mediacenterbanner.jpg')" }}
+        style={{ backgroundImage: `url('${bannerImage}')` }}
       >
         <div className={styles.heroOverlay} />
         <motion.div 
@@ -63,7 +105,7 @@ const MediaDetailPage = () => {
           animate="visible"
           variants={fadeInUp}
         >
-          <h1 className={styles.title}>{currentMedia.title}</h1>
+          <h1 className={styles.title}>{itemTitle}</h1>
         </motion.div>
       </div>
 
@@ -83,47 +125,30 @@ const MediaDetailPage = () => {
                 {isRTL ? 'الميديا' : 'Media'}
               </Link>
               <span className={styles.breadcrumbSeparator}>/</span>
-              <span className={styles.breadcrumbCurrent}>{currentMedia.title}</span>
+              <span className={styles.breadcrumbCurrent}>{itemTitle}</span>
             </div>
 
-            <h2 className={styles.contentTitle}>{currentMedia.title}</h2>
+            <h2 className={styles.contentTitle}>{itemTitle}</h2>
 
             <div className={styles.metaInfo}>
-              <div className={styles.metaItem}>
-                <Calendar size={20} />
-                <span>{isRTL ? '٦ يناير ٢٠٢٦' : 'January 6, 2026'}</span>
-              </div>
-              <div className={styles.metaItem}>
-                <Tag size={20} />
-                <span>{isRTL ? 'أخبار الشركة' : 'Company News'}</span>
-              </div>
+              {itemDate && (
+                <div className={styles.metaItem}>
+                  <Calendar size={20} />
+                  <span>{formatDate(itemDate)}</span>
+                </div>
+              )}
+              {itemTag && (
+                <div className={styles.metaItem}>
+                  <Tag size={20} />
+                  <span>{itemTag}</span>
+                </div>
+              )}
             </div>
 
             <div className={styles.description}>
-              <p>
-                {isRTL 
-                  ? 'تفخر شركة عبد العالي العجمي بتقديم هذا الإنجاز الجديد الذي يعكس التزامنا المستمر بالتميز والجودة في جميع مشاريعنا. نسعى دائماً لتحقيق أعلى معايير الأداء والابتكار في قطاع البناء والتشييد.'
-                  : 'Abdul Ali Al-Ajmi Company is proud to present this new achievement that reflects our continuous commitment to excellence and quality in all our projects. We always strive to achieve the highest standards of performance and innovation in the construction sector.'
-                }
-              </p>
-              <p>
-                {isRTL
-                  ? 'يأتي هذا المشروع ضمن خطتنا الاستراتيجية للمساهمة في تحقيق رؤية المملكة 2030، حيث نعمل على تطوير البنية التحتية وتقديم حلول مبتكرة تواكب التطور المستمر في المملكة العربية السعودية.'
-                  : 'This project comes as part of our strategic plan to contribute to achieving Saudi Vision 2030, as we work on developing infrastructure and providing innovative solutions that keep pace with the continuous development in the Kingdom of Saudi Arabia.'
-                }
-              </p>
-              <p>
-                {isRTL
-                  ? 'نشكر جميع الشركاء والعملاء على ثقتهم المستمرة، ونتطلع إلى مزيد من التعاون والنجاح المشترك في المستقبل. إن هذا الإنجاز هو نتيجة للعمل الجاد والتفاني من فريقنا المتميز الذي يعمل بلا كلل لتحقيق أهدافنا الطموحة.'
-                  : 'We thank all partners and clients for their continued trust, and we look forward to more cooperation and mutual success in the future. This achievement is the result of hard work and dedication from our distinguished team that works tirelessly to achieve our ambitious goals.'
-                }
-              </p>
-              <p>
-                {isRTL
-                  ? 'تلتزم شركة العجمي بتقديم أفضل الخدمات والحلول المبتكرة التي تلبي احتياجات عملائنا وتساهم في تطوير المملكة. نحن نؤمن بأن النجاح الحقيقي يكمن في رضا عملائنا وتحقيق تطلعاتهم.'
-                  : 'Al-Ajmi Company is committed to providing the best services and innovative solutions that meet our clients\' needs and contribute to the development of the Kingdom. We believe that true success lies in our clients\' satisfaction and achieving their aspirations.'
-                }
-              </p>
+              {itemDesc?.split('\n').map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
             </div>
 
             <Link href="/media" className={styles.backButton}>
@@ -156,7 +181,7 @@ const MediaDetailPage = () => {
                   delay: 4000,
                   disableOnInteraction: false,
                 }}
-                loop={true}
+                loop={sliderImages.length > 1}
                 className={styles.swiper}
                 dir={isRTL ? 'rtl' : 'ltr'}
                 key={isRTL ? 'rtl' : 'ltr'}
@@ -165,8 +190,8 @@ const MediaDetailPage = () => {
                   <SwiperSlide key={index}>
                     <div className={styles.slideImageWrapper}>
                       <Image
-                        src={`/images/media/${img}`}
-                        alt={`${currentMedia.title} - ${index + 1}`}
+                        src={getImageUrl(img)}
+                        alt={`${itemTitle} - ${index + 1}`}
                         fill
                         className={styles.slideImage}
                         sizes="(max-width: 768px) 100vw, 25vw"
@@ -180,15 +205,19 @@ const MediaDetailPage = () => {
               </Swiper>
 
               {/* Custom Navigation */}
-              <button className={`${styles.swiperButton} ${styles.swiperPrev}`}>
-                {isRTL ? <ArrowRight size={24} /> : <ArrowLeft size={24} />}
-              </button>
-              <button className={`${styles.swiperButton} ${styles.swiperNext}`}>
-                {isRTL ? <ArrowLeft size={24} /> : <ArrowRight size={24} />}
-              </button>
+              {sliderImages.length > 1 && (
+                <>
+                  <button className={`${styles.swiperButton} ${styles.swiperPrev}`}>
+                    {isRTL ? <ArrowRight size={24} /> : <ArrowLeft size={24} />}
+                  </button>
+                  <button className={`${styles.swiperButton} ${styles.swiperNext}`}>
+                    {isRTL ? <ArrowLeft size={24} /> : <ArrowRight size={24} />}
+                  </button>
+                </>
+              )}
 
               {/* Custom Pagination */}
-              <div className={styles.swiperPagination}></div>
+              {sliderImages.length > 1 && <div className={styles.swiperPagination}></div>}
             </div>
           </motion.div>
         </div>

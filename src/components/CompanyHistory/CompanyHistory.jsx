@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight } from 'lucide-react';
@@ -9,12 +9,13 @@ import styles from './CompanyHistory.module.css';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Pagination } from 'swiper/modules';
 
+
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 
-const CompanyHistory = () => {
+const CompanyHistory = ({ homeData }) => {
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
     
@@ -27,15 +28,18 @@ const CompanyHistory = () => {
     // Parallax effect for container
     const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-    // const historyImages = [
-    //     '/images/historysection/history1.png',
-    //     '/images/historysection/history2.png',
-    //     '/images/historysection/history3.png',
-    //     '/images/historysection/history4.png',
-    //     '/images/historysection/history5.png',
-    //     '/images/historysection/history6.png',
-    // ];
-      const historyImages = [
+    const [content, setContent] = useState(null);
+
+    useEffect(() => {
+        if (homeData) {
+            const historySection = homeData.find(item => item.type === 'company_intro' && item.is_active);
+            if (historySection) {
+                setContent(historySection);
+            }
+        }
+    }, [homeData]);
+
+    const staticImages = [
         '/images/historysection/1.png',
         '/images/historysection/2.png',
         '/images/historysection/3.png',
@@ -43,6 +47,10 @@ const CompanyHistory = () => {
         '/images/historysection/5.png',
         '/images/historysection/6.png',
     ];
+
+    const images = (content && content.images && content.images.length > 0) 
+        ? content.images.map(img => `http://192.168.15.95:5000${img}`)
+        : staticImages;
 
     return (
         <section 
@@ -72,7 +80,7 @@ const CompanyHistory = () => {
                             }}
                             className={styles.historySwiper}
                         >
-                            {historyImages.map((src, index) => (
+                            {images.map((src, index) => (
                                 <SwiperSlide key={index}>
                                     <div className={styles.slideImageContainer}>
                                         <Image 
@@ -82,6 +90,7 @@ const CompanyHistory = () => {
                                             className={styles.image}
                                             style={{ objectFit: 'cover' }}
                                             sizes="(max-width: 768px) 100vw, 50vw"
+                                            unoptimized
                                         />
                                     </div>
                                 </SwiperSlide>
@@ -98,9 +107,15 @@ const CompanyHistory = () => {
                         transition={{ delay: 0.5, duration: 0.8 }}
                         viewport={{ once: true }}
                     >
-                        <span className={styles.badgeNumber}>45+</span>
+                        <span className={styles.badgeNumber}>
+                            {content && content.details 
+                                ? content.details.badge_number 
+                                : "45+"}
+                        </span>
                         <span className={styles.badgeText}>
-                            {isAr ? 'سنوات من الخبرة' : 'Years of Excellence'}
+                            {content && content.details 
+                                ? (isAr ? content.details.badge_text_ar : content.details.badge_text_en) 
+                                : (isAr ? 'سنوات من الخبرة' : 'Years of Excellence')}
                         </span>
                     </motion.div>
                 </div>
@@ -114,20 +129,28 @@ const CompanyHistory = () => {
                         viewport={{ once: true }}
                     >
                         <span className={styles.subtitle}>
-                            {isAr ? 'منذ 1980' : 'EST. 1980'}
+                            {content && content.details 
+                                ? (isAr ? content.details.subtitle_ar : content.details.subtitle_en) 
+                                : (isAr ? 'منذ 1980' : 'EST. 1980')}
                         </span>
                         
                         <h2 className={styles.title}>
-                            {t('history.title')}
+                            {content 
+                                ? (isAr ? content.title_ar : content.title_en) 
+                                : t('history.title')}
                         </h2>
                         
                         <p className={styles.description}>
-                            {t('history.description')}
+                            {content 
+                                ? (isAr ? content.description_ar : content.description_en) 
+                                : t('history.description')}
                         </p>
 
                         <a href="/about" style={{ textDecoration: 'none' }}>
                             <button className={styles.btn}>
-                                {t('history.button')}
+                                {content && content.details 
+                                    ? (isAr ? content.details.button_text_ar : content.details.button_text_en) 
+                                    : t('history.button')}
                                 <ArrowRight className={styles.icon} size={20} />
                             </button>
                         </a>

@@ -1,7 +1,8 @@
 "use client";
-import React, { useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import React, { useRef, useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import useCMSStore from '@/store/useCMSStore';
 import styles from './vision.module.css';
 import { Eye, Target, Shield, Heart, TrendingUp, Sparkles, Rocket, Award } from 'lucide-react';
 
@@ -44,28 +45,72 @@ const staggerContainer = {
 
 
 const VisionPage = () => {
-  const { t, i18n } = useTranslation(); // Use the translation hook
-  const isRTL = i18n.language === 'ar';
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
   const containerRef = useRef(null);
+  const sections = useCMSStore((state) => state.sections);
   
-  const visionImages = [
-    '/images/vision/1.png',
-    '/images/vision/2.png',
-    '/images/vision/3.png',
-    '/images/vision/4.png',
-  ];
+  const [visionData, setVisionData] = useState({
+    hero: null,
+    visionHeader: null,
+    visionItems: [],
+    mission: null,
+    valuesHeader: null,
+    transparencyItems: [],
+    responsibilityItems: [],
+    profitabilityItems: [],
+    stats: null
+  });
 
-  const [currentImage, setCurrentImage] = React.useState(0);
+  const [currentImage, setCurrentImage] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % visionImages.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [visionImages.length]);
+    const visionSections = (sections || []).filter(section => section.section_key === 'vision');
+    if (visionSections.length > 0) {
+      const hero = visionSections.find(item => item.type === 'hero' && item.is_active);
+      const visionHeader = visionSections.find(item => item.type === 'vision_header' && item.is_active);
+      const visionItems = visionSections.filter(item => item.type === 'vision_item' && item.is_active);
+      const mission = visionSections.find(item => item.type === 'mission' && item.is_active);
+      const valuesHeader = visionSections.find(item => item.type === 'values_header' && item.is_active);
+      const transparencyItems = visionSections.filter(item => item.type === 'transparency_item' && item.is_active);
+      const responsibilityItems = visionSections.filter(item => item.type === 'responsibility_item' && item.is_active);
+      const profitabilityItems = visionSections.filter(item => item.type === 'profitability_item' && item.is_active);
+      const stats = visionSections.find(item => item.type === 'stats' && item.is_active);
+
+      setVisionData({
+        hero,
+        visionHeader,
+        visionItems,
+        mission,
+        valuesHeader,
+        transparencyItems,
+        responsibilityItems,
+        profitabilityItems,
+        stats
+      });
+    }
+  }, [sections]);
+
+  const heroImages = visionData.hero?.images && visionData.hero.images.length > 0
+    ? visionData.hero.images.map(img => `http://192.168.15.95:5000${img}`)
+    : [
+        '/images/vision/1.png',
+        '/images/vision/2.png',
+        '/images/vision/3.png',
+        '/images/vision/4.png',
+      ];
+
+  useEffect(() => {
+    if (heroImages.length > 0) {
+      const timer = setInterval(() => {
+        setCurrentImage((prev) => (prev + 1) % heroImages.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [heroImages.length]);
 
   return (
-    <div className={styles.visionSection} dir={isRTL ? 'rtl' : 'ltr'} ref={containerRef}>
+    <div className={styles.visionSection} dir={isAr ? 'rtl' : 'ltr'} ref={containerRef}>
       {/* Animated Background Particles */}
       <div className={styles.particlesWrapper}>
         {[...Array(20)].map((_, i) => (
@@ -73,12 +118,12 @@ const VisionPage = () => {
             key={i}
             className={styles.particle}
             initial={{ 
-              x: Math.random() * window.innerWidth, 
-              y: Math.random() * window.innerHeight,
+              x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0, 
+              y: typeof window !== 'undefined' ? Math.random() * window.innerHeight : 0,
               scale: Math.random() * 0.5 + 0.5
             }}
             animate={{
-              y: [null, Math.random() * -100 - 50],
+              y: [null, -150],
               opacity: [0, 1, 0]
             }}
             transition={{
@@ -91,7 +136,7 @@ const VisionPage = () => {
         ))}
       </div>
 
-      {/* Hero Section - Static & Premium */}
+      {/* Hero Section */}
       <div className={styles.hero}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -101,7 +146,7 @@ const VisionPage = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.5 }}
-            style={{ backgroundImage: `url('${visionImages[currentImage]}')` }}
+            style={{ backgroundImage: `url('${heroImages[currentImage]}')` }}
           />
         </AnimatePresence>
         <div className={styles.heroOverlay} />
@@ -116,11 +161,15 @@ const VisionPage = () => {
           </div>
           
           <h1 className={styles.title}>
-            {t('visionPage.title')}
+            {visionData.hero 
+              ? (isAr ? visionData.hero.title_ar : visionData.hero.title_en)
+              : t('visionPage.title')}
           </h1>
           
           <p className={styles.subtitle}>
-            {t('visionPage.subtitle')}
+            {visionData.hero 
+              ? (isAr ? visionData.hero.description_ar : visionData.hero.description_en)
+              : t('visionPage.subtitle')}
           </p>
           
           <div className={styles.scrollIndicator}>
@@ -134,7 +183,7 @@ const VisionPage = () => {
       </div>
 
       <div className={styles.container}>
-        {/* Vision & Mission Cards with Advanced Design */}
+        {/* Vision & Mission Cards */}
         <motion.div 
           className={styles.visionMissionSection}
           initial="hidden"
@@ -160,22 +209,45 @@ const VisionPage = () => {
               >
                 <Eye size={36} />
               </motion.div>
-              <h2 className={styles.cardTitle}>{t('visionPage.vision.title')}</h2>
+              <h2 className={styles.cardTitle}>
+                {visionData.visionHeader 
+                  ? (isAr ? visionData.visionHeader.title_ar : visionData.visionHeader.title_en)
+                  : t('visionPage.vision.title')}
+              </h2>
             </div>
-            <p className={styles.cardText}>{t('visionPage.vision.text')}</p>
+            <p className={styles.cardText}>
+              {visionData.visionHeader 
+                ? (isAr ? visionData.visionHeader.description_ar : visionData.visionHeader.description_en)
+                : t('visionPage.vision.text')}
+            </p>
             <ul className={styles.list}>
-              {(t('visionPage.vision.list', { returnObjects: true }) || []).map((item, index) => (
-                <motion.li 
-                  key={index} 
-                  className={styles.listItem}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  {item}
-                </motion.li>
-              ))}
+              {visionData.visionItems.length > 0 ? (
+                visionData.visionItems.map((item, index) => (
+                  <motion.li 
+                    key={item.id} 
+                    className={styles.listItem}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    {isAr ? item.title_ar : item.title_en}
+                  </motion.li>
+                ))
+              ) : (
+                (t('visionPage.vision.list', { returnObjects: true }) || []).map((item, index) => (
+                  <motion.li 
+                    key={index} 
+                    className={styles.listItem}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    {item}
+                  </motion.li>
+                ))
+              )}
             </ul>
           </motion.div>
 
@@ -197,13 +269,21 @@ const VisionPage = () => {
               >
                 <Target size={36} />
               </motion.div>
-              <h2 className={styles.cardTitle}>{t('visionPage.mission.title')}</h2>
+              <h2 className={styles.cardTitle}>
+                {visionData.mission 
+                  ? (isAr ? visionData.mission.title_ar : visionData.mission.title_en)
+                  : t('visionPage.mission.title')}
+              </h2>
             </div>
-            <p className={styles.cardText}>{t('visionPage.mission.text')}</p>
+            <p className={styles.cardText}>
+              {visionData.mission 
+                ? (isAr ? visionData.mission.description_ar : visionData.mission.description_en)
+                : t('visionPage.mission.text')}
+            </p>
           </motion.div>
         </motion.div>
 
-        {/* Values Section with Premium Design */}
+        {/* Values Section */}
         <motion.section 
           className={styles.valuesSection}
           initial="hidden"
@@ -214,10 +294,14 @@ const VisionPage = () => {
           <motion.div variants={fadeInUp} className={styles.valuesSectionHeader}>
             <Rocket size={48} className={styles.valuesIcon} />
             <h2 className={styles.valuesTitle}>
-              {isRTL ? 'قيمنا المؤسسية' : 'Our Core Values'}
+              {visionData.valuesHeader 
+                ? (isAr ? visionData.valuesHeader.title_ar : visionData.valuesHeader.title_en)
+                : (isAr ? 'قيمنا المؤسسية' : 'Our Core Values')}
             </h2>
             <p className={styles.valuesSubtitle}>
-              {isRTL ? 'المبادئ التي تقودنا نحو التميز' : 'The principles that drive us towards excellence'}
+              {visionData.valuesHeader 
+                ? (isAr ? visionData.valuesHeader.description_ar : visionData.valuesHeader.description_en)
+                : (isAr ? 'المبادئ التي تقودنا نحو التميز' : 'The principles that drive us towards excellence')}
             </p>
           </motion.div>
           
@@ -233,36 +317,33 @@ const VisionPage = () => {
               }}
             >
               <div className={styles.valueCardGlow} />
-              <motion.div
-                className={styles.valueIconBg}
-                animate={{
-                  background: [
-                    'linear-gradient(135deg, rgba(200, 39, 42, 0.1), rgba(200, 39, 42, 0.2))',
-                    'linear-gradient(135deg, rgba(200, 39, 42, 0.2), rgba(200, 39, 42, 0.1))',
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
-              >
+              <motion.div className={styles.valueIconBg}>
                 <Shield size={40} />
               </motion.div>
               
               <h3 className={styles.valueTitle}>
-                {t('visionPage.values.transparency.title')}
+                {isAr ? 'الشفافية' : 'Transparency'}
               </h3>
               
               <ul className={styles.list}>
-                {(t('visionPage.values.transparency.list', { returnObjects: true }) || []).map((item, index) => (
-                  <motion.li 
-                    key={index} 
-                    className={styles.listItem}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    {item}
-                  </motion.li>
-                ))}
+                {visionData.transparencyItems.length > 0 ? (
+                  visionData.transparencyItems.map((item, index) => (
+                    <motion.li 
+                      key={item.id} 
+                      className={styles.listItem}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      {isAr ? item.title_ar : item.title_en}
+                    </motion.li>
+                  ))
+                ) : (
+                  (t('visionPage.values.transparency.list', { returnObjects: true }) || []).map((item, index) => (
+                    <motion.li key={index} className={styles.listItem}>{item}</motion.li>
+                  ))
+                )}
               </ul>
             </motion.div>
 
@@ -270,43 +351,36 @@ const VisionPage = () => {
             <motion.div 
               className={styles.valueCard} 
               variants={scaleIn}
-              whileHover={{ 
-                scale: 1.03,
-                rotateY: 5,
-                transition: { duration: 0.3 }
-              }}
+              whileHover={{ scale: 1.03, rotateY: 5, transition: { duration: 0.3 } }}
             >
               <div className={styles.valueCardGlow} />
-              <motion.div
-                className={styles.valueIconBg}
-                animate={{
-                  background: [
-                    'linear-gradient(135deg, rgba(200, 39, 42, 0.1), rgba(200, 39, 42, 0.2))',
-                    'linear-gradient(135deg, rgba(200, 39, 42, 0.2), rgba(200, 39, 42, 0.1))',
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", delay: 0.5 }}
-              >
+              <motion.div className={styles.valueIconBg}>
                 <Heart size={40} />
               </motion.div>
               
               <h3 className={styles.valueTitle}>
-                {t('visionPage.values.responsibility.title')}
+                {isAr ? 'المسؤولية' : 'Responsibility'}
               </h3>
               
               <ul className={styles.list}>
-                {(t('visionPage.values.responsibility.list', { returnObjects: true }) || []).map((item, index) => (
-                  <motion.li 
-                    key={index} 
-                    className={styles.listItem}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    {item}
-                  </motion.li>
-                ))}
+                {visionData.responsibilityItems.length > 0 ? (
+                  visionData.responsibilityItems.map((item, index) => (
+                    <motion.li 
+                      key={item.id} 
+                      className={styles.listItem}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      {isAr ? item.title_ar : item.title_en}
+                    </motion.li>
+                  ))
+                ) : (
+                  (t('visionPage.values.responsibility.list', { returnObjects: true }) || []).map((item, index) => (
+                    <motion.li key={index} className={styles.listItem}>{item}</motion.li>
+                  ))
+                )}
               </ul>
             </motion.div>
 
@@ -314,43 +388,36 @@ const VisionPage = () => {
             <motion.div 
               className={styles.valueCard} 
               variants={scaleIn}
-              whileHover={{ 
-                scale: 1.03,
-                rotateY: 5,
-                transition: { duration: 0.3 }
-              }}
+              whileHover={{ scale: 1.03, rotateY: 5, transition: { duration: 0.3 } }}
             >
               <div className={styles.valueCardGlow} />
-              <motion.div
-                className={styles.valueIconBg}
-                animate={{
-                  background: [
-                    'linear-gradient(135deg, rgba(200, 39, 42, 0.1), rgba(200, 39, 42, 0.2))',
-                    'linear-gradient(135deg, rgba(200, 39, 42, 0.2), rgba(200, 39, 42, 0.1))',
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", delay: 1 }}
-              >
+              <motion.div className={styles.valueIconBg}>
                 <TrendingUp size={40} />
               </motion.div>
               
               <h3 className={styles.valueTitle}>
-                {t('visionPage.values.profitability.title')}
+                {isAr ? 'الربحية' : 'Profitability'}
               </h3>
               
               <ul className={styles.list}>
-                {(t('visionPage.values.profitability.list', { returnObjects: true }) || []).map((item, index) => (
-                  <motion.li 
-                    key={index} 
-                    className={styles.listItem}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    {item}
-                  </motion.li>
-                ))}
+                {visionData.profitabilityItems.length > 0 ? (
+                  visionData.profitabilityItems.map((item, index) => (
+                    <motion.li 
+                      key={item.id} 
+                      className={styles.listItem}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      {isAr ? item.title_ar : item.title_en}
+                    </motion.li>
+                  ))
+                ) : (
+                  (t('visionPage.values.profitability.list', { returnObjects: true }) || []).map((item, index) => (
+                    <motion.li key={index} className={styles.listItem}>{item}</motion.li>
+                  ))
+                )}
               </ul>
             </motion.div>
           </div>
@@ -373,9 +440,13 @@ const VisionPage = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              25+
+              {visionData.stats?.details?.number || '25+'}
             </motion.h3>
-            <p className={styles.statLabel}>{isRTL ? 'سنوات من الخبرة' : 'Years of Excellence'}</p>
+            <p className={styles.statLabel}>
+              {visionData.stats 
+                ? (isAr ? visionData.stats.title_ar : visionData.stats.title_en)
+                : (isAr ? 'سنوات من الخبرة' : 'Years of Excellence')}
+            </p>
           </motion.div>
         </motion.section>
       </div>

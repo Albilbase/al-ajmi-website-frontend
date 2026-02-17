@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -12,79 +11,198 @@ import {
   FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { 
+  createSectionAPI, 
+  updateSectionAPI, 
+  deleteSectionAPI,
+  deleteImageAPI 
+} from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './newspaper-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import useCMSStore from '@/store/useCMSStore';
 
 export default function NewspaperManager() {
   const [data, setData] = useState({
-    banner: {
-      image: "/images/newspaper/newspaperbanner.jpg",
-      title_en: "Newspaper Coverage",
-      title_ar: "التغطية الصحفية"
-    },
-    items: [
-      { id: 1, title_en: "Abdul Ali Al-Ajmi Company celebrates the National Day", title_ar: "شركة عبد العالي العجمي تحتفل باليوم الوطني", src: "/images/newspaper/Abdul Ali Al-Ajmi Company celebrates the National Day.png" },
-      { id: 2, title_en: "Al Ajami Co & Saudi Aramco", title_ar: "شركة العجمي وأرامكو السعودية", src: "/images/newspaper/Al Ajami co & Aramco Saudi.jpg" },
-      { id: 3, title_en: "Al Ajami Co", title_ar: "شركة العجمي", src: "/images/newspaper/Al Ajami co.jpg" },
-      { id: 4, title_en: "Company Achievements", title_ar: "إنجازات الشركة", src: "/images/newspaper/Company Achivements.jpg" },
-      { id: 5, title_en: "History Article", title_ar: "مقال تاريخي", src: "/images/newspaper/History article.jpg" },
-      { id: 6, title_en: "Founding a State", title_ar: "تأسيس دولة", src: "/images/newspaper/founding a state.jpg" },
-      { id: 7, title_en: "Sabq News", title_ar: "صحيفة سبق", src: "/images/newspaper/sabq news.jpg" }
-    ]
+    banner: { id: null, image: "", rawImage: null, title_en: "", title_ar: "" },
+    items: []
   });
-
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newItem, setNewItem] = useState({ title_en: "", title_ar: "", src: "" });
+  const [newItem, setNewItem] = useState({ title_en: "", title_ar: "", src: "", file: null });
 
-  const updateBanner = (field, value) => {
-    setData(prev => ({
-      ...prev,
-      banner: { ...prev.banner, [field]: value }
-    }));
+  // CMS Store
+  const sections = useCMSStore((state) => state.sections);
+  const refreshSections = useCMSStore((state) => state.refreshSections);
+
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
   };
+
+  useEffect(() => {
+    const fetchData = () => {
+      setLoading(true);
+      try {
+        if (sections && sections.length > 0) {
+          const newsSections = sections.filter(s => s.section_key === 'newspaper');
+          
+          const bannerSec = newsSections.find(s => s.type === 'banner');
+          const itemSections = newsSections.filter(s => s.type === 'item');
+
+          setData({
+            banner: {
+              id: bannerSec?.id || null,
+              image: getImageUrl(bannerSec?.images?.[0]),
+              rawImage: bannerSec?.images?.[0] || null,
+              title_en: bannerSec?.title_en || "",
+              title_ar: bannerSec?.title_ar || ""
+            },
+            items: itemSections.map(s => ({
+              id: s.id,
+              title_en: s.title_en || "",
+              title_ar: s.title_ar || "",
+              src: getImageUrl(s.images?.[0]),
+              rawImage: s.images?.[0] || null
+            }))
+          });
+        }
+      } catch (error) {
+        toast.error("حدث خطأ أثناء تحميل البيانات");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [sections]);
+
 
   const handleBannerUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      updateBanner('image', URL.createObjectURL(file));
-    }
-  };
-
-  const updateItem = (id, field, value) => {
-    setData(prev => ({
-      ...prev,
-      items: prev.items.map(item => item.id === id ? { ...item, [field]: value } : item)
-    }));
-  };
-
-  const removeItem = (id) => {
-    setData(prev => ({
-      ...prev,
-      items: prev.items.filter(item => item.id !== id)
-    }));
-  };
-
-  const handleAddItem = () => {
-    if (newItem.title_en && newItem.title_ar && newItem.src) {
+      const url = URL.createObjectURL(file);
       setData(prev => ({
         ...prev,
-        items: [...prev.items, { ...newItem, id: Date.now() }]
+        banner: { ...prev.banner, image: url, file: file, rawImage: null }
       }));
-      setIsModalOpen(false);
-      setNewItem({ title_en: "", title_ar: "", src: "" });
     }
   };
 
-  const handleFileUpload = (e, target = 'item') => {
-    const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      if (target === 'item') {
-        setNewItem(prev => ({ ...prev, src: url }));
+  const saveBanner = async () => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'newspaper');
+    formData.append('type', 'banner');
+    formData.append('title_en', data.banner.title_en);
+    formData.append('title_ar', data.banner.title_ar);
+    formData.append('is_active', 'true');
+    if (data.banner.file) {
+      formData.append('images', data.banner.file);
+    }
+
+    try {
+      let response;
+      if (data.banner.id) {
+        response = await updateSectionAPI(data.banner.id, formData);
+      } else {
+        response = await createSectionAPI(formData);
+      }
+      
+      await refreshSections();
+      
+      const s = response.data;
+      if (s) {
+          setData(prev => ({
+            ...prev,
+            banner: {
+              ...prev.banner,
+              id: s.id,
+              image: getImageUrl(s.images?.[0]),
+              rawImage: s.images?.[0],
+              file: null
+            }
+          }));
+      }
+      toast.success("تم حفظ البانر بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const removeBannerImage = async () => {
+    if (!data.banner.image) return;
+    if (data.banner.file || !data.banner.id) {
+       setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", file: null } }));
+       return;
+    }
+    if (window.confirm("هل أنت متأكد من حذف البانر؟")) {
+      try {
+        await deleteImageAPI(data.banner.id, data.banner.rawImage);
+        setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", rawImage: null } }));
+        await refreshSections();
+        toast.success("تم حذف الصورة بنجاح");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الحذف");
       }
     }
   };
+
+  const handleAddItem = async () => {
+    if (newItem.title_en && newItem.title_ar && newItem.file) {
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('section_key', 'newspaper');
+      formData.append('type', 'item');
+      formData.append('title_en', newItem.title_en);
+      formData.append('title_ar', newItem.title_ar);
+      formData.append('is_active', 'true');
+      formData.append('images', newItem.file);
+
+      try {
+        await createSectionAPI(formData);
+        await refreshSections();
+        setIsModalOpen(false);
+        setNewItem({ title_en: "", title_ar: "", src: "", file: null });
+        toast.success("تمت إضافة الخبر بنجاح");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الإضافة");
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewItem(prev => ({ ...prev, file: file, src: URL.createObjectURL(file) }));
+    }
+  };
+
+  const saveItemRow = async (item) => {
+    const formData = new FormData();
+    formData.append('section_key', 'newspaper');
+    formData.append('type', 'item');
+    formData.append('title_en', item.title_en);
+    formData.append('title_ar', item.title_ar);
+    formData.append('is_active', 'true');
+
+    try {
+      await updateSectionAPI(item.id, formData);
+      await refreshSections(); // Optional: might be too frequent, but keeps consistency
+      toast.success("تم تحديث العنصر");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء التحديث");
+    }
+  };
+
+  if (loading) return <div className={localStyles.loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#64748b' }}>Loading Newspaper Management...</div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -93,8 +211,8 @@ export default function NewspaperManager() {
           <h2 className={dashboardStyles.sectionTitle}>Newspaper Management</h2>
           <p className={dashboardStyles.sectionSubtitle}>Manage company news clippings and press releases.</p>
         </div>
-        <button className={localStyles.saveButton}>
-          <Save size={20} /> Save Changes
+        <button className={localStyles.saveButton} onClick={saveBanner} disabled={isSubmitting}>
+          <Save size={20} /> {isSubmitting ? 'Saving...' : 'Save All Changes'}
         </button>
       </div>
 
@@ -103,15 +221,25 @@ export default function NewspaperManager() {
         <div className={localStyles.sidebar}>
           {/* Banner Card */}
           <div className={dashboardStyles.contentCard}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              <ImageIcon size={20} color="#DC143C" />
-              <h3 className={localStyles.sectionTitle}>Hero Banner</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <ImageIcon size={20} color="#DC143C" />
+                <h3 className={localStyles.sectionTitle}>Hero Banner</h3>
+              </div>
             </div>
-            <div className={localStyles.imageWrapper} style={{ aspectRatio: '16/9', borderRadius: '12px', marginBottom: '1.5rem' }}>
-              <img src={data.banner.image} alt="Banner" />
-              <div className={localStyles.imageOverlay}>
+            <div className={localStyles.imageWrapper} style={{ aspectRatio: '16/9', borderRadius: '12px', marginBottom: '1.5rem', position: 'relative' }}>
+              <img src={data.banner.image || "/images/placeholder.png"} alt="Banner" onClick={() => document.getElementById('bannerInput').click()} />
+              {data.banner.image && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); removeBannerImage(); }}
+                  style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(220,20,60,0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <X size={16} />
+                </button>
+              )}
+              <div className={localStyles.imageOverlay} onClick={() => document.getElementById('bannerInput').click()}>
                 <label style={{ cursor: 'pointer' }}>
-                  <input type="file" hidden onChange={handleBannerUpload} accept="image/*" />
+                  <input id="bannerInput" type="file" hidden onChange={handleBannerUpload} accept="image/*" />
                   <div className={dashboardStyles.secondaryBtn} style={{ background: 'white' }}>
                     <Upload size={16} /> Change Image
                   </div>
@@ -123,7 +251,7 @@ export default function NewspaperManager() {
               <input 
                 className={localStyles.inputField} 
                 value={data.banner.title_en} 
-                onChange={(e) => updateBanner('title_en', e.target.value)} 
+                onChange={(e) => setData(prev => ({ ...prev, banner: { ...prev.banner, title_en: e.target.value } }))} 
               />
             </div>
             <div dir="rtl" className={localStyles.inputGroup}>
@@ -131,7 +259,7 @@ export default function NewspaperManager() {
               <input 
                 className={localStyles.inputField} 
                 value={data.banner.title_ar} 
-                onChange={(e) => updateBanner('title_ar', e.target.value)} 
+                onChange={(e) => setData(prev => ({ ...prev, banner: { ...prev.banner, title_ar: e.target.value } }))} 
               />
             </div>
           </div>
@@ -164,15 +292,24 @@ export default function NewspaperManager() {
             <div className={localStyles.imageGrid}>
               {data.items.map((item) => (
                 <motion.div 
-                  key={item.id} 
-                  className={localStyles.newsCard}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                   key={item.id} 
+                   className={localStyles.newsCard}
+                   initial={{ opacity: 0, scale: 0.95 }}
+                   animate={{ opacity: 1, scale: 1 }}
                 >
                   <div className={localStyles.imageWrapper}>
                     <img src={item.src} alt={item.title_en} />
                     <div className={localStyles.imageOverlay}>
-                      <button className={localStyles.removeBtn} onClick={() => removeItem(item.id)}>
+                      <button className={localStyles.removeBtn} onClick={async () => {
+                         if(window.confirm("حذف هذا الخبر؟")) {
+                           try {
+                             await deleteSectionAPI(item.id);
+                             setData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }));
+                             await refreshSections();
+                             toast.success("تم الحذف");
+                           } catch (error) { toast.error("خطأ في الحذف"); }
+                         }
+                      }}>
                         <Trash2 size={20} />
                       </button>
                     </div>
@@ -183,7 +320,13 @@ export default function NewspaperManager() {
                         className={localStyles.inputField} 
                         style={{ fontSize: '0.85rem', padding: '0.6rem' }}
                         value={item.title_en} 
-                        onChange={(e) => updateItem(item.id, 'title_en', e.target.value)}
+                        onChange={(e) => {
+                           const newItems = [...data.items];
+                           const idx = newItems.findIndex(i => i.id === item.id);
+                           newItems[idx].title_en = e.target.value;
+                           setData(prev => ({ ...prev, items: newItems }));
+                        }}
+                        onBlur={() => saveItemRow(item)}
                         placeholder="Title (EN)"
                       />
                     </div>
@@ -192,7 +335,13 @@ export default function NewspaperManager() {
                         className={localStyles.inputField} 
                         style={{ fontSize: '0.85rem', padding: '0.6rem' }}
                         value={item.title_ar} 
-                        onChange={(e) => updateItem(item.id, 'title_ar', e.target.value)}
+                        onChange={(e) => {
+                           const newItems = [...data.items];
+                           const idx = newItems.findIndex(i => i.id === item.id);
+                           newItems[idx].title_ar = e.target.value;
+                           setData(prev => ({ ...prev, items: newItems }));
+                        }}
+                        onBlur={() => saveItemRow(item)}
                         placeholder="العنوان (AR)"
                       />
                     </div>
@@ -213,7 +362,9 @@ export default function NewspaperManager() {
         footer={
           <>
             <button onClick={() => setIsModalOpen(false)} className={localStyles.cancelBtn}>Cancel</button>
-            <button onClick={handleAddItem} className={localStyles.submitBtn}>Add to Collection</button>
+            <button onClick={handleAddItem} className={localStyles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Adding...' : 'Add to Collection'}
+            </button>
           </>
         }
       >

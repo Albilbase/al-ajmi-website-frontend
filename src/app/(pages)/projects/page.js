@@ -1,11 +1,12 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './projects.module.css';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
+import useCMSStore from '@/store/useCMSStore';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -14,17 +15,33 @@ const fadeInUp = {
 
 const ProjectsPage = () => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const isAr = i18n.language === 'ar';
+  const sections = useCMSStore((state) => state.sections);
+  const storeLoading = useCMSStore((state) => state.isLoading);
   
-  const tabsWrapperRef = React.useRef(null);
-  const tabsContainerRef = React.useRef(null);
+  const tabsWrapperRef = useRef(null);
+  const tabsContainerRef = useRef(null);
   const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
+  const [categories, setCategories] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
+  const [activeTab, setActiveTab] = useState(null);
 
-  // Get categories from translation
-  const categoriesRaw = t('projectsPage.categories', { returnObjects: true }); 
-  const categoryKeys = Object.keys(categoriesRaw || {}); 
-
-  const [activeTab, setActiveTab] = useState(categoryKeys[0] || 'aramco'); 
+  useEffect(() => {
+    const projectSections = (sections || []).filter(section => section.section_key === 'projects');
+    if (projectSections.length > 0) {
+      const cats = projectSections.filter(item => item.type === 'category' && item.is_active);
+      const projects = projectSections.filter(item => 
+        cats.some(cat => cat.id.toString() === item.type) && item.is_active
+      );
+      
+      setCategories(cats);
+      setAllProjects(projects);
+      
+      if (cats.length > 0 && !activeTab) {
+        setActiveTab(cats[0].id.toString());
+      }
+    }
+  }, [sections]);
 
   const updateConstraints = () => {
     if (tabsWrapperRef.current && tabsContainerRef.current) {
@@ -32,7 +49,7 @@ const ProjectsPage = () => {
       const containerWidth = tabsContainerRef.current.scrollWidth;
       const dragLimit = Math.max(0, containerWidth - wrapperWidth);
       
-      if (isRTL) {
+      if (isAr) {
         setDragConstraints({ left: 0, right: dragLimit });
       } else {
         setDragConstraints({ left: -dragLimit, right: 0 });
@@ -40,9 +57,8 @@ const ProjectsPage = () => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     updateConstraints();
-    // Add a small delay to catch layout shifts
     const timers = [
       setTimeout(updateConstraints, 100),
       setTimeout(updateConstraints, 500),
@@ -54,46 +70,20 @@ const ProjectsPage = () => {
       window.removeEventListener('resize', updateConstraints);
       timers.forEach(t => clearTimeout(t));
     };
-  }, [categoryKeys.length, isRTL]);
+  }, [categories.length, isAr]);
 
-  // Define the category folders
-  
-  const categoryFolders = {
-    "aramco": "Saudi Aramco Compan",
-    "dammamAirports": "Dammam Airports Company",
-    "railways": "General Authority for Railways",
-    "industrialCities": "Industrial Cities Authority",
-    "municipalRural": "Ministry of Municipal and Rural Affairs",
-    "transportation": "Ministry of The Transportation",
-    "waterElectricity": "Ministry of Water and Electricity",
-    "housing": "Ministry of housing",
-    "nationalHousing": "National Housing Company",
-    "qiddiya": "Qiddiya Investment Company",
-    "royalCommission": "Royal Commission for Jubail and Yanbu",
-    "borderGuards": "The Guards Of The Border",
-    "miskCity": "The Miskcity Commpany"
-  };
+  const activeProjects = allProjects.filter(p => p.type === activeTab);
 
-  // Define the get projects for category function
-  const getProjectsForCategory = (catKey) => {
-    const items = t(`projectsPage.items.${catKey}`, { returnObjects: true });
-    if (!Array.isArray(items)) return [];
-
-    const folderName = categoryFolders[catKey];
-    
-    return items.map((item, index) => ({
-      id: `${catKey}-${index}`, // Generate unique ID for routing
-      title: item.title,
-      // Construct full path
-      image: `/images/our-projects/${folderName}/${item.src}`,
-      category: categoriesRaw[catKey]
-    }));
-  };
-
-  const activeProjects = getProjectsForCategory(activeTab); // Define the active projects
+  if (storeLoading && (sections || []).length === 0) {
+    return (
+      <div className={styles.projectsSection} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <p>{isAr ? 'جاري التحميل...' : 'Loading projects...'}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.projectsSection} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={styles.projectsSection} dir={isAr ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <div 
         className={styles.hero}
@@ -123,13 +113,13 @@ const ProjectsPage = () => {
              dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
              whileTap={{ cursor: "grabbing" }}
            >
-              {categoryKeys.map((key) => (
+              {categories.map((cat) => (
                 <button
-                  key={key}
-                  onClick={() => setActiveTab(key)}
-                  className={`${styles.tabBtn} ${activeTab === key ? styles.activeTab : ''}`}
+                  key={cat.id}
+                  onClick={() => setActiveTab(cat.id.toString())}
+                  className={`${styles.tabBtn} ${activeTab === cat.id.toString() ? styles.activeTab : ''}`}
                 >
-                  {categoriesRaw[key]}
+                  {isAr ? cat.title_ar : cat.title_en}
                 </button>
               ))}
            </motion.div>
@@ -140,9 +130,9 @@ const ProjectsPage = () => {
           layout
           className={styles.projectsGrid}
         >
-          {activeProjects.length > 0 ? (
-            <AnimatePresence mode='wait'>
-              {activeProjects.map((project) => (
+          <AnimatePresence mode='wait'>
+            {activeProjects.length > 0 ? (
+              activeProjects.map((project) => (
                 <Link href={`/projects/${project.id}`} key={project.id} className={styles.projectLink}>
                   <motion.div
                     layout
@@ -154,28 +144,35 @@ const ProjectsPage = () => {
                   >
                     <div className={styles.imageWrapper}>
                       <Image
-                        src={project.image}
-                        alt={project.title}
+                        src={project.images && project.images.length > 0 
+                          ? `http://192.168.15.95:5000${project.images[0]}` 
+                          : '/images/placeholder.jpg'}
+                        alt={isAr ? project.title_ar : project.title_en}
                         fill
                         className={styles.projectImage}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        unoptimized={project.images && project.images.length > 0}
                       />
                       <div className={styles.overlay} />
                     </div>
                     <div className={styles.cardContent}>
-                      <h3 className={styles.projectTitle}>{project.title}</h3>
+                      <h3 className={styles.projectTitle}>{isAr ? project.title_ar : project.title_en}</h3>
                       <div className={styles.metaTags}>
-                        <span className={styles.categoryTag}>{project.category}</span>
-                        {isRTL ? <ArrowLeft size={20} className={styles.arrowIcon} /> : <ArrowRight size={20} className={styles.arrowIcon} />}
+                        <span className={styles.categoryTag}>
+                          {categories.find(c => c.id.toString() === project.type)?.[isAr ? 'title_ar' : 'title_en']}
+                        </span>
+                        {isAr ? <ArrowLeft size={20} className={styles.arrowIcon} /> : <ArrowRight size={20} className={styles.arrowIcon} />}
                       </div>
                     </div>
                   </motion.div>
                 </Link>
-              ))}
-            </AnimatePresence>
-          ) : (
-             <p style={{ textAlign: 'center', width: '100%', padding: '2rem' }}>No projects found for this category.</p>
-          )}
+              ))
+            ) : (
+              <p style={{ textAlign: 'center', width: '100%', padding: '2rem' }}>
+                {isAr ? 'لا توجد مشاريع لهذه الفئة.' : 'No projects found for this category.'}
+              </p>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
     </div>

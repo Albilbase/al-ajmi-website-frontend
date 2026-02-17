@@ -229,3 +229,12 @@
   background: #b91c1c;
   transform: translateY(-1px);
 }
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

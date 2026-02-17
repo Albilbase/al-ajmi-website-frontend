@@ -1,112 +1,373 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Save, 
   Image as ImageIcon, 
   Upload, 
   MessageSquare, 
   Trash2,
-  Eye,
-  X,
-  User,
-  Phone,
-  Mail,
-  Calendar,
-  Tag,
-  FileText
+  Plus,
+  Edit2,
+  List,
+  Type,
+  Loader2,
+  ChevronDown,
+  Mail
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-toastify';
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './suggestions-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import useCMSStore from '@/store/useCMSStore';
 
 export default function SuggestionsManager() {
-  const [data, setData] = useState({
-    banner: {
-      image: "/images/complementbanner.jpeg",
-      title_en: "Suggestions & Complaints",
-      title_ar: "المقترحات والشكاوى",
-      subtitle_en: "We value your feedback to improve our services",
-      subtitle_ar: "نسعد باستلام مقترحاتكم لتقديم خدمات أفضل"
-    },
-    suggestions: [
-      {
-        id: "SUG-5012",
-        name: "Abdullah Mohammed",
-        mobile: "+966 50 111 2222",
-        email: "abdullah@example.com",
-        type: "suggestion",
-        subject: "Mobile App Idea",
-        message: "It would be great if the company had a mobile app for tracking material deliveries in real-time.",
-        date: "2026-01-20",
-        status: "New"
-      },
-      {
-        id: "COM-5011",
-        name: "Sami Al-Fahad",
-        mobile: "+966 55 333 4444",
-        email: "sami@example.com",
-        type: "complaint",
-        subject: "Delivery Delay",
-        message: "There was a significant delay in the concrete delivery at the Dammam project site last Tuesday.",
-        date: "2026-01-18",
-        status: "New"
-      },
-      {
-        id: "SUG-5010",
-        name: "Jessica Miller",
-        mobile: "+966 54 555 6666",
-        email: "j.miller@contracting.com",
-        type: "suggestion",
-        subject: "Safety Gear Upgrade",
-        message: "I suggest upgrading the current high-visibility vests to a breathable mesh material for summer operations.",
-        date: "2026-01-15",
-        status: "New"
-      }
-    ]
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Start - CMS Store Integration
+  const sections = useCMSStore((state) => state.sections);
+  const refreshSections = useCMSStore((state) => state.refreshSections);
+  // End - CMS Store Integration
+
+  const [banner, setBanner] = useState({
+    id: null,
+    image: "",
+    title_en: "",
+    title_ar: "",
+    subtitle_en: "",
+    subtitle_ar: "",
+    imageFile: null,
+    imagePreview: null
   });
 
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [formFields, setFormFields] = useState([]);
+  const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
+  const [editingField, setEditingField] = useState(null);
+  const [fieldData, setFieldData] = useState({
+    title_en: "",
+    title_ar: "",
+    type: "input", // input or dropdown
+    input_type: "text", // text, textarea, tel, email
+    width: "full", // full or half
+    options_en: "", 
+    options_ar: "",
+    is_active: true
+  });
 
-  const updateBanner = (field, value) => {
-    setData(prev => ({
-      ...prev,
-      banner: { ...prev.banner, [field]: value }
-    }));
+  const [emailSettings, setEmailSettings] = useState({
+    id: null,
+    receive_email: ""
+  });
+
+  // Fetch Page Data
+  useEffect(() => {
+    const fetchData = () => {
+      try {
+        setLoading(true);
+        // Use Global Store
+        if (sections && sections.length > 0) {
+          // Banner
+          const heroSection = sections.find(s => s.section_key === 'suggestions' && s.type === 'hero');
+          if (heroSection) {
+            setBanner({
+              id: heroSection.id,
+              image: heroSection.images?.[0] || "",
+              title_en: heroSection.title_en || "",
+              title_ar: heroSection.title_ar || "",
+              subtitle_en: heroSection.subtitle_en || "",
+              subtitle_ar: heroSection.subtitle_ar || "",
+              imageFile: null,
+              imagePreview: null
+            });
+          }
+
+          // Form Fields
+          const fields = sections.filter(s => s.section_key === 'suggestions' && (s.type === 'form_input' || s.type === 'form_dropdown'));
+          setFormFields(fields.sort((a, b) => a.id - b.id));
+
+          // Email Settings
+          const settingsSection = sections.find(s => s.section_key === 'suggestions' && s.type === 'form_settings');
+          if (settingsSection) {
+            const details = typeof settingsSection.details === 'string' 
+              ? JSON.parse(settingsSection.details || '{}') 
+              : (settingsSection.details || {});
+            setEmailSettings({
+              id: settingsSection.id,
+              receive_email: details.receive_email || ""
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch suggestions content:", error);
+        toast.error("فشل تحميل البيانات");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [sections]);
+
+  const updateBannerField = (field, value) => {
+    setBanner(prev => ({ ...prev, [field]: value }));
   };
 
   const handleBannerUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      updateBanner('image', URL.createObjectURL(file));
-    }
-  };
-
-  const removeItem = (id) => {
-    if (confirm("Are you sure you want to delete this submission?")) {
-      setData(prev => ({
+      setBanner(prev => ({
         ...prev,
-        suggestions: prev.suggestions.filter(s => s.id !== id)
+        imageFile: file,
+        imagePreview: URL.createObjectURL(file)
       }));
     }
   };
+
+  const removeBannerImage = async () => {
+    if (confirm("Are you sure you want to remove the banner image?")) {
+        try {
+            if (banner.id && banner.image && !banner.imageFile) {
+                await deleteImageAPI(banner.id, banner.image);
+                setBanner(prev => ({
+                    ...prev,
+                    image: "",
+                    imagePreview: null,
+                    imageFile: null
+                }));
+                // Refresh store
+                await refreshSections();
+                toast.success("تم حذف الصورة بنجاح");
+            } else {
+                setBanner(prev => ({ ...prev, imageFile: null, imagePreview: null }));
+            }
+        } catch (error) {
+            console.error("Delete Error:", error);
+            toast.error("حدث خطأ أثناء حذف الصورة");
+        }
+    }
+  };
+
+  const handleSaveBanner = async () => {
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('section_key', 'suggestions');
+      formData.append('type', 'hero');
+      formData.append('is_active', 'true');
+      formData.append('title_en', banner.title_en);
+      formData.append('title_ar', banner.title_ar);
+      formData.append('subtitle_en', banner.subtitle_en);
+      formData.append('subtitle_ar', banner.subtitle_ar);
+
+      if (banner.imageFile) {
+        formData.append('images', banner.imageFile);
+      }
+
+      let response;
+      if (banner.id) {
+        response = await updateSectionAPI(banner.id, formData);
+        toast.success("تم تحديث البانر بنجاح");
+      } else {
+        response = await createSectionAPI(formData);
+        toast.success("تم إنشاء البانر بنجاح");
+        setBanner(prev => ({ ...prev, id: response.data.id }));
+      }
+      
+      // Refresh store to sync UI
+      await refreshSections();
+
+      if (response.data) {
+        setBanner(prev => ({
+          ...prev,
+          image: response.data.images?.[0] || prev.image,
+          imageFile: null,
+          imagePreview: null
+        }));
+      }
+    } catch (error) {
+      console.error("Save Error:", error);
+      toast.error("حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveEmailSettings = async () => {
+    if (!emailSettings.receive_email) {
+      toast.error("يرجى إدخال البريد الإلكتروني");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('section_key', 'suggestions');
+      formData.append('type', 'form_settings');
+      formData.append('is_active', 'true');
+      formData.append('details', JSON.stringify({ receive_email: emailSettings.receive_email }));
+
+      if (emailSettings.id) {
+        await updateSectionAPI(emailSettings.id, formData);
+        toast.success("تم تحديث إعدادات الإيميل بنجاح");
+      } else {
+        const response = await createSectionAPI(formData);
+        setEmailSettings(prev => ({ ...prev, id: response.data.id }));
+        toast.success("تم إنشاء إعدادات الإيميل بنجاح");
+      }
+      await refreshSections();
+    } catch (error) {
+      console.error("Email Settings Save Error:", error);
+      toast.error("حدث خطأ أثناء حفظ إعدادات الإيميل");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Field Management
+  const openFieldModal = (field = null) => {
+    if (field) {
+      setEditingField(field);
+      const isDropdown = field.type === 'form_dropdown';
+      let width = "full";
+      let options_ar = field.description_ar || "";
+      
+      if (field.description_ar && field.description_ar.includes('|')) {
+        const parts = field.description_ar.split('|');
+        if (isDropdown) {
+          options_ar = parts[0];
+          width = parts[1] || "full";
+        } else {
+          width = parts[0] || "full";
+        }
+      } else if (!isDropdown) {
+        width = field.description_ar || "full";
+      }
+
+      setFieldData({
+        title_en: field.title_en || "",
+        title_ar: field.title_ar || "",
+        type: isDropdown ? 'dropdown' : 'input',
+        input_type: !isDropdown ? (field.description_en || "text") : "text",
+        width: width,
+        options_en: isDropdown ? (field.description_en || "") : "",
+        options_ar: isDropdown ? options_ar : "",
+        is_active: field.is_active === true || field.is_active === 'true'
+      });
+    } else {
+      setEditingField(null);
+      setFieldData({
+        title_en: "",
+        title_ar: "",
+        type: "input",
+        input_type: "text",
+        width: "full",
+        options_en: "",
+        options_ar: "",
+        is_active: true
+      });
+    }
+    setIsFieldModalOpen(true);
+  };
+
+  const handleSaveField = async () => {
+    if (!fieldData.title_en || !fieldData.title_ar) {
+      toast.error("يرجى إدخال العناوين بالعربية والإنجليزية");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('section_key', 'suggestions');
+      const isDropdown = fieldData.type === 'dropdown';
+      formData.append('type', isDropdown ? 'form_dropdown' : 'form_input');
+      formData.append('title_en', fieldData.title_en);
+      formData.append('title_ar', fieldData.title_ar);
+      
+      if (isDropdown) {
+        formData.append('description_en', fieldData.options_en);
+        formData.append('description_ar', `${fieldData.options_ar}|${fieldData.width}`);
+      } else {
+        formData.append('description_en', fieldData.input_type);
+        formData.append('description_ar', fieldData.width);
+      }
+      
+      formData.append('is_active', String(fieldData.is_active));
+
+      let response;
+      if (editingField) {
+        response = await updateSectionAPI(editingField.id, formData);
+        setFormFields(prev => prev.map(f => f.id === editingField.id ? response.data : f));
+        toast.success("تم تحديث الحقل بنجاح");
+      } else {
+        response = await createSectionAPI(formData);
+        setFormFields(prev => [...prev, response.data]);
+        toast.success("تم إضافة الحقل بنجاح");
+      }
+      
+      // Refresh store
+      await refreshSections();
+      setIsFieldModalOpen(false);
+    } catch (error) {
+      console.error("Field Save Error:", error);
+      toast.error("حدث خطأ أثناء حفظ الحقل");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteField = async (id) => {
+    if (confirm("هل أنت متأكد من حذف هذا الحقل؟")) {
+      try {
+        await deleteSectionAPI(id);
+        setFormFields(prev => prev.filter(f => f.id !== id));
+        // Refresh store
+        await refreshSections();
+        toast.success("تم حذف الحقل");
+      } catch (error) {
+        toast.error("فشل حذف الحقل");
+      }
+    }
+  };
+
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith('blob:')) return path;
+    if (path.startsWith('http')) return path;
+    return `http://192.168.15.95:5000${path.startsWith('/') ? path : `/${path}`}`;
+  };
+
+  if (loading) {
+    return (
+      <div className={localStyles.loadingContainer} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#64748b' }}>
+        <Loader2 className={localStyles.spinner} size={48} />
+        <p style={{ marginLeft: '1rem' }}>Loading Suggestions Content...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className={localStyles.header}>
         <div>
-          <h2 className={dashboardStyles.sectionTitle}>Suggestions & Complaints</h2>
-          <p className={dashboardStyles.sectionSubtitle}>Manage page content and respond to user feedback.</p>
+          <h2 className={dashboardStyles.sectionTitle}>Suggestions Management</h2>
+          <p className={dashboardStyles.sectionSubtitle}>Manage banner and dynamic form fields for Suggestions page.</p>
         </div>
-        <button className={localStyles.saveButton}>
-          <Save size={20} /> Save Changes
-        </button>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button 
+            className={localStyles.saveButton} 
+            onClick={handleSaveBanner}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? <Loader2 className={localStyles.spinner} size={20} /> : <Save size={20} />}
+            Save Banner Changes
+          </button>
+        </div>
       </div>
 
       <div className={localStyles.mainGrid}>
-        {/* Sidebar: Banner Content */}
         <div className={localStyles.sidebar}>
           <div className={dashboardStyles.contentCard}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
@@ -115,14 +376,28 @@ export default function SuggestionsManager() {
             </div>
             
             <div className={localStyles.bannerPreview}>
-              <img src={data.banner.image} alt="Banner" />
+              {(banner.image || banner.imagePreview) ? (
+                <img src={banner.imagePreview || getImageUrl(banner.image)} alt="Banner" />
+              ) : (
+                <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', gap: '0.5rem' }}>
+                    <ImageIcon size={40} />
+                    <span style={{ fontSize: '0.8rem' }}>No image uploaded</span>
+                </div>
+              )}
               <div className={localStyles.imageOverlay}>
-                <label style={{ cursor: 'pointer' }}>
-                  <input type="file" hidden onChange={handleBannerUpload} accept="image/*" />
-                  <div className={localStyles.changeBtn}>
-                    <Upload size={16} /> Change Image
-                  </div>
-                </label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <label style={{ cursor: 'pointer' }}>
+                        <input type="file" hidden onChange={handleBannerUpload} accept="image/*" />
+                        <div className={localStyles.changeBtn}>
+                            <Upload size={16} /> {(banner.image || banner.imagePreview) ? 'Change' : 'Upload Image'}
+                        </div>
+                    </label>
+                    {(banner.image || banner.imagePreview) && (
+                        <div className={localStyles.changeBtn} style={{ background: '#ef4444', color: 'white' }} onClick={removeBannerImage}>
+                            <Trash2 size={16} /> Remove
+                        </div>
+                    )}
+                </div>
               </div>
             </div>
 
@@ -130,141 +405,270 @@ export default function SuggestionsManager() {
               <label className={localStyles.fieldLabel}>Main Title (EN)</label>
               <input 
                 className={localStyles.inputField} 
-                value={data.banner.title_en} 
-                onChange={(e) => updateBanner('title_en', e.target.value)} 
+                value={banner.title_en} 
+                onChange={(e) => updateBannerField('title_en', e.target.value)} 
               />
             </div>
             <div dir="rtl" className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>(AR) العنوان الرئيسي</label>
+              <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
               <input 
                 className={localStyles.inputField} 
-                value={data.banner.title_ar} 
-                onChange={(e) => updateBanner('title_ar', e.target.value)} 
+                value={banner.title_ar} 
+                onChange={(e) => updateBannerField('title_ar', e.target.value)} 
               />
             </div>
             <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Subtitle (EN)</label>
               <input 
                 className={localStyles.inputField} 
-                value={data.banner.subtitle_en} 
-                onChange={(e) => updateBanner('subtitle_en', e.target.value)} 
+                value={banner.subtitle_en} 
+                onChange={(e) => updateBannerField('subtitle_en', e.target.value)} 
               />
             </div>
             <div dir="rtl" className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>(AR) العنوان الفرعي</label>
+              <label className={localStyles.fieldLabel}>العنوان الفرعي (AR)</label>
               <input 
                 className={localStyles.inputField} 
-                value={data.banner.subtitle_ar} 
-                onChange={(e) => updateBanner('subtitle_ar', e.target.value)} 
+                value={banner.subtitle_ar} 
+                onChange={(e) => updateBannerField('subtitle_ar', e.target.value)} 
               />
             </div>
           </div>
+
+          <div className={dashboardStyles.contentCard} style={{ marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <Mail size={20} color="#DC143C" />
+              <h3 className={localStyles.sectionTitle}>Form Notification</h3>
+            </div>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.25rem' }}>
+              Configure which email address receives submissions from this form.
+            </p>
+            <div className={localStyles.inputGroup}>
+              <label className={localStyles.fieldLabel}>Recipient Email</label>
+              <input 
+                type="email"
+                className={localStyles.inputField} 
+                value={emailSettings.receive_email}
+                onChange={(e) => setEmailSettings(prev => ({ ...prev, receive_email: e.target.value }))}
+                placeholder="example@company.com"
+              />
+            </div>
+            <button 
+              className={localStyles.saveButton} 
+              style={{ width: '100%', marginTop: '1rem' }}
+              onClick={handleSaveEmailSettings}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2 className={localStyles.spinner} size={18} /> : <Save size={18} />}
+              Save Email Settings
+            </button>
+          </div>
         </div>
 
-        {/* Main Content: Suggestions List */}
         <div className={localStyles.tableCard}>
           <div className={localStyles.tableHeader}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <MessageSquare size={20} color="#DC143C" />
-                <h3 className={localStyles.sectionTitle}>User Feedback List</h3>
+                <List size={20} color="#DC143C" />
+                <h3 className={localStyles.sectionTitle}>Form Fields Builder</h3>
              </div>
+             <button className={localStyles.saveButton} onClick={() => openFieldModal()}>
+                <Plus size={20} /> Add New Field
+             </button>
           </div>
 
-          <div className={localStyles.tableWrapper}>
-            <table className={localStyles.table}>
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Sender</th>
-                  <th>Subject</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.suggestions.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <span className={`${localStyles.typeTag} ${item.type === 'suggestion' ? localStyles.typeSuggestion : localStyles.typeComplaint}`}>
-                        {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: '800' }}>{item.name}</td>
-                    <td>{item.subject}</td>
-                    <td><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#64748b' }}><Calendar size={14} />{item.date}</div></td>
-                    <td><span className={`${localStyles.statusTag} ${localStyles.tagNew}`}>{item.status}</span></td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button className={localStyles.actionBtn} onClick={() => setSelectedItem(item)} title="Read Message">
-                          <Eye size={16} />
-                        </button>
-                        <button className={localStyles.actionBtn} onClick={() => removeItem(item.id)} title="Delete Feedback" style={{ color: '#ef4444' }}>
-                          <Trash2 size={16} />
-                        </button>
+          <div className={localStyles.fieldsGrid} style={{ padding: '1.5rem' }}>
+            <AnimatePresence>
+              {formFields.length > 0 ? (
+                formFields.map((field) => (
+                  <motion.div 
+                    key={field.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    style={{
+                      background: '#f8fafc',
+                      borderRadius: '16px',
+                      padding: '1.25rem',
+                      marginBottom: '1rem',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                      <div style={{ 
+                        background: 'white', 
+                        padding: '0.75rem', 
+                        borderRadius: '12px', 
+                        border: '1px solid #e2e8f0',
+                        color: '#64748b'
+                      }}>
+                        {field.type === 'form_dropdown' ? <List size={20} /> : <Type size={20} />}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <h4 style={{ margin: 0, fontWeight: '700', color: '#1e293b' }}>{field.title_en}</h4>
+                          <span style={{ fontSize: '0.7rem', background: '#e2e8f0', padding: '0.1rem 0.4rem', borderRadius: '4px', color: '#64748b', textTransform: 'capitalize' }}>
+                            {field.type === 'form_dropdown' ? 'Dropdown' : (field.description_en || 'Text')}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', background: '#ef4444', padding: '0.1rem 0.4rem', borderRadius: '4px', color: 'white', textTransform: 'uppercase' }}>
+                            { 
+                              field.type === 'form_input' 
+                              ? (field.description_ar || 'full')
+                              : (field.description_ar?.split('|')[1] || 'full')
+                            } 
+                          </span>
+                        </div>
+                        <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>{field.title_ar}</p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button className={localStyles.actionBtn} onClick={() => openFieldModal(field)}>
+                        <Edit2 size={16} />
+                      </button>
+                      <button className={localStyles.actionBtn} onClick={() => handleDeleteField(field.id)} style={{ color: '#ef4444' }}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                  <List size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                  <p>No form fields added yet.</p>
+                </div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
 
-      {/* Message Viewer Modal */}
       <Modal
-        isOpen={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
-        title={selectedItem ? selectedItem.subject : "Feedback Message"}
+        isOpen={isFieldModalOpen}
+        onClose={() => setIsFieldModalOpen(false)}
+        title={editingField ? "Edit Form Field" : "Add New Form Field"}
         footer={
-          <button onClick={() => setSelectedItem(null)} className={localStyles.saveButton} style={{ width: '100%', justifyContent: 'center' }}>
-            Done Reviewing
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+            <button 
+              onClick={() => setIsFieldModalOpen(false)} 
+              className={localStyles.saveButton} 
+              style={{ flex: 1, background: '#f1f5f9', color: '#64748b' }}
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleSaveField} 
+              className={localStyles.saveButton} 
+              style={{ flex: 2 }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2 className={localStyles.spinner} size={20} /> : <Save size={20} />}
+              {editingField ? 'Update Field' : 'Add Field'}
+            </button>
+          </div>
         }
-        maxWidth="800px"
       >
-        {selectedItem && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-               <div style={{ background: selectedItem.type === 'suggestion' ? '#eff6ff' : '#fff7ed', padding: '0.75rem', borderRadius: '12px' }}>
-                  <MessageSquare color={selectedItem.type === 'suggestion' ? '#2563eb' : '#ea580c'} size={24} />
-               </div>
-               <div>
-                  <h3 style={{ margin: 0, fontWeight: '800', color: '#1e293b' }}>{selectedItem.subject}</h3>
-                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>From: {selectedItem.name}</span>
-               </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '1rem 0' }}>
+          <div className={localStyles.inputGroup}>
+            <label className={localStyles.fieldLabel}>Field Label (English)</label>
+            <input 
+              className={localStyles.inputField} 
+              value={fieldData.title_en} 
+              onChange={(e) => setFieldData({...fieldData, title_en: e.target.value})}
+              placeholder="e.g. Subject"
+            />
+          </div>
+          <div dir="rtl" className={localStyles.inputGroup}>
+            <label className={localStyles.fieldLabel}>عنوان الحقل (بالعربي)</label>
+            <input 
+              className={localStyles.inputField} 
+              value={fieldData.title_ar} 
+              onChange={(e) => setFieldData({...fieldData, title_ar: e.target.value})}
+              placeholder="مثلاً: الموضوع"
+            />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className={localStyles.inputGroup}>
+              <label className={localStyles.fieldLabel}>Main Type</label>
+              <div style={{ position: 'relative' }}>
+                <select 
+                  className={localStyles.inputField} 
+                  style={{ width: '100%', appearance: 'none' }}
+                  value={fieldData.type}
+                  onChange={(e) => setFieldData({...fieldData, type: e.target.value})}
+                >
+                  <option value="input">Normal Input</option>
+                  <option value="dropdown">Dropdown Selection</option>
+                </select>
+                <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              </div>
             </div>
 
-            <div className={localStyles.detailGrid}>
-                <div className={localStyles.detailItem}>
-                   <span className={localStyles.detailLabel}><User size={14} /> Full Name</span>
-                   <span className={localStyles.detailValue}>{selectedItem.name}</span>
-                </div>
-                <div className={localStyles.detailItem}>
-                   <span className={localStyles.detailLabel}><Phone size={14} /> Mobile</span>
-                   <span className={localStyles.detailValue}>{selectedItem.mobile}</span>
-                </div>
-                <div className={localStyles.detailItem}>
-                   <span className={localStyles.detailLabel}><Mail size={14} /> Email Address</span>
-                   <span className={localStyles.detailValue}>{selectedItem.email}</span>
-                </div>
-                <div className={localStyles.detailItem}>
-                   <span className={localStyles.detailLabel}><Tag size={14} /> Submission Type</span>
-                   <span className={`${localStyles.typeTag} ${selectedItem.type === 'suggestion' ? localStyles.typeSuggestion : localStyles.typeComplaint}`} style={{ display: 'inline-block', width: 'fit-content' }}>
-                      {selectedItem.type}
-                   </span>
-                </div>
+            <div className={localStyles.inputGroup}>
+              <label className={localStyles.fieldLabel}>Display Width</label>
+              <div style={{ position: 'relative' }}>
+                <select 
+                  className={localStyles.inputField} 
+                  style={{ appearance: 'none', width: '100%' }} 
+                  value={fieldData.width} 
+                  onChange={(e) => setFieldData({...fieldData, width: e.target.value})}
+                >
+                  <option value="full">Full Line (100%)</option>
+                  <option value="half">Half Line (50%)</option>
+                </select>
+                <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              </div>
             </div>
 
-            <div className={localStyles.detailItem} style={{ marginTop: '1.5rem' }}>
-                <span className={localStyles.detailLabel}><FileText size={14} /> Message Content</span>
-                <div className={localStyles.messageBox}>
-                   <p className={localStyles.messageText}>{selectedItem.message}</p>
+            {fieldData.type === 'input' && (
+              <div className={localStyles.inputGroup} style={{ gridColumn: 'span 2' }}>
+                <label className={localStyles.fieldLabel}>Input Type</label>
+                <div style={{ position: 'relative' }}>
+                  <select 
+                    className={localStyles.inputField} 
+                    style={{ width: '100%', appearance: 'none' }}
+                    value={fieldData.input_type}
+                    onChange={(e) => setFieldData({...fieldData, input_type: e.target.value})}
+                  >
+                    <option value="text">Short Text</option>
+                    <option value="textarea">Long Text (Textarea)</option>
+                    <option value="tel">Phone / Mobile</option>
+                    <option value="email">Email Address</option>
+                  </select>
+                  <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
-            </div>
-          </>
-        )}
+              </div>
+            )}
+          </div>
+
+          {fieldData.type === 'dropdown' && (
+            <>
+              <div className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>Dropdown Options (English) - Sep by ;</label>
+                <textarea 
+                  className={localStyles.inputField} 
+                  style={{ minHeight: '60px', resize: 'vertical' }}
+                  value={fieldData.options_en} 
+                  onChange={(e) => setFieldData({...fieldData, options_en: e.target.value})}
+                  placeholder="Suggestion; Complaint; Inquiry"
+                />
+              </div>
+              <div dir="rtl" className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>خيارات القائمة المنسدلة (بالعربي) - فاصل بـ ;</label>
+                <textarea 
+                  className={localStyles.inputField} 
+                  style={{ minHeight: '60px', resize: 'vertical' }}
+                  value={fieldData.options_ar} 
+                  onChange={(e) => setFieldData({...fieldData, options_ar: e.target.value})}
+                  placeholder="مقترح; شكوى; استفسار"
+                />
+              </div>
+            </>
+          )}
+        </div>
       </Modal>
     </motion.div>
   );
