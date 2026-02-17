@@ -92,42 +92,43 @@ export default function NewspaperManager() {
     }
   };
 
-  const saveBanner = async () => {
+  const handleSaveAll = async () => {
     setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append('section_key', 'newspaper');
-    formData.append('type', 'banner');
-    formData.append('title_en', data.banner.title_en);
-    formData.append('title_ar', data.banner.title_ar);
-    formData.append('is_active', 'true');
-    if (data.banner.file) {
-      formData.append('images', data.banner.file);
-    }
-
     try {
-      let response;
-      if (data.banner.id) {
-        response = await updateSectionAPI(data.banner.id, formData);
-      } else {
-        response = await createSectionAPI(formData);
+      // 1. Save Banner
+      const bannerFormData = new FormData();
+      bannerFormData.append('section_key', 'newspaper');
+      bannerFormData.append('type', 'banner');
+      bannerFormData.append('title_en', data.banner.title_en);
+      bannerFormData.append('title_ar', data.banner.title_ar);
+      bannerFormData.append('is_active', 'true');
+      bannerFormData.append('update_img_type', 'group'); // Prevent existing image deletion
+      if (data.banner.file) {
+        bannerFormData.append('images', data.banner.file);
       }
+
+      if (data.banner.id) {
+        await updateSectionAPI(data.banner.id, bannerFormData);
+      } else {
+        await createSectionAPI(bannerFormData);
+      }
+
+      // 2. Save all items
+      const itemUpdatePromises = data.items.map(item => {
+        const itemFormData = new FormData();
+        itemFormData.append('section_key', 'newspaper');
+        itemFormData.append('type', 'item');
+        itemFormData.append('title_en', item.title_en);
+        itemFormData.append('title_ar', item.title_ar);
+        itemFormData.append('is_active', 'true');
+        itemFormData.append('update_img_type', 'group'); // Prevent image deletion on title update
+        return updateSectionAPI(item.id, itemFormData);
+      });
+
+      await Promise.all(itemUpdatePromises);
       
       await refreshSections();
-      
-      const s = response.data;
-      if (s) {
-          setData(prev => ({
-            ...prev,
-            banner: {
-              ...prev.banner,
-              id: s.id,
-              image: getImageUrl(s.images?.[0]),
-              rawImage: s.images?.[0],
-              file: null
-            }
-          }));
-      }
-      toast.success("تم حفظ البانر بنجاح");
+      toast.success("تم حفظ جميع التغييرات بنجاح");
     } catch (error) {
       toast.error("حدث خطأ أثناء الحفظ");
     } finally {
@@ -185,6 +186,43 @@ export default function NewspaperManager() {
     }
   };
 
+  const handleItemImageChange = async (e, item) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('section_key', 'newspaper');
+      formData.append('type', 'item');
+      formData.append('title_en', item.title_en);
+      formData.append('title_ar', item.title_ar);
+      formData.append('is_active', 'true');
+      formData.append('images', file);
+
+      try {
+        await updateSectionAPI(item.id, formData);
+        await refreshSections();
+        toast.success("تم تحديث الصورة بنجاح");
+      } catch (error) {
+        toast.error("فشل تحديث الصورة");
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleRemoveItemImage = async (item) => {
+    if (!item.rawImage) return;
+    if (window.confirm("هل أنت متأكد من حذف هذه الصورة؟")) {
+      try {
+        await deleteImageAPI(item.id, item.rawImage);
+        await refreshSections();
+        toast.success("تم حذف الصورة بنجاح");
+      } catch (error) {
+        toast.error("فشل حذف الصورة");
+      }
+    }
+  };
+
   const saveItemRow = async (item) => {
     const formData = new FormData();
     formData.append('section_key', 'newspaper');
@@ -211,7 +249,7 @@ export default function NewspaperManager() {
           <h2 className={dashboardStyles.sectionTitle}>Newspaper Management</h2>
           <p className={dashboardStyles.sectionSubtitle}>Manage company news clippings and press releases.</p>
         </div>
-        <button className={localStyles.saveButton} onClick={saveBanner} disabled={isSubmitting}>
+        <button className={localStyles.saveButton} onClick={handleSaveAll} disabled={isSubmitting}>
           <Save size={20} /> {isSubmitting ? 'Saving...' : 'Save All Changes'}
         </button>
       </div>
@@ -298,20 +336,30 @@ export default function NewspaperManager() {
                    animate={{ opacity: 1, scale: 1 }}
                 >
                   <div className={localStyles.imageWrapper}>
-                    <img src={item.src} alt={item.title_en} />
+                    {item.src ? (
+                      <img src={item.src} alt={item.title_en} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', background: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', gap: '0.5rem' }}>
+                        <ImageIcon size={40} />
+                        <span style={{ fontSize: '0.8rem', fontWeight: '700' }}>No Cover</span>
+                      </div>
+                    )}
                     <div className={localStyles.imageOverlay}>
-                      <button className={localStyles.removeBtn} onClick={async () => {
-                         if(window.confirm("حذف هذا الخبر؟")) {
-                           try {
-                             await deleteSectionAPI(item.id);
-                             setData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }));
-                             await refreshSections();
-                             toast.success("تم الحذف");
-                           } catch (error) { toast.error("خطأ في الحذف"); }
-                         }
-                      }}>
-                        <Trash2 size={20} />
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                        <label className={localStyles.changeBtn}>
+                          <Upload size={16} /> {item.src ? 'Change' : 'Upload'}
+                          <input type="file" hidden onChange={(e) => handleItemImageChange(e, item)} accept="image/*" />
+                        </label>
+                        {item.rawImage && (
+                          <button 
+                            className={localStyles.deleteIconBtn}
+                            onClick={() => handleRemoveItemImage(item)}
+                            title="Remove Image"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className={localStyles.cardContent}>
@@ -326,7 +374,6 @@ export default function NewspaperManager() {
                            newItems[idx].title_en = e.target.value;
                            setData(prev => ({ ...prev, items: newItems }));
                         }}
-                        onBlur={() => saveItemRow(item)}
                         placeholder="Title (EN)"
                       />
                     </div>
@@ -341,10 +388,40 @@ export default function NewspaperManager() {
                            newItems[idx].title_ar = e.target.value;
                            setData(prev => ({ ...prev, items: newItems }));
                         }}
-                        onBlur={() => saveItemRow(item)}
                         placeholder="العنوان (AR)"
                       />
                     </div>
+
+                    <button 
+                      onClick={async () => {
+                        if(window.confirm("هل أنت متأكد من حذف هذا المقال بالكامل؟")) {
+                          try {
+                            await deleteSectionAPI(item.id);
+                            setData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }));
+                            await refreshSections();
+                            toast.success("تم حذف المقال");
+                          } catch (error) { toast.error("خطأ في الحذف"); }
+                        }
+                      }}
+                      style={{ 
+                        marginTop: '1.25rem', 
+                        width: '100%', 
+                        padding: '0.6rem', 
+                        borderRadius: '8px', 
+                        border: '1px solid #fee2e2', 
+                        background: '#fff5f5', 
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <Trash2 size={14} /> Delete Newspaper Article
+                    </button>
                   </div>
                 </motion.div>
               ))}

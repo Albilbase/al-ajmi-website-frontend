@@ -165,6 +165,9 @@ export default function SuppliersManager() {
       formData.append('subtitle_en', banner.subtitle_en);
       formData.append('subtitle_ar', banner.subtitle_ar);
 
+      // Always send group flag to protect existing images
+      formData.append('update_img_type', 'group');
+
       if (banner.imageFile) {
         formData.append('images', banner.imageFile);
       }

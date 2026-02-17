@@ -304,6 +304,9 @@ export default function VisionManager() {
     formData.append('description_ar', content.hero.subtitle_ar);
     formData.append('is_active', 'true');
 
+    // Always send group flag for multi-image sections
+    formData.append('update_img_type', 'group');
+    
     if (heroImageFiles.length > 0) {
       heroImageFiles.forEach(file => {
         formData.append('images', file);

@@ -169,11 +169,12 @@ export default function HistoryManager() {
       formData.append('details', JSON.stringify(details));
 
       // Append new images
-      if (newImages.length > 0) {
+     
+        formData.append('update_img_type', 'group');
         newImages.forEach(file => {
           formData.append('images', file);
         });
-      }
+     
 
       let response;
       if (content.id) {

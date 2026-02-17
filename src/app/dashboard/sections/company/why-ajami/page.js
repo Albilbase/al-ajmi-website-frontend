@@ -290,6 +290,7 @@ export default function WhyAjamiManager() {
     formData.append('description_en', content.hero.subtitle_en);
     formData.append('description_ar', content.hero.subtitle_ar);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group'); // Prevent image deletion
 
     if (heroImageFile) {
       formData.append('images', heroImageFile);
@@ -340,6 +341,7 @@ export default function WhyAjamiManager() {
     formData.append('description_en', content.intro.text_en);
     formData.append('description_ar', content.intro.text_ar);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group'); // Prevent image deletion
 
     if (introImageFile) {
       formData.append('images', introImageFile);
@@ -389,6 +391,7 @@ export default function WhyAjamiManager() {
     formData.append('description_en', content.petroleum.text_en);
     formData.append('description_ar', content.petroleum.text_ar);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group'); // Prevent image deletion
 
     if (petroleumImageFile) {
       formData.append('images', petroleumImageFile);

@@ -164,6 +164,7 @@ export default function AwardsManager() {
       formData.append('section_key', 'home');
       formData.append('type', 'award');
       formData.append('is_active', 'true');
+      formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
       if (editorFile) {
         formData.append('images', editorFile);
@@ -281,6 +282,7 @@ export default function AwardsManager() {
       formData.append('section_key', 'home');
       formData.append('type', 'award_header');
       formData.append('is_active', 'true');
+      formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
       if (sectionHeader.id) {
         await updateSectionAPI(sectionHeader.id, formData);

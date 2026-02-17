@@ -203,6 +203,7 @@ export default function BoardManager() {
     formData.append('description_en', content.hero.subtitle_en);
     formData.append('description_ar', content.hero.subtitle_ar);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group'); // Prevent image deletion on title update
 
     if (heroImageFile) {
       formData.append('images', heroImageFile);
@@ -294,6 +295,7 @@ export default function BoardManager() {
     formData.append('description_en', member.position_en);
     formData.append('description_ar', member.position_ar);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group'); // Prevent image deletion on title update
 
     // Handle per-member image files if we implement that, 
     // for now we use the existing handleFileUpload logic which only updates preview.

@@ -161,6 +161,9 @@ export default function MediaManager() {
     };
     formData.append('details', JSON.stringify(details));
 
+    // Always send group flag for multi-image sections
+    formData.append('update_img_type', 'group');
+
     if (mainImageFile) {
       formData.append('images', mainImageFile);
     }

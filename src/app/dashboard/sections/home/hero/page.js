@@ -113,6 +113,7 @@ export default function HeroManager() {
     formData.append('details', JSON.stringify(details));
 
     // Image logic
+    formData.append('update_img_type', 'group');
     if (editorFile) {
         formData.append('images', editorFile);
     }

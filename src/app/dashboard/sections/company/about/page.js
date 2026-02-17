@@ -288,6 +288,7 @@ export default function AboutManager() {
     formData.append('description_en', content.hero.subtitle_en);
     formData.append('description_ar', content.hero.subtitle_ar);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
     if (heroImageFile) {
       formData.append('images', heroImageFile);
@@ -328,7 +329,9 @@ export default function AboutManager() {
     };
     formData.append('details', JSON.stringify(details));
 
-    // For images, if we have new files
+    // Always send group flag to protect existing images
+    formData.append('update_img_type', 'group');
+    
     if (introImageFiles.length > 0) {
       introImageFiles.forEach(file => {
         formData.append('images', file);
@@ -362,6 +365,7 @@ export default function AboutManager() {
     formData.append('description_en', content.capabilities.text_en);
     formData.append('description_ar', content.capabilities.text_ar);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
     if (capabilitiesImageFile) {
       formData.append('images', capabilitiesImageFile);

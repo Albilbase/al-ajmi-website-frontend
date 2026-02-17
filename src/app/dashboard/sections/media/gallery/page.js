@@ -106,6 +106,7 @@ export default function GalleryManager() {
     formData.append('title_en', data.banner.title_en);
     formData.append('title_ar', data.banner.title_ar);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group');
     if (bannerFile) {
       formData.append('images', bannerFile);
     }
@@ -213,6 +214,7 @@ export default function GalleryManager() {
       formData.append('title_en', category.name_en);
       formData.append('title_ar', category.name_ar);
       formData.append('is_active', 'true');
+      formData.append('update_img_type', 'group');
       files.forEach(file => {
         formData.append('images', file);
       });
