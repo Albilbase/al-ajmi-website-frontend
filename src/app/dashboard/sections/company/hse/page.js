@@ -217,7 +217,6 @@ export default function HseManager() {
     formData.append('title_en', content.hero.title_en);
     formData.append('title_ar', content.hero.title_ar);
     formData.append('is_active', 'true');
-    formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
     if (heroImageFile) {
       formData.append('images', heroImageFile);

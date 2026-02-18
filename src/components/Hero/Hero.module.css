@@ -419,8 +419,45 @@
 
 
 /* Responsive */
+@media (max-width: 1200px) {
+    .slideContainer { 
+        padding-inline: 2.5rem;
+        max-width: 100%;
+    }
+    .slideContent {
+        max-width: 700px;
+    }
+    .title {
+        font-size: clamp(2.5rem, 8vw, 4.5rem);
+    }
+    .description {
+        font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+        max-width: 550px;
+    }
+    .controlsLayer {
+        inset-inline: 2.5rem;
+        bottom: 3rem;
+    }
+    .prevBtn {
+        inset-inline-start: 1.5rem;
+    }
+    .nextBtn {
+        inset-inline-end: 1.5rem;
+    }
+    .yearLabel {
+        inset-inline-end: 2rem;
+    }
+    .yearLabel span {
+        font-size: 4.5rem;
+    }
+    .bottomDecor {
+        inset-inline-end: 2.5rem;
+        bottom: 3rem;
+    }
+}
+
 @media (max-width: 1024px) {
-    .slideContainer { padding: 0 4rem; }
+    .slideContainer { padding: 0 2rem; }
     .sideNav { width: 60px; height: 60px; }
     .sideNav:hover { width: 70px; }
 }

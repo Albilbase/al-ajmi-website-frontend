@@ -223,7 +223,6 @@ export default function ProjectsManager() {
     });
     formData.append('details', detailsJson);
     formData.append('is_active', 'true');
-    formData.append('update_img_type', 'group');
     
     if (projectFile) {
       formData.append('images', projectFile);

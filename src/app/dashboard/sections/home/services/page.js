@@ -188,7 +188,6 @@ export default function ServicesManager() {
       formData.append('section_key', 'home');
       formData.append('type', 'service');
       formData.append('is_active', 'true');
-      formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
       if (editorFile) {
         formData.append('images', editorFile);
@@ -348,7 +347,6 @@ export default function ServicesManager() {
       formData.append('section_key', 'home');
       formData.append('type', 'service_banner');
       formData.append('is_active', 'true');
-      formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
       if (bannerFile) {
         formData.append('images', bannerFile);
@@ -384,7 +382,6 @@ export default function ServicesManager() {
       formData.append('section_key', 'home');
       formData.append('type', 'service_header');
       formData.append('is_active', 'true');
-      formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
       if (sectionHeader.id) {
         await updateSectionAPI(sectionHeader.id, formData);

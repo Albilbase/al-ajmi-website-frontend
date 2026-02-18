@@ -102,7 +102,6 @@ export default function NewspaperManager() {
       bannerFormData.append('title_en', data.banner.title_en);
       bannerFormData.append('title_ar', data.banner.title_ar);
       bannerFormData.append('is_active', 'true');
-      bannerFormData.append('update_img_type', 'group'); // Prevent existing image deletion
       if (data.banner.file) {
         bannerFormData.append('images', data.banner.file);
       }
@@ -121,7 +120,6 @@ export default function NewspaperManager() {
         itemFormData.append('title_en', item.title_en);
         itemFormData.append('title_ar', item.title_ar);
         itemFormData.append('is_active', 'true');
-        itemFormData.append('update_img_type', 'group'); // Prevent image deletion on title update
         return updateSectionAPI(item.id, itemFormData);
       });
 

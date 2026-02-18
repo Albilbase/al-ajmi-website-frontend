@@ -160,7 +160,6 @@ export default function SuggestionsManager() {
       formData.append('title_ar', banner.title_ar);
       formData.append('subtitle_en', banner.subtitle_en);
       formData.append('subtitle_ar', banner.subtitle_ar);
-      formData.append('update_img_type', 'group'); // Prevent existing image deletion
 
       if (banner.imageFile) {
         formData.append('images', banner.imageFile);
