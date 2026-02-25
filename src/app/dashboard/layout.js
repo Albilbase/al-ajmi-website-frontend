@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './dashboard.module.css';
+import { confirmAction } from '@/lib/sweetalert';
+
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
@@ -41,11 +43,15 @@ export default function DashboardLayout({ children }) {
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
     if (e) e.preventDefault();
-    localStorage.removeItem('token');
-    router.push('/login');
+    const result = await confirmAction('تسجيل الخروج', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج');
+    if (result.isConfirmed) {
+      localStorage.removeItem('token');
+      router.push('/login');
+    }
   };
+
 
   // Check for authentication
   React.useEffect(() => {

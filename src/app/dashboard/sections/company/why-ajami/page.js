@@ -19,6 +19,8 @@ import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './why-ajami-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function WhyAjamiManager() {
   const [loading, setLoading] = useState(true);
@@ -262,7 +264,9 @@ export default function WhyAjamiManager() {
     }
 
     if (targetId && targetImage) {
-      if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+      const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف الصورة نهائياً من السيرفر؟');
+      if (result.isConfirmed) {
+
         try {
           const rawPath = targetRawImage || targetImage.replace('http://192.168.15.95:5000', '');
           await deleteImageAPI(targetId, rawPath);
@@ -514,7 +518,9 @@ export default function WhyAjamiManager() {
   const removeExpertiseItem = async (id, index) => {
     if (!id) return;
 
-    if (confirm('هل أنت متأكد من الحذف؟')) {
+    const result = await confirmDelete();
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         const newList = content.expertise.list.filter((_, i) => i !== index);
@@ -611,7 +617,7 @@ export default function WhyAjamiManager() {
            </div>
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Banner Image</label>
-              <div className={localStyles.mediaPreview} style={{ aspectRatio: '21/9' }}>
+              <div className={localStyles.mediaPreview} style={{ aspectRatio: '32/9', maxWidth: '800px' }}>
                 <img src={heroImagePreview || content.hero.bgImage || "/images/placeholder.png"} alt="" />
                 <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
                    <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -667,7 +673,7 @@ export default function WhyAjamiManager() {
            </div>
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Fleet Image</label>
-              <div className={localStyles.mediaPreview} style={{ maxWidth: '500px' }}>
+              <div className={localStyles.mediaPreview} style={{ height: '200px', maxWidth: '400px' }}>
                 <img src={introImagePreview || content.intro.image || "/images/placeholder.png"} alt="" />
                 <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
                    <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -723,7 +729,7 @@ export default function WhyAjamiManager() {
            </div>
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Petroleum Image</label>
-              <div className={localStyles.mediaPreview} style={{ maxWidth: '500px' }}>
+              <div className={localStyles.mediaPreview} style={{ height: '200px', maxWidth: '400px' }}>
                 <img src={petroleumImagePreview || content.petroleum.image || "/images/placeholder.png"} alt="" />
                 <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
                    <div style={{ display: 'flex', gap: '0.5rem' }}>

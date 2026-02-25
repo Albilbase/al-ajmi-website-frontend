@@ -20,6 +20,8 @@ import useCMSStore from '@/store/useCMSStore';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './about-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function AboutManager() {
   const [loading, setLoading] = useState(true);
@@ -222,8 +224,10 @@ export default function AboutManager() {
         return;
       }
       if (content.hero.bgImage && content.hero.id) { // If it's an existing image from the server
-        if (window.confirm("حذف صورة البانر نهائياً؟")) {
+        const result = await confirmDelete('حذف صورة البانر', 'حذف صورة البانر نهائياً؟');
+        if (result.isConfirmed) {
           try {
+
             await deleteImageAPI(content.hero.id, content.hero.bgImage?.replace('http://192.168.15.95:5000', ''));
             await refreshSections();
             setContent(prev => ({ ...prev, hero: { ...prev.hero, bgImage: null } }));
@@ -242,8 +246,10 @@ export default function AboutManager() {
       }
       
       if (content.intro.id && content.intro.rawImages[index]) { // Existing image from server
-        if (window.confirm("حذف هذه الصورة من المعرض نهائياً؟")) {
+        const result = await confirmDelete('حذف صورة المعرض', 'حذف هذه الصورة من المعرض نهائياً؟');
+        if (result.isConfirmed) {
           try {
+
             const rawPath = content.intro.rawImages[index];
             await deleteImageAPI(content.intro.id, rawPath);
             await refreshSections();
@@ -266,8 +272,10 @@ export default function AboutManager() {
         return;
       }
       if (content.capabilities.image && content.capabilities.id) { // If it's an existing image from the server
-        if (window.confirm("حذف صورة الإمكانيات نهائياً؟")) {
+        const result = await confirmDelete('حذف صورة الإمكانيات', 'حذف صورة الإمكانيات نهائياً؟');
+        if (result.isConfirmed) {
           try {
+
             await deleteImageAPI(content.capabilities.id, content.capabilities.image?.replace('http://192.168.15.95:5000', ''));
             await refreshSections();
             setContent(prev => ({ ...prev, capabilities: { ...prev.capabilities, image: null } }));
@@ -455,7 +463,9 @@ export default function AboutManager() {
       return;
     }
 
-    if (confirm('هل أنت متأكد من الحذف؟')) {
+    const result = await confirmDelete();
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         await refreshSections();
@@ -568,7 +578,7 @@ export default function AboutManager() {
            </div>
             <div className={localStyles.inputGroup}>
                <label className={localStyles.fieldLabel}>Banner Background</label>
-               <div className={localStyles.mediaPreview} style={{ aspectRatio: '21/9' }}>
+               <div className={localStyles.mediaPreview} style={{ aspectRatio: '32/9' }}>
                  <img src={heroImagePreview || content.hero.bgImage || "/images/placeholder.png"} alt="" />
                  <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -825,7 +835,7 @@ export default function AboutManager() {
            </div>
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Section Image</label>
-              <div className={localStyles.mediaPreview} style={{ height: '300px' }}>
+              <div className={localStyles.mediaPreview} style={{ height: '200px', maxWidth: '400px' }}>
                  <img src={capabilitiesImagePreview || content.capabilities.image || "/images/placeholder.png"} alt="" />
                  <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>

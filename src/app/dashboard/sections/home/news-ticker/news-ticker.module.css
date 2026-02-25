@@ -4,7 +4,18 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
 }
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+}
+
 
 .saveButton {
   background: #DC143C;
@@ -15,11 +26,20 @@
   font-weight: 700;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 6px -1px rgba(220, 20, 60, 0.2);
 }
+
+@media (max-width: 640px) {
+  .saveButton {
+    width: 100%;
+    order: 2;
+  }
+}
+
 
 .saveButton:hover {
   background: #b01030;
@@ -32,7 +52,30 @@
   grid-template-columns: 1fr 400px;
   gap: 2rem;
   align-items: start;
+  width: 100%;
 }
+
+@media (max-width: 1300px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar {
+    order: -1;
+    margin-bottom: 2rem;
+  }
+}
+
+
+
+.content {
+  min-width: 0; /* Prevent grid blowout */
+}
+
+.sidebar {
+  min-width: 0;
+}
+
 
 .sectionHeader {
   display: flex;
@@ -69,7 +112,27 @@
   align-items: center;
   gap: 1.5rem;
   transition: all 0.2s;
+  overflow: hidden;
+  min-width: 0;
 }
+
+
+@media (max-width: 768px) {
+  .newsCard {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .cardIndex {
+    align-self: flex-start;
+  }
+  
+  .removeBtn {
+    align-self: flex-end;
+  }
+}
+
 
 .newsCard:hover {
   border-color: #DC143C;
@@ -93,7 +156,9 @@
 
 .cardContent {
   flex: 1;
+  min-width: 0;
 }
+
 
 .removeBtn {
   color: #94a3b8;
@@ -141,11 +206,23 @@
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
 }
+
 
 .inputField:focus {
   border-color: #DC143C;
 }
+
+@media (max-width: 1100px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+
+
 
 .addBtnPrimary {
   background: #DC143C;
@@ -196,10 +273,11 @@
   overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0;
   position: relative;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
+
 
 .previewLabel {
   background: #DC143C;
@@ -252,3 +330,90 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* Responsive Styles */
+@media (max-width: 1280px) {
+  .mainGrid {
+    grid-template-columns: 1fr 350px;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 1300px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    order: -1;
+  }
+
+  .previewContainer {
+    position: static;
+    margin-bottom: 2rem;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .saveButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .newsCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.2rem;
+  }
+
+  .cardIndex {
+    margin-bottom: -0.5rem;
+  }
+
+  .removeBtn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .addBtnPrimary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .tickerPreview {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+
+  .previewLabel {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .cardContent .formGrid {
+    gap: 0.5rem;
+  }
+}
+

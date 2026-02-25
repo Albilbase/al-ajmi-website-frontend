@@ -22,6 +22,8 @@ import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './vision-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function VisionManager() {
   const [loading, setLoading] = useState(true);
@@ -272,7 +274,9 @@ export default function VisionManager() {
     // Server image removal
     const imageToDelete = content.hero.rawImages[index];
     if (content.hero.id && imageToDelete) {
-      if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+      const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة نهائياً من السيرفر؟');
+      if (result.isConfirmed) {
+
         try {
           await deleteImageAPI(content.hero.id, imageToDelete);
           
@@ -489,7 +493,9 @@ export default function VisionManager() {
   const removeListItem = async (section, subSection, id, index) => {
     if (!id) return;
 
-    if (confirm('هل أنت متأكد من الحذف؟')) {
+    const result = await confirmDelete();
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         const target = subSection ? content[section][subSection] : content[section];

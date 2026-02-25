@@ -21,6 +21,8 @@ import Modal from '../../../_components/Modal/Modal';
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function HeroManager() {
   const [slides, setSlides] = useState([]);
@@ -172,7 +174,9 @@ export default function HeroManager() {
     }
 
     // If it's an existing image on the server
-    if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+    const result = await confirmDelete('حذف الصورة', 'حذف الصورة نهائياً من السيرفر؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteImageAPI(currentSlide.id, currentSlide.rawImage);
         await refreshSections();
@@ -269,7 +273,9 @@ export default function HeroManager() {
   const removeSlide = async (id) => {
     if (!id) return;
 
-    if (confirm('هل أنت متأكد من رغبتك في حذف هذه الشريحة؟')) {
+    const result = await confirmDelete('حذف الشريحة', 'هل أنت متأكد من رغبتك في حذف هذه الشريحة؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         await refreshSections();

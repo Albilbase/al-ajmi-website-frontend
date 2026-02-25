@@ -143,3 +143,18 @@ export const submitContactFormAPI = async (formData) => {
     throw error;
   }
 };
+
+/**
+ * Get All Reports
+ */
+export const getReportsAPI = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${BASE_URL}/api/reports`, {
+      headers: { 'authorization': `${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+  }
+};

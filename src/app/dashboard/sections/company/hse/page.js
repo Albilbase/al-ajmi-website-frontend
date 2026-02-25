@@ -18,6 +18,8 @@ import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './hse-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function HseManager() {
   const [loading, setLoading] = useState(true);
@@ -193,7 +195,9 @@ export default function HseManager() {
     }
 
     if (content.hero.id && content.hero.rawImage) {
-       if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+       const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة نهائياً من السيرفر؟');
+       if (result.isConfirmed) {
+
           try {
              await deleteImageAPI(content.hero.id, content.hero.rawImage);
              setContent(prev => ({
@@ -390,8 +394,10 @@ export default function HseManager() {
   const removeListItem = async (section, id, index) => {
     if (!id) return;
 
-    if (confirm('هل أنت متأكد من الحذف؟')) {
+    const result = await confirmDelete();
+    if (result.isConfirmed) {
       try {
+
         await deleteSectionAPI(id);
         const newList = content[section].list.filter((_, i) => i !== index);
         handleUpdate(section, 'list', newList);

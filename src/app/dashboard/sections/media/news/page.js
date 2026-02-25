@@ -22,6 +22,8 @@ import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './newspaper-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function NewspaperManager() {
   const [data, setData] = useState({
@@ -140,7 +142,9 @@ export default function NewspaperManager() {
        setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", file: null } }));
        return;
     }
-    if (window.confirm("هل أنت متأكد من حذف البانر؟")) {
+    const result = await confirmDelete('حذف البانر', 'هل أنت متأكد من حذف البانر؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteImageAPI(data.banner.id, data.banner.rawImage);
         setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", rawImage: null } }));
@@ -210,7 +214,9 @@ export default function NewspaperManager() {
 
   const handleRemoveItemImage = async (item) => {
     if (!item.rawImage) return;
-    if (window.confirm("هل أنت متأكد من حذف هذه الصورة؟")) {
+    const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteImageAPI(item.id, item.rawImage);
         await refreshSections();
@@ -392,7 +398,9 @@ export default function NewspaperManager() {
 
                     <button 
                       onClick={async () => {
-                        if(window.confirm("هل أنت متأكد من حذف هذا المقال بالكامل؟")) {
+                        const result = await confirmDelete('حذف المقال', 'هل أنت متأكد من حذف هذا المقال بالكامل؟');
+                        if (result.isConfirmed) {
+
                           try {
                             await deleteSectionAPI(item.id);
                             setData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }));

@@ -16,6 +16,8 @@ import Modal from '../../../_components/Modal/Modal';
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function PartnersManager() {
   const [loading, setLoading] = useState(false);
@@ -94,7 +96,9 @@ export default function PartnersManager() {
   const removePartner = async (id) => {
     if (!id) return;
 
-    if (confirm('هل أنت متأكد من رغبتك في حذف هذا الشريك؟')) {
+    const result = await confirmDelete('حذف الشريك', 'هل أنت متأكد من رغبتك في حذف هذا الشريك؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         await refreshSections();

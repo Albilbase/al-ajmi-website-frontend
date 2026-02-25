@@ -85,8 +85,12 @@
 
 :global([dir="rtl"]) .navLinks {
   padding-left: 0;
-  padding-right: 2rem;
+  padding-right: 5rem;
+  justify-content: flex-start;
+  flex: 1;
+  gap: 1.75rem; /* Increased from 1.25rem for Arabic */
 }
+
 
 .navItem {
   position: relative;
@@ -418,16 +422,17 @@
 @media (max-width: 1440px) {
   .container { padding: 0 2.5rem; }
   .navLinks { gap: 1rem; padding-left: 2rem; }
+  :global([dir="rtl"]) .navLinks { gap: 1.5rem; } /* Increased from 1rem */
   .navLink { font-size: 0.72rem; }
 }
 
 @media (max-width: 1200px) {
   .container { padding: 0 1.5rem; }
   .navLinks { gap: 0.7rem; padding-left: 1.5rem; }
+  :global([dir="rtl"]) .navLinks { gap: 1rem; padding-right: 1.5rem; } /* Increased from 0.7rem */
   .navLink { font-size: 0.68rem; letter-spacing: 0.3px; }
   .navItem:last-child { margin-left: 1rem; }
   :global([dir="rtl"]) .navItem:last-child { margin-right: 1rem; }
-  :global([dir="rtl"]) .navLinks { padding-right: 1.5rem; }
 }
 
 @media (max-width: 1300px) and (min-width: 992px) {
@@ -474,6 +479,7 @@
   :global([dir="rtl"]) .navLinks {
     padding-right: 1rem;
     padding-left: 0;
+    gap: 0.9rem; /* Increased from 0.6rem */
   }
   .mobileToggle {
     display: none !important;

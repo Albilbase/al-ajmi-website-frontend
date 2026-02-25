@@ -16,6 +16,8 @@ import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './news-ticker.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import { toast } from 'react-toastify';
+import { confirmDelete } from '@/lib/sweetalert';
+
 import { createSectionAPI, updateSectionAPI, getAllSectionsAPI, deleteSectionAPI } from '@/lib/api';
 
 export default function NewsTickerManager() {
@@ -139,7 +141,9 @@ export default function NewsTickerManager() {
   const removeItem = async (id) => {
     if (!id) return;
 
-    if (confirm('هل أنت متأكد من رغبتك في حذف هذا الخبر؟')) {
+    const result = await confirmDelete('حذف الخبر', 'هل أنت متأكد من رغبتك في حذف هذا الخبر؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         const updatedItems = newsItems.filter(item => item.id !== id);

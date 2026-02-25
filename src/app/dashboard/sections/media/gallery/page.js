@@ -23,6 +23,8 @@ import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './gallery-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function GalleryManager() {
   const [data, setData] = useState({
@@ -134,7 +136,9 @@ export default function GalleryManager() {
        setBannerFile(null);
        return;
     }
-    if (window.confirm("هل أنت متأكد من حذف صورة البانر؟")) {
+    const result = await confirmDelete('حذف البانر', 'هل أنت متأكد من حذف صورة البانر؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteImageAPI(data.banner.id, data.banner.rawImage);
         setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", rawImage: null } }));
@@ -174,7 +178,9 @@ export default function GalleryManager() {
   };
 
   const removeCategory = async (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذه المجموعة بالكامل؟")) {
+    const result = await confirmDelete('حذف المجموعة', 'هل أنت متأكد من حذف هذه المجموعة بالكامل؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         await refreshSections();
@@ -190,7 +196,10 @@ export default function GalleryManager() {
     const category = data.categories[activeTab];
     const imagePath = category.rawImages[imgIndex];
 
-    if (window.confirm("هل أنت متأكد من حذف هذه الصورة؟")) {
+    const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة؟');
+    if (result.isConfirmed) {
+
+
       try {
         await deleteImageAPI(category.id, imagePath);
         await refreshSections();
@@ -213,6 +222,7 @@ export default function GalleryManager() {
       formData.append('title_en', category.name_en);
       formData.append('title_ar', category.name_ar);
       formData.append('is_active', 'true');
+      formData.append('update_img_type', 'group'); // Allow adding multiple images
       files.forEach(file => {
         formData.append('images', file);
       });

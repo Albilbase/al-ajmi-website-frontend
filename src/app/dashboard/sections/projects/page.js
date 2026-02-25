@@ -24,6 +24,8 @@ import localStyles from './projects-manager.module.css';
 import useCMSStore from '@/store/useCMSStore';
 
 import Modal from '../../_components/Modal/Modal';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function ProjectsManager() {
   const [categories, setCategories] = useState([]);
@@ -154,8 +156,10 @@ export default function ProjectsManager() {
   };
 
   const deleteCategory = async (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذه المجموعة؟ سيتم حذف جميع المشاريع التابعة لها أيضاً.")) {
+    const result = await confirmDelete('حذف المجموعة', 'هل أنت متأكد من حذف هذه المجموعة؟ سيتم حذف جميع المشاريع التابعة لها أيضاً.');
+    if (result.isConfirmed) {
       try {
+
         await deleteSectionAPI(id);
         // Also delete sub-projects (though backend usually handles cascading if implemented, but here we just cleanup)
         const subProjects = projects.filter(p => p.categoryId === String(id));
@@ -245,8 +249,10 @@ export default function ProjectsManager() {
   };
 
   const handleDelete = async (projectId) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا المشروع؟')) {
+    const result = await confirmDelete('حذف المشروع', 'هل أنت متأكد من حذف هذا المشروع؟');
+    if (result.isConfirmed) {
       try {
+
         await deleteSectionAPI(projectId);
         setProjects(prev => prev.filter(p => p.id !== projectId));
         toast.success("تم الحذف");
@@ -285,8 +291,10 @@ export default function ProjectsManager() {
 
     // Server image removal
     if (currentProject.id && currentProject.rawImage) {
-      if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+      const result = await confirmDelete('حذف الصورة', 'حذف الصورة نهائياً من السيرفر؟');
+      if (result.isConfirmed) {
         try {
+
           // rawImage should already be the relative path from the server response
           await deleteImageAPI(currentProject.id, currentProject.rawImage);
           setCurrentProject(prev => ({ ...prev, image: "", rawImage: null }));

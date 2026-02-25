@@ -18,6 +18,8 @@ import Modal from '../../../_components/Modal/Modal';
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function AwardsManager() {
   const [loading, setLoading] = useState(false);
@@ -186,8 +188,10 @@ export default function AwardsManager() {
   const removeAward = async (id) => {
     if (!id) return;
 
-    if (confirm('هل أنت متأكد من رغبتك في حذف هذه الجائزة؟')) {
+    const result = await confirmDelete('حذف الجائزة', 'هل أنت متأكد من رغبتك في حذف هذه الجائزة؟');
+    if (result.isConfirmed) {
       try {
+
         await deleteSectionAPI(id);
         await refreshSections();
         setActiveItem(0);
@@ -251,7 +255,9 @@ export default function AwardsManager() {
     
     // Server image removal
     if (currentAward.id && currentAward.src) {
-      if (window.confirm("حذف صورة الجائزة نهائياً من السيرفر؟")) {
+      const result = await confirmDelete('حذف الصورة', 'حذف صورة الجائزة نهائياً من السيرفر؟');
+      if (result.isConfirmed) {
+
          try {
             const rawPath = currentAward.rawImage || currentAward.src.replace('http://192.168.15.95:5000', '');
             await deleteImageAPI(currentAward.id, rawPath);
@@ -304,9 +310,11 @@ export default function AwardsManager() {
       return;
     }
 
-    if (confirm('هل أنت متأكد من رغبتك في حذف عنوان القسم؟')) {
+    const result = await confirmDelete('حذف العنوان', 'هل أنت متأكد من رغبتك في حذف عنوان القسم؟');
+    if (result.isConfirmed) {
       setLoading(true);
       try {
+
         await deleteSectionAPI(sectionHeader.id);
         await refreshSections();
         toast.success('تم حذف عنوان القسم بنجاح');

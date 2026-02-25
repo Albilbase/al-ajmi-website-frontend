@@ -20,8 +20,10 @@ import { toast } from 'react-toastify';
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './suppliers-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, getReportsAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function SuppliersManager() {
   const [loading, setLoading] = useState(true);
@@ -62,6 +64,41 @@ export default function SuppliersManager() {
     id: null,
     receive_email: ""
   });
+
+  const [reports, setReports] = useState([]);
+  const [reportColumns, setReportColumns] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setReportsLoading(true);
+        const response = await getReportsAPI();
+        if (response && response.data) {
+          const supplierReports = response.data.filter(r => r.type === "Suppliers Registration");
+          setReports(supplierReports);
+
+          const uniqueKeys = new Set();
+          supplierReports.forEach(report => {
+            let detailsObj = report.details;
+            if (typeof detailsObj === 'string') {
+              try { detailsObj = JSON.parse(detailsObj); } catch(e) {}
+            }
+            if (detailsObj && typeof detailsObj === 'object') {
+              Object.keys(detailsObj).forEach(key => uniqueKeys.add(key));
+            }
+          });
+          setReportColumns(Array.from(uniqueKeys));
+        }
+      } catch (error) {
+        console.error("Failed to fetch reports:", error);
+        toast.error("فشل تحميل الطلبات");
+      } finally {
+        setReportsLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
 
   // Fetch Page Data
   useEffect(() => {
@@ -129,7 +166,9 @@ export default function SuppliersManager() {
   };
 
   const removeBannerImage = async () => {
-    if (confirm("Are you sure you want to remove the banner image?")) {
+    const result = await confirmDelete('حذف البانر', 'Are you sure you want to remove the banner image?');
+    if (result.isConfirmed) {
+
         try {
             if (banner.id && banner.image && !banner.imageFile) {
                 await deleteImageAPI(banner.id, banner.image);
@@ -320,7 +359,9 @@ export default function SuppliersManager() {
   };
 
   const handleDeleteField = async (id) => {
-    if (confirm("هل أنت متأكد من حذف هذا الحقل؟")) {
+    const result = await confirmDelete('حذف الحقل', 'هل أنت متأكد من حذف هذا الحقل؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         setFormFields(prev => prev.filter(f => f.id !== id));
@@ -542,6 +583,74 @@ export default function SuppliersManager() {
                 </div>
               )}
             </AnimatePresence>
+          </div>
+        </div>
+
+        <div className={localStyles.tableCard} style={{ marginTop: '1.5rem', gridColumn: '1 / -1' }}>
+          <div className={localStyles.tableHeader}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <List size={20} color="#DC143C" />
+                <h3 className={localStyles.sectionTitle}>Suppliers Registrations</h3>
+             </div>
+          </div>
+          
+          <div style={{ overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
+            {reportsLoading ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+                <Loader2 className={localStyles.spinner} size={32} />
+              </div>
+            ) : reports.length > 0 ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>ID</th>
+                    <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Email (Send To)</th>
+                    {reportColumns.map(col => (
+                      <th key={col} style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', textTransform: 'capitalize', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>
+                        {col.replace(/_/g, ' ')}
+                      </th>
+                    ))}
+                    <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports.map((report) => {
+                    let detailsObj = report.details;
+                    if (typeof detailsObj === 'string') {
+                      try { detailsObj = JSON.parse(detailsObj); } catch(e) {}
+                    }
+                    return (
+                      <tr key={report.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '1rem', color: '#64748b' }}>{report.id}</td>
+                        <td 
+                          style={{ padding: '1rem', color: '#64748b', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                          title={report.send_to || '-'}
+                        >
+                          {report.send_to || '-'}
+                        </td>
+                        {reportColumns.map(col => (
+                          <td 
+                            key={col} 
+                            style={{ padding: '1rem', color: '#64748b', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            title={detailsObj?.[col] || '-'}
+                          >
+                            {detailsObj?.[col] || '-'}
+                          </td>
+                        ))}
+                        <td style={{ padding: '1rem', color: '#64748b' }}>
+                          {report.created_at ? new Date(report.created_at).toLocaleString('en-US') : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                <List size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                <p>No registrations found.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

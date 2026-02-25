@@ -17,6 +17,8 @@ import localStyles from './history-manager.module.css';
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function HistoryManager() {
   const [loading, setLoading] = useState(false);
@@ -88,7 +90,9 @@ export default function HistoryManager() {
   const handleRemoveServerImage = async (index, imageUrl) => {
     if (!content.id) return;
 
-    if (window.confirm("حذف هذه الصورة نهائياً من السيرفر؟")) {
+    const result = await confirmDelete('حذف الصورة', 'حذف هذه الصورة نهائياً من السيرفر؟');
+    if (result.isConfirmed) {
+
       try {
         // Extract raw path from URL (remove domain)
         const rawPath = imageUrl.replace('http://192.168.15.95:5000', '');
@@ -109,7 +113,9 @@ export default function HistoryManager() {
 
   const handleDeleteSection = async () => {
     if (!content.id) return;
-    if (confirm("هل أنت متأكد من رغبتك في حذف هذا القسم بالكامل؟")) {
+    const result = await confirmDelete('حذف القسم', 'هل أنت متأكد من رغبتك في حذف هذا القسم بالكامل؟');
+    if (result.isConfirmed) {
+
       setLoading(true);
       try {
         await deleteSectionAPI(content.id);

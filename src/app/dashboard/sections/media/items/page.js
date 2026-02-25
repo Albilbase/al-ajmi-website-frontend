@@ -24,6 +24,8 @@ import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './media-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function MediaManager() {
   const [data, setData] = useState({ banner: "", bannerId: null, items: [] });
@@ -128,7 +130,9 @@ export default function MediaManager() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this media item?')) {
+    const result = await confirmDelete('حذف العنصر', 'Are you sure you want to delete this media item?');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         setData(prev => ({
@@ -244,7 +248,8 @@ export default function MediaManager() {
       return;
     }
 
-    if (window.confirm("هل أنت متأكد من حذف الصورة الرئيسية؟")) {
+    const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف الصورة الرئيسية؟');
+    if (result.isConfirmed) {
       try {
         await deleteImageAPI(currentItem.id, currentItem.rawMainImage);
         setCurrentItem(prev => ({...prev, image: "", rawMainImage: null}));
@@ -283,7 +288,9 @@ export default function MediaManager() {
   const removeSliderImage = async (index, isExisting) => {
     if (isExisting) {
       const imageName = currentItem.rawSliderImages[index];
-      if (window.confirm(`هل أنت متأكد من حذف هذه الصورة؟`)) {
+      const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة؟');
+      if (result.isConfirmed) {
+
         try {
           await deleteImageAPI(currentItem.id, imageName);
           setCurrentItem(prev => {
@@ -367,7 +374,9 @@ export default function MediaManager() {
       return;
     }
 
-    if (window.confirm("هل أنت متأكد من حذف صورة البانر؟")) {
+    const result = await confirmDelete('حذف البانر', 'هل أنت متأكد من حذف صورة البانر؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteImageAPI(data.bannerId, data.rawBannerImage);
         setData(prev => ({...prev, banner: "", rawBannerImage: null}));

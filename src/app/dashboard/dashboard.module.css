@@ -5,9 +5,11 @@
   background-color: #f1f5f9;
   font-family: 'Outfit', sans-serif;
   color: #1e293b;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
 }
+
 
 /* Sidebar Styling - LTR */
 .sidebar {
@@ -148,7 +150,9 @@
   min-height: 100vh;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background-color: #f8fafc;
+  min-width: 0;
 }
+
 
 .navbar {
   height: 80px;
@@ -248,6 +252,13 @@
   padding: 2rem;
   flex: 1;
 }
+
+@media (max-width: 768px) {
+  .dashboardBody {
+    padding: 1rem;
+  }
+}
+
 
 .statsGrid {
   display: grid;

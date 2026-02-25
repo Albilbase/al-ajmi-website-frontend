@@ -22,6 +22,8 @@ import {
   deleteSectionAPI 
 } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './footer-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
@@ -195,7 +197,9 @@ export default function FooterManager() {
   };
 
   const handleDeleteNews = async (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا الخبر؟")) {
+    const result = await confirmDelete('حذف الخبر', 'هل أنت متأكد من حذف هذا الخبر؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         await refreshSections();

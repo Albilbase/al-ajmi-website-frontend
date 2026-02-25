@@ -140,13 +140,13 @@
 }
 
 .bannerPreview {
-  aspect-ratio: 21/9;
+  aspect-ratio: 32/9;
   background-color: #f1f5f9;
   border-radius: 12px;
   overflow: hidden;
   position: relative;
   border: 2px dashed #cbd5e1;
-  max-width: 100%;
+  max-width: 800px;
 }
 
 .bannerPreview img {

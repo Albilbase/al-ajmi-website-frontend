@@ -19,6 +19,9 @@ import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './board-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import { confirmDelete } from '@/lib/sweetalert';
+
+
 
 export default function BoardManager() {
   const [loading, setLoading] = useState(true);
@@ -140,7 +143,9 @@ export default function BoardManager() {
     }
 
     if (content.hero.id && content.hero.rawImage) {
-       if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+       const result = await confirmDelete('حذف الصورة', 'حذف الصورة نهائياً من السيرفر؟');
+       if (result.isConfirmed) {
+
           try {
              await deleteImageAPI(content.hero.id, content.hero.rawImage);
              setContent(prev => ({
@@ -177,8 +182,10 @@ export default function BoardManager() {
 
     // Server image removal
     if (member.id && member.rawImage) {
-        if (window.confirm("حذف صورة العضو نهائياً؟")) {
+        const result = await confirmDelete('حذف صورة العضو', 'هل أنت متأكد من حذف صورة العضو نهائياً؟');
+        if (result.isConfirmed) {
            try {
+
               await deleteImageAPI(member.id, member.rawImage);
               const updatedMembers = [...content.members];
               updatedMembers[index].image = null;
@@ -318,8 +325,10 @@ export default function BoardManager() {
 
   const removeMember = async (id, index) => {
     if (!id) return;
-    if (confirm('هل أنت متأكد من حذف هذا العضو؟')) {
+    const result = await confirmDelete('حذف العضو', 'هل أنت متأكد من حذف هذا العضو بالكامل؟');
+    if (result.isConfirmed) {
       try {
+
         await deleteSectionAPI(id);
         setContent(prev => ({ ...prev, members: prev.members.filter(m => m.id !== id) }));
         toast.success("تم طرح العضو بنجاح");

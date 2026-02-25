@@ -18,6 +18,8 @@ import Modal from '../../../_components/Modal/Modal';
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function ProjectsManager() {
   const [loading, setLoading] = useState(false);
@@ -212,7 +214,9 @@ export default function ProjectsManager() {
   const removeProject = async (id) => {
     if (!id) return;
 
-    if (confirm('هل أنت متأكد من رغبتك في حذف هذا المشروع؟')) {
+    const result = await confirmDelete('حذف المشروع', 'هل أنت متأكد من رغبتك في حذف هذا المشروع؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         await refreshSections();
@@ -290,7 +294,9 @@ export default function ProjectsManager() {
       
       // Server image
       if (currentProject?.id && currentProject?.logo) {
-         if (window.confirm("حذف شعار المشروع نهائياً من السيرفر؟")) {
+         const result = await confirmDelete('حذف الشعار', 'حذف شعار المشروع نهائياً من السيرفر؟');
+         if (result.isConfirmed) {
+
             try {
                // Use rawImage if available, otherwise fallback to parsing URL
                const rawPath = currentProject.rawImage || currentProject.logo.replace('http://192.168.15.95:5000', '');
@@ -322,8 +328,10 @@ export default function ProjectsManager() {
 
       // Server image
       if (banner.id && banner.image) {
-        if (window.confirm("حذف صورة البانر نهائياً من السيرفر؟")) {
+        const result = await confirmDelete('حذف البانر', 'حذف صورة البانر نهائياً من السيرفر؟');
+        if (result.isConfirmed) {
           try {
+
              const rawPath = banner.rawImage || banner.image.replace('http://192.168.15.95:5000', '');
              await deleteImageAPI(banner.id, rawPath);
              await refreshSections();
@@ -407,9 +415,11 @@ export default function ProjectsManager() {
       return;
     }
 
-    if (confirm('هل أنت متأكد من رغبتك في حذف البانر؟')) {
+    const result = await confirmDelete('حذف البانر', 'هل أنت متأكد من رغبتك في حذف البانر؟');
+    if (result.isConfirmed) {
       setLoading(true);
       try {
+
         await deleteSectionAPI(banner.id);
         await refreshSections();
         toast.success('تم حذف البانر بنجاح');
@@ -438,9 +448,11 @@ export default function ProjectsManager() {
       return;
     }
 
-    if (confirm('هل أنت متأكد من رغبتك في حذف عنوان القسم؟')) {
+    const result = await confirmDelete('حذف العنوان', 'هل أنت متأكد من رغبتك في حذف عنوان القسم؟');
+    if (result.isConfirmed) {
       setLoading(true);
       try {
+
         await deleteSectionAPI(sectionHeader.id);
         await refreshSections();
         toast.success('تم حذف عنوان القسم بنجاح');

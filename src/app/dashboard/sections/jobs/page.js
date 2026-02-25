@@ -24,8 +24,10 @@ import { useTranslation } from 'react-i18next';
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './jobs-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, getReportsAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 
 export default function JobsManager() {
   const { t, i18n } = useTranslation();
@@ -57,6 +59,43 @@ export default function JobsManager() {
     id: null,
     receive_email: ""
   });
+
+  // Reports (Applications) State
+  const [reports, setReports] = useState([]);
+  const [reportColumns, setReportColumns] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+
+  // Fetch Reports
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setReportsLoading(true);
+        const response = await getReportsAPI();
+        if (response && response.data) {
+          const jobReports = response.data.filter(r => r.type && typeof r.type === 'string' && r.type.toLowerCase().startsWith("career"));
+          setReports(jobReports);
+
+          const uniqueKeys = new Set();
+          jobReports.forEach(report => {
+            let detailsObj = report.details;
+            if (typeof detailsObj === 'string') {
+              try { detailsObj = JSON.parse(detailsObj); } catch(e) {}
+            }
+            if (detailsObj && typeof detailsObj === 'object') {
+              Object.keys(detailsObj).forEach(key => uniqueKeys.add(key));
+            }
+          });
+          setReportColumns(Array.from(uniqueKeys));
+        }
+      } catch (error) {
+        console.error("Failed to fetch reports:", error);
+        toast.error("فشل تحميل الطلبات");
+      } finally {
+        setReportsLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
 
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -182,8 +221,10 @@ export default function JobsManager() {
   };
 
   const handleDeleteVacancy = async (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذه الوظيفة؟")) {
+    const result = await confirmDelete('حذف الوظيفة', 'هل أنت متأكد من حذف هذه الوظيفة؟');
+    if (result.isConfirmed) {
       try {
+
         await deleteSectionAPI(id);
         await refreshSections();
         setVacancies(prev => prev.filter(v => v.id !== id));
@@ -281,8 +322,10 @@ export default function JobsManager() {
   };
 
   const handleDeleteField = async (id) => {
-    if (confirm("هل أنت متأكد من حذف هذا الحقل؟")) {
+    const result = await confirmDelete('حذف الحقل', 'هل أنت متأكد من حذف هذا الحقل؟');
+    if (result.isConfirmed) {
       try {
+
         await deleteSectionAPI(id);
         await refreshSections();
         setFormFields(prev => prev.filter(f => f.id !== id));
@@ -380,6 +423,25 @@ export default function JobsManager() {
           >
             <Layout size={18} /> Application Form
           </button>
+          <button 
+            onClick={() => setActiveTab('applications')}
+            style={{ 
+              padding: '0.6rem 1.25rem', 
+              borderRadius: '8px', 
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: '600',
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem',
+              transition: 'all 0.2s',
+              background: activeTab === 'applications' ? 'white' : 'transparent',
+              color: activeTab === 'applications' ? '#DC143C' : '#64748b',
+              boxShadow: activeTab === 'applications' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+            }}
+          >
+            <FileText size={18} /> Applications
+          </button>
         </div>
       </div>
 
@@ -424,7 +486,7 @@ export default function JobsManager() {
               )}
             </div>
           </motion.div>
-        ) : (
+        ) : activeTab === 'fields' ? (
           <motion.div 
             key="fields"
             initial={{ opacity: 0, y: 10 }}
@@ -558,6 +620,81 @@ export default function JobsManager() {
                   {isSubmitting ? <Loader2 className={localStyles.spinner} size={20} /> : <Save size={20} />}
                   Save Email
                 </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="applications"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <div className={dashboardStyles.contentCard} style={{ padding: '0', overflow: 'hidden' }}>
+              <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <FileText size={20} color="#DC143C" />
+                <h3 style={{ margin: 0, fontWeight: '800', color: '#1e293b' }}>Job Applications</h3>
+              </div>
+              
+              <div style={{ padding: '0', overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
+                {reportsLoading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+                    <Loader2 className={localStyles.spinner} size={32} />
+                  </div>
+                ) : reports.length > 0 ? (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc' }}>
+                        <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>ID</th>
+                        <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Job Title (Type)</th>
+                        <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Email (Send To)</th>
+                        {reportColumns.map(col => (
+                          <th key={col} style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', textTransform: 'capitalize', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>
+                            {col.replace(/_/g, ' ')}
+                          </th>
+                        ))}
+                        <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reports.map((report) => {
+                        let detailsObj = report.details;
+                        if (typeof detailsObj === 'string') {
+                          try { detailsObj = JSON.parse(detailsObj); } catch(e) {}
+                        }
+                        return (
+                          <tr key={report.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                            <td style={{ padding: '1rem', color: '#64748b' }}>{report.id}</td>
+                            <td style={{ padding: '1rem', color: '#64748b' }}>{report.type}</td>
+                            <td 
+                              style={{ padding: '1rem', color: '#64748b', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                              title={report.send_to || '-'}
+                            >
+                              {report.send_to || '-'}
+                            </td>
+                            {reportColumns.map(col => (
+                              <td 
+                                key={col} 
+                                style={{ padding: '1rem', color: '#64748b', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                title={detailsObj?.[col] || '-'}
+                              >
+                                {detailsObj?.[col] || '-'}
+                              </td>
+                            ))}
+                            <td style={{ padding: '1rem', color: '#64748b', whiteSpace: 'nowrap' }}>
+                              {report.created_at ? new Date(report.created_at).toLocaleString('en-US') : '-'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                    <FileText size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                    <p>No job applications found yet.</p>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

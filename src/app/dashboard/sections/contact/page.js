@@ -26,9 +26,12 @@ import {
   createSectionAPI, 
   updateSectionAPI, 
   deleteSectionAPI,
-  deleteImageAPI 
+  deleteImageAPI,
+  getReportsAPI 
 } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
+import { confirmDelete } from '@/lib/sweetalert';
+
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './contact-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
@@ -68,6 +71,42 @@ export default function ContactManager() {
   const [formFields, setFormFields] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [reports, setReports] = useState([]);
+  const [reportColumns, setReportColumns] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setReportsLoading(true);
+        const response = await getReportsAPI();
+        if (response && response.data) {
+          const contactReports = response.data.filter(r => r.type && typeof r.type === 'string' && r.type.includes("Contact"));
+          setReports(contactReports);
+
+          const uniqueKeys = new Set();
+          contactReports.forEach(report => {
+            let detailsObj = report.details;
+            if (typeof detailsObj === 'string') {
+              try { detailsObj = JSON.parse(detailsObj); } catch(e) {}
+            }
+            if (detailsObj && typeof detailsObj === 'object') {
+              Object.keys(detailsObj).forEach(key => uniqueKeys.add(key));
+            }
+          });
+          setReportColumns(Array.from(uniqueKeys));
+        }
+      } catch (error) {
+        console.error("Failed to fetch reports:", error);
+        toast.error("فشل تحميل رسائل اتصل بنا");
+      } finally {
+        setReportsLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
+
   const [activeBranchIndex, setActiveBranchIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bannerFile, setBannerFile] = useState(null);
@@ -233,7 +272,9 @@ export default function ContactManager() {
   };
 
   const handleDeleteField = async (id) => {
-    if (confirm("هل أنت متأكد من حذف هذا الحقل؟")) {
+    const result = await confirmDelete('حذف الحقل', 'هل أنت متأكد من حذف هذا الحقل؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         await refreshSections();
@@ -286,7 +327,9 @@ export default function ContactManager() {
   };
 
   const removeBranch = async (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا الفرع؟")) {
+    const result = await confirmDelete('حذف الفرع', 'هل أنت متأكد من حذف هذا الفرع؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteSectionAPI(id);
         await refreshSections();
@@ -342,7 +385,9 @@ export default function ContactManager() {
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
-    if (window.confirm("حذف الصورة نهائياً من السيرفر؟")) {
+    const result = await confirmDelete('حذف الصورة', 'حذف الصورة نهائياً من السيرفر؟');
+    if (result.isConfirmed) {
+
       try {
         await deleteImageAPI(data.hero.id, data.hero.rawImage);
         await refreshSections(); // Refresh to update store, though state update below provides immediate feedback
@@ -804,6 +849,72 @@ export default function ContactManager() {
                 </div>
              </div>
           </div>
+        </div>
+
+        <div className={dashboardStyles.contentCard} style={{ marginTop: '2rem', gridColumn: '1 / -1' }}>
+            <div className={localStyles.sectionHeader} style={{ padding: '0 0 1.5rem 0', borderBottom: '1px solid #f1f5f9', marginBottom: '1.5rem' }}>
+               <Mail size={20} color="#DC143C" />
+               <h3 className={localStyles.sectionTitle}>Contact Us Submissions</h3>
+            </div>
+            
+            <div style={{ padding: '0', overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
+              {reportsLoading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+                  <Loader2 className={localStyles.spinner} style={{ animation: 'spin 1s linear infinite' }} size={32} color="#DC143C" />
+                </div>
+              ) : reports.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc' }}>
+                      <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>ID</th>
+                      <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Email (Send To)</th>
+                      {reportColumns.map(col => (
+                        <th key={col} style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', textTransform: 'capitalize', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>
+                          {col.replace(/_/g, ' ')}
+                        </th>
+                      ))}
+                      <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reports.map((report) => {
+                      let detailsObj = report.details;
+                      if (typeof detailsObj === 'string') {
+                        try { detailsObj = JSON.parse(detailsObj); } catch(e) {}
+                      }
+                      return (
+                        <tr key={report.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '1rem', color: '#64748b' }}>{report.id}</td>
+                          <td 
+                            style={{ padding: '1rem', color: '#64748b', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            title={report.send_to || '-'}
+                          >
+                            {report.send_to || '-'}
+                          </td>
+                          {reportColumns.map(col => (
+                            <td 
+                              key={col} 
+                              style={{ padding: '1rem', color: '#64748b', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                              title={detailsObj?.[col] || '-'}
+                            >
+                              {detailsObj?.[col] || '-'}
+                            </td>
+                          ))}
+                          <td style={{ padding: '1rem', color: '#64748b' }}>
+                            {report.created_at ? new Date(report.created_at).toLocaleString('en-US') : '-'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                  <Mail size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                  <p>No contact submissions found.</p>
+                </div>
+              )}
+            </div>
         </div>
       </div>
 
