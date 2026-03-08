@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion'; 
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
+import Link from 'next/link';
 import styles from './Projects.module.css';
-
 
 const Projects = ({ homeData }) => {
   const { t, i18n } = useTranslation();
@@ -71,34 +71,35 @@ const Projects = ({ homeData }) => {
 
         <div className={styles.grid}>
           {displayProjects.map((project, index) => (
-            <motion.div
-              key={project.id || index}
-              className={styles.item}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-            >
-              <Image
-                src={getProjectImage(project)}
-                alt={isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
-                className={styles.logo}
-                width={80}
-                height={80}
-                style={{ objectFit: 'contain' }}
-                sizes="(max-width: 768px) 80px, 100px"
-                unoptimized={apiData.projects.length > 0}
-              />
+            <Link key={project.id || index} href="/projects" className={styles.linkWrapper}>
+              <motion.div
+                className={styles.item}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+              >
+                <Image
+                  src={getProjectImage(project)}
+                  alt={isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
+                  className={styles.logo}
+                  width={80}
+                  height={80}
+                  style={{ objectFit: 'contain' }}
+                  sizes="(max-width: 768px) 80px, 100px"
+                  unoptimized={apiData.projects.length > 0}
+                />
 
-              <div className={styles.info}>
-                <h3 className={styles.projectName}>
-                  {isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
-                </h3>
-                <span className={styles.projectType}>
-                  {isAr ? (project.description_ar || project.type) : (project.description_en || project.type)}
-                </span>
-              </div>
-            </motion.div>
+                <div className={styles.info}>
+                  <h3 className={styles.projectName}>
+                    {isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
+                  </h3>
+                  <span className={styles.projectType}>
+                    {isAr ? (project.description_ar || project.type) : (project.description_en || project.type)}
+                  </span>
+                </div>
+              </motion.div>
+            </Link>
           ))}
         </div>
       </div>

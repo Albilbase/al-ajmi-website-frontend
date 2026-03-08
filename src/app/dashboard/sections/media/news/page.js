@@ -32,8 +32,17 @@ export default function NewspaperManager() {
   });
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newItem, setNewItem] = useState({ 
+    title_en: "", 
+    title_ar: "", 
+    description_en: "", 
+    description_ar: "", 
+    srcs: [], 
+    files: [] 
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newItem, setNewItem] = useState({ title_en: "", title_ar: "", src: "", file: null });
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -68,8 +77,12 @@ export default function NewspaperManager() {
               id: s.id,
               title_en: s.title_en || "",
               title_ar: s.title_ar || "",
+              description_en: s.description_en || "",
+              description_ar: s.description_ar || "",
               src: getImageUrl(s.images?.[0]),
-              rawImage: s.images?.[0] || null
+              images: s.images?.map(img => getImageUrl(img)) || [],
+              rawImage: s.images?.[0] || null,
+              rawImages: s.images || []
             }))
           });
         }
@@ -121,7 +134,10 @@ export default function NewspaperManager() {
         itemFormData.append('type', 'item');
         itemFormData.append('title_en', item.title_en);
         itemFormData.append('title_ar', item.title_ar);
+        itemFormData.append('description_en', item.description_en || "");
+        itemFormData.append('description_ar', item.description_ar || "");
         itemFormData.append('is_active', 'true');
+       
         return updateSectionAPI(item.id, itemFormData);
       });
 
@@ -157,21 +173,36 @@ export default function NewspaperManager() {
   };
 
   const handleAddItem = async () => {
-    if (newItem.title_en && newItem.title_ar && newItem.file) {
+    if (newItem.title_en && newItem.title_ar && newItem.files.length > 0) {
       setIsSubmitting(true);
       const formData = new FormData();
       formData.append('section_key', 'newspaper');
       formData.append('type', 'item');
       formData.append('title_en', newItem.title_en);
       formData.append('title_ar', newItem.title_ar);
+      formData.append('description_en', newItem.description_en);
+      formData.append('description_ar', newItem.description_ar);
       formData.append('is_active', 'true');
-      formData.append('images', newItem.file);
+      
+      // Always send group flag to protect existing images
+      formData.append('update_img_type', 'group');
+
+      newItem.files.forEach(file => {
+        formData.append('images', file);
+      });
 
       try {
         await createSectionAPI(formData);
         await refreshSections();
         setIsModalOpen(false);
-        setNewItem({ title_en: "", title_ar: "", src: "", file: null });
+        setNewItem({ 
+          title_en: "", 
+          title_ar: "", 
+          description_en: "", 
+          description_ar: "", 
+          srcs: [], 
+          files: [] 
+        });
         toast.success("تمت إضافة الخبر بنجاح");
       } catch (error) {
         toast.error("حدث خطأ أثناء الإضافة");
@@ -182,44 +213,33 @@ export default function NewspaperManager() {
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setNewItem(prev => ({ ...prev, file: file, src: URL.createObjectURL(file) }));
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length > 0) {
+      const newSrcs = selectedFiles.map(file => URL.createObjectURL(file));
+      setNewItem(prev => ({ 
+        ...prev, 
+        files: [...prev.files, ...selectedFiles], 
+        srcs: [...prev.srcs, ...newSrcs] 
+      }));
     }
   };
 
-  const handleItemImageChange = async (e, item) => {
-    const file = e.target.files[0];
-    if (file) {
-      setIsSubmitting(true);
-      const formData = new FormData();
-      formData.append('section_key', 'newspaper');
-      formData.append('type', 'item');
-      formData.append('title_en', item.title_en);
-      formData.append('title_ar', item.title_ar);
-      formData.append('is_active', 'true');
-      formData.append('images', file);
-
-      try {
-        await updateSectionAPI(item.id, formData);
-        await refreshSections();
-        toast.success("تم تحديث الصورة بنجاح");
-      } catch (error) {
-        toast.error("فشل تحديث الصورة");
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
-
-  const handleRemoveItemImage = async (item) => {
-    if (!item.rawImage) return;
+  const handleRemoveItemImage = async (itemId, imagePath) => {
     const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة؟');
     if (result.isConfirmed) {
-
       try {
-        await deleteImageAPI(item.id, item.rawImage);
+        await deleteImageAPI(itemId, imagePath);
         await refreshSections();
+        
+        // Update editing item state to reflect removal if modal is open
+        if (editingItem && editingItem.id === itemId) {
+          setEditingItem(prev => ({
+            ...prev,
+            images: prev.images.filter(img => !img.includes(imagePath)),
+            rawImages: prev.rawImages.filter(img => img !== imagePath)
+          }));
+        }
+        
         toast.success("تم حذف الصورة بنجاح");
       } catch (error) {
         toast.error("فشل حذف الصورة");
@@ -227,22 +247,58 @@ export default function NewspaperManager() {
     }
   };
 
-  const saveItemRow = async (item) => {
+  const handleOpenEdit = (item) => {
+    setEditingItem({
+      ...item,
+      newFiles: [],
+      newSrcs: []
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditFileUpload = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length > 0) {
+      const newSrcs = selectedFiles.map(file => URL.createObjectURL(file));
+      setEditingItem(prev => ({ 
+        ...prev, 
+        newFiles: [...prev.newFiles, ...selectedFiles], 
+        newSrcs: [...prev.newSrcs, ...newSrcs] 
+      }));
+    }
+  };
+
+  const handleUpdateItem = async () => {
+    if (!editingItem) return;
+    setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'newspaper');
     formData.append('type', 'item');
-    formData.append('title_en', item.title_en);
-    formData.append('title_ar', item.title_ar);
+    formData.append('title_en', editingItem.title_en);
+    formData.append('title_ar', editingItem.title_ar);
+    formData.append('description_en', editingItem.description_en || "");
+    formData.append('description_ar', editingItem.description_ar || "");
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group');
+
+    editingItem.newFiles.forEach(file => {
+      formData.append('images', file);
+    });
 
     try {
-      await updateSectionAPI(item.id, formData);
-      await refreshSections(); // Optional: might be too frequent, but keeps consistency
-      toast.success("تم تحديث العنصر");
+      await updateSectionAPI(editingItem.id, formData);
+      await refreshSections();
+      setIsEditModalOpen(false);
+      setEditingItem(null);
+      toast.success("تم تحديث العنصر بنجاح");
     } catch (error) {
       toast.error("حدث خطأ أثناء التحديث");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+
 
   if (loading) return <div className={localStyles.loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#64748b' }}>Loading Newspaper Management...</div>;
 
@@ -348,86 +404,58 @@ export default function NewspaperManager() {
                         <span style={{ fontSize: '0.8rem', fontWeight: '700' }}>No Cover</span>
                       </div>
                     )}
-                    <div className={localStyles.imageOverlay}>
-                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                        <label className={localStyles.changeBtn}>
-                          <Upload size={16} /> {item.src ? 'Change' : 'Upload'}
-                          <input type="file" hidden onChange={(e) => handleItemImageChange(e, item)} accept="image/*" />
-                        </label>
-                        {item.rawImage && (
-                          <button 
-                            className={localStyles.deleteIconBtn}
-                            onClick={() => handleRemoveItemImage(item)}
-                            title="Remove Image"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
                   </div>
                   <div className={localStyles.cardContent}>
-                    <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
-                      <input 
-                        className={localStyles.inputField} 
-                        style={{ fontSize: '0.85rem', padding: '0.6rem' }}
-                        value={item.title_en} 
-                        onChange={(e) => {
-                           const newItems = [...data.items];
-                           const idx = newItems.findIndex(i => i.id === item.id);
-                           newItems[idx].title_en = e.target.value;
-                           setData(prev => ({ ...prev, items: newItems }));
-                        }}
-                        placeholder="Title (EN)"
-                      />
-                    </div>
-                    <div dir="rtl" className={localStyles.inputGroup}>
-                      <input 
-                        className={localStyles.inputField} 
-                        style={{ fontSize: '0.85rem', padding: '0.6rem' }}
-                        value={item.title_ar} 
-                        onChange={(e) => {
-                           const newItems = [...data.items];
-                           const idx = newItems.findIndex(i => i.id === item.id);
-                           newItems[idx].title_ar = e.target.value;
-                           setData(prev => ({ ...prev, items: newItems }));
-                        }}
-                        placeholder="العنوان (AR)"
-                      />
-                    </div>
+                    <h4 style={{ fontSize: '1rem', fontWeight: '800', marginBottom: '0.25rem', color: '#1e293b' }}>{item.title_en}</h4>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {item.description_en}
+                    </p>
 
-                    <button 
-                      onClick={async () => {
-                        const result = await confirmDelete('حذف المقال', 'هل أنت متأكد من حذف هذا المقال بالكامل؟');
-                        if (result.isConfirmed) {
-
-                          try {
-                            await deleteSectionAPI(item.id);
-                            setData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }));
-                            await refreshSections();
-                            toast.success("تم حذف المقال");
-                          } catch (error) { toast.error("خطأ في الحذف"); }
-                        }
-                      }}
-                      style={{ 
-                        marginTop: '1.25rem', 
-                        width: '100%', 
-                        padding: '0.6rem', 
-                        borderRadius: '8px', 
-                        border: '1px solid #fee2e2', 
-                        background: '#fff5f5', 
-                        color: '#ef4444',
-                        fontSize: '0.8rem',
-                        fontWeight: '700',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem'
-                      }}
-                    >
-                      <Trash2 size={14} /> Delete Newspaper Article
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button 
+                        onClick={() => handleOpenEdit(item)}
+                        style={{ 
+                          flex: 1,
+                          padding: '0.6rem', 
+                          borderRadius: '8px', 
+                          border: '1px solid #e2e8f0', 
+                          background: '#f8fafc', 
+                          color: '#64748b',
+                          fontSize: '0.8rem',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem'
+                        }}
+                      >
+                        <Save size={14} /> View / Edit
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          const result = await confirmDelete('حذف المقال', 'هل أنت متأكد من حذف هذا المقال بالكامل؟');
+                          if (result.isConfirmed) {
+                            try {
+                              await deleteSectionAPI(item.id);
+                              setData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }));
+                              await refreshSections();
+                              toast.success("تم حذف المقال");
+                            } catch (error) { toast.error("خطأ في الحذف"); }
+                          }
+                        }}
+                        style={{ 
+                          padding: '0.6rem', 
+                          borderRadius: '8px', 
+                          border: '1px solid #fee2e2', 
+                          background: '#fff5f5', 
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -451,38 +479,172 @@ export default function NewspaperManager() {
           </>
         }
       >
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
            <div className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>Photo</label>
-              {newItem.src ? (
-                 <div style={{ position: 'relative' }}>
-                    <img src={newItem.src} className={localStyles.previewThumb} alt="Preview" />
+              <label className={localStyles.fieldLabel}>Newspaper Photos (Multiple)</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                {newItem.srcs.map((src, index) => (
+                  <div key={index} style={{ position: 'relative', aspectRatio: '1/1' }}>
+                    <img src={src} className={localStyles.previewThumb} alt={`Preview ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
                     <button 
-                      onClick={() => setNewItem({...newItem, src: ""})}
-                      style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer' }}
+                      onClick={() => {
+                        const newFiles = [...newItem.files];
+                        const newSrcs = [...newItem.srcs];
+                        newFiles.splice(index, 1);
+                        newSrcs.splice(index, 1);
+                        setNewItem({...newItem, files: newFiles, srcs: newSrcs});
+                      }}
+                      style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                       <X size={16} />
+                       <X size={14} />
                     </button>
-                 </div>
-              ) : (
-                 <label className={localStyles.uploadPlaceholder} style={{ background: '#f8fafc' }}>
-                    <input type="file" hidden onChange={(e) => handleFileUpload(e)} accept="image/*" />
-                    <Upload size={32} />
-                    <span style={{ fontSize: '0.9rem' }}>Select Image</span>
-                 </label>
-              )}
+                  </div>
+                ))}
+                <label className={localStyles.uploadPlaceholder} style={{ background: '#f8fafc', aspectRatio: '1/1', minHeight: '100px', cursor: 'pointer' }}>
+                  <input type="file" hidden multiple onChange={(e) => handleFileUpload(e)} accept="image/*" />
+                  <Plus size={24} />
+                  <span style={{ fontSize: '0.75rem', fontWeight: '700' }}>Add More</span>
+                </label>
+              </div>
            </div>
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Title (EN)</label>
-                <input className={localStyles.inputField} value={newItem.title_en} onChange={(e) => setNewItem({...newItem, title_en: e.target.value})} />
+                <input className={localStyles.inputField} value={newItem.title_en} onChange={(e) => setNewItem({...newItem, title_en: e.target.value})} placeholder="Enter English Title" />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                <input className={localStyles.inputField} value={newItem.title_ar} onChange={(e) => setNewItem({...newItem, title_ar: e.target.value})} />
+                <input className={localStyles.inputField} value={newItem.title_ar} onChange={(e) => setNewItem({...newItem, title_ar: e.target.value})} placeholder="أدخل العنوان بالعربية" />
+              </div>
+           </div>
+
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>Description (EN)</label>
+                <textarea 
+                  className={localStyles.inputField} 
+                  rows={4} 
+                  value={newItem.description_en} 
+                  onChange={(e) => setNewItem({...newItem, description_en: e.target.value})} 
+                  placeholder="Enter English Description"
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+              <div dir="rtl" className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>الوصف (AR)</label>
+                <textarea 
+                  className={localStyles.inputField} 
+                  rows={4} 
+                  value={newItem.description_ar} 
+                  onChange={(e) => setNewItem({...newItem, description_ar: e.target.value})} 
+                  placeholder="أدخل الوصف بالعربية"
+                  style={{ resize: 'vertical' }}
+                />
               </div>
            </div>
         </div>
+      </Modal>
+
+      {/* Edit Item Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Edit Newspaper Article"
+        maxWidth="800px"
+        footer={
+          <>
+            <button onClick={() => setIsEditModalOpen(false)} className={localStyles.cancelBtn}>Cancel</button>
+            <button onClick={handleUpdateItem} className={localStyles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Updating...' : 'Save Changes'}
+            </button>
+          </>
+        }
+      >
+        {editingItem && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Existing Images */}
+            <div className={localStyles.inputGroup}>
+              <label className={localStyles.fieldLabel}>Current Newspaper Photos (Click to remove)</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                {editingItem.images.map((img, index) => (
+                  <div key={`existing-${index}`} style={{ position: 'relative', aspectRatio: '1/1', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                    <img src={img} alt="Existing" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button 
+                      onClick={() => handleRemoveItemImage(editingItem.id, editingItem.rawImages[index])}
+                      style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* New Images */}
+            <div className={localStyles.inputGroup}>
+              <label className={localStyles.fieldLabel}>Add New Photos</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                {editingItem.newSrcs.map((src, index) => (
+                  <div key={`new-${index}`} style={{ position: 'relative', aspectRatio: '1/1' }}>
+                    <img src={src} className={localStyles.previewThumb} alt={`New Preview ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                    <button 
+                      onClick={() => {
+                        const newFiles = [...editingItem.newFiles];
+                        const newSrcs = [...editingItem.newSrcs];
+                        newFiles.splice(index, 1);
+                        newSrcs.splice(index, 1);
+                        setEditingItem({...editingItem, newFiles, newSrcs});
+                      }}
+                      style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer' }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                <label className={localStyles.uploadPlaceholder} style={{ background: '#f8fafc', aspectRatio: '1/1', minHeight: '100px', cursor: 'pointer' }}>
+                  <input type="file" hidden multiple onChange={handleEditFileUpload} accept="image/*" />
+                  <Plus size={24} />
+                  <span style={{ fontSize: '0.75rem', fontWeight: '700' }}>Add More</span>
+                </label>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>Title (EN)</label>
+                <input className={localStyles.inputField} value={editingItem.title_en} onChange={(e) => setEditingItem({...editingItem, title_en: e.target.value})} />
+              </div>
+              <div dir="rtl" className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>العنوان (AR)</label>
+                <input className={localStyles.inputField} value={editingItem.title_ar} onChange={(e) => setEditingItem({...editingItem, title_ar: e.target.value})} />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>Description (EN)</label>
+                <textarea 
+                  className={localStyles.inputField} 
+                  rows={4} 
+                  value={editingItem.description_en} 
+                  onChange={(e) => setEditingItem({...editingItem, description_en: e.target.value})} 
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+              <div dir="rtl" className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>الوصف (AR)</label>
+                <textarea 
+                  className={localStyles.inputField} 
+                  rows={4} 
+                  value={editingItem.description_ar} 
+                  onChange={(e) => setEditingItem({...editingItem, description_ar: e.target.value})} 
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
     </motion.div>
   );

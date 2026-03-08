@@ -41,7 +41,7 @@ const NewsTicker = () => {
 
         const newsData = tickerSections
             .filter((i) => i.type === 'news_ticker' && i.is_active)
-            .sort((a, b) => (b.id || 0) - (a.id || 0)); // newest first
+            .sort((a, b) => (a.id || 0) - (b.id || 0)); // lowest ID first
 
         setItems(newsData.map((i) => (isAr ? i.title_ar : i.title_en)));
     }, [sections, isAr, t]);
@@ -118,6 +118,7 @@ const NewsTicker = () => {
                         >
                             {tickerItems.map((item, index) => (
                                 <div key={index} className={styles.tickerItem}>
+                                    <p>{item}</p>
                                     <div className={styles.tickerLogo}>
                                         <Image
                                             src="/logo.png"
@@ -127,7 +128,6 @@ const NewsTicker = () => {
                                             className={styles.tickerLogoImg}
                                         />
                                     </div>
-                                    <p>{item}</p>
                                 </div>
                             ))}
                         </div>

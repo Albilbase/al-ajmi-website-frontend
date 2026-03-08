@@ -80,6 +80,7 @@ export default function MediaManager() {
             date: s.details?.date || "",
             tag_en: s.details?.tag_en || "",
             tag_ar: s.details?.tag_ar || "",
+            videoIframes: s.details?.videoIframes || [],
             en: { title: s.title_en || "", description: s.description_en || "" },
             ar: { title: s.title_ar || "", description: s.description_ar || "" }
           }));
@@ -121,6 +122,7 @@ export default function MediaManager() {
       date: new Date().toISOString().split('T')[0],
       tag_en: "",
       tag_ar: "",
+      videoIframes: [""],
       en: { title: "", description: "" },
       ar: { title: "", description: "" }
     });
@@ -161,7 +163,8 @@ export default function MediaManager() {
     const details = {
       date: currentItem.date,
       tag_en: currentItem.tag_en,
-      tag_ar: currentItem.tag_ar
+      tag_ar: currentItem.tag_ar,
+      videoIframes: currentItem.videoIframes?.filter(link => link.trim() !== "") || []
     };
     formData.append('details', JSON.stringify(details));
 
@@ -199,6 +202,7 @@ export default function MediaManager() {
             date: s.details?.date || "",
             tag_en: s.details?.tag_en || "",
             tag_ar: s.details?.tag_ar || "",
+            videoIframes: s.details?.videoIframes || [],
             en: { title: s.title_en || "", description: s.description_en || "" },
             ar: { title: s.title_ar || "", description: s.description_ar || "" }
           };
@@ -540,6 +544,49 @@ export default function MediaManager() {
               <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
                 <label className={localStyles.label}>Category / Tag (AR)</label>
                 <input className={localStyles.input} value={currentItem.tag_ar} onChange={(e) => setCurrentItem({...currentItem, tag_ar: e.target.value})} placeholder="مثلاً: أخبار" />
+              </div>
+            </div>
+
+            {/* Video iFrame Links Section */}
+            <div style={{ marginBottom: '2.5rem', padding: '1.5rem', background: '#f0f9ff', borderRadius: '16px', border: '1px solid #e0f2fe' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h4 style={{ color: '#0369a1', fontWeight: 800, margin: 0 }}>Video Content (iFrame Links)</h4>
+                <button 
+                  onClick={() => setCurrentItem(prev => ({ ...prev, videoIframes: [...(prev.videoIframes || []), ""] }))}
+                  style={{ background: '#0369a1', color: 'white', border: 'none', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <Plus size={14} /> Add Video Link
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {(currentItem.videoIframes || []).map((link, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <input 
+                        className={localStyles.input} 
+                        value={link} 
+                        onChange={(e) => {
+                          const newLinks = [...currentItem.videoIframes];
+                          newLinks[idx] = e.target.value;
+                          setCurrentItem({...currentItem, videoIframes: newLinks});
+                        }}
+                        placeholder='Paste iFrame link here (e.g. <iframe src="..."></iframe>)'
+                      />
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const newLinks = currentItem.videoIframes.filter((_, i) => i !== idx);
+                        setCurrentItem({...currentItem, videoIframes: newLinks});
+                      }}
+                      style={{ background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '8px', width: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+                {(!currentItem.videoIframes || currentItem.videoIframes.length === 0) && (
+                  <p style={{ color: '#64748b', fontSize: '0.9rem', textAlign: 'center', margin: '1rem 0' }}>No video links added yet.</p>
+                )}
               </div>
             </div>
 

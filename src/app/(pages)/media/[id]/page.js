@@ -151,6 +151,20 @@ const MediaDetailPage = () => {
               ))}
             </div>
 
+            {/* Videos Section */}
+            {currentMedia.details?.videoIframes && currentMedia.details.videoIframes.length > 0 && (
+              <div className={styles.videosSection}>
+                 <h3 className={styles.videoSectionTitle}>
+                   {isRTL ? 'الفيديوهات' : 'Videos'}
+                 </h3>
+                 <div className={styles.videoGrid}>
+                   {currentMedia.details.videoIframes.map((iframeStr, idx) => (
+                     <div key={idx} className={styles.videoWrapper} dangerouslySetInnerHTML={{ __html: iframeStr }} />
+                   ))}
+                 </div>
+              </div>
+            )}
+
             <Link href="/media" className={styles.backButton}>
               {isRTL ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
               <span>{isRTL ? 'العودة إلى الميديا' : 'Back to Media'}</span>

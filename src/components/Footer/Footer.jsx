@@ -52,7 +52,9 @@ const Footer = () => {
           <div className={styles.footerColumn}>
             <div className={styles.logoWrapper}>
               <Image src="/logo.png" alt="Alajmi Logo" width={60} height={60} className={styles.logo} />
-              <span className={styles.companyName}>ALAJMI <span>COMPANY</span></span>
+              <div className={styles.nameBranding}>
+                <span className={styles.brandEn}>AbdulAli Al-ajmi</span>
+              </div>
             </div>
             <p className={styles.description}>
               {footerData.about 

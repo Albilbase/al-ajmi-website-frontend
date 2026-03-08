@@ -38,6 +38,12 @@
   gap: 2rem;
 }
 
+.linkWrapper {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .item {
   background: var(--card);
   padding: 2.5rem;

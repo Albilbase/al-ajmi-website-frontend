@@ -87,6 +87,69 @@
     width: 30px;
 }
 
+/* Swiper Navigation Arrows */
+.navButtons {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 10;
+    pointer-events: none; /* Allows swiping on the container */
+}
+
+.navBtn {
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto; /* Re-enable for the button specifically */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.navBtn:hover {
+    background: var(--accent, #DC143C);
+    border-color: var(--accent, #DC143C);
+    transform: scale(1.1);
+    box-shadow: 0 10px 25px rgba(220, 20, 60, 0.4);
+}
+
+.navBtn:active {
+    transform: scale(0.95);
+}
+
+.section[dir="rtl"] .navBtn svg {
+    transform: rotate(180deg);
+}
+
+/* Adjust pagination margin when arrows are present if needed */
+.historySwiper :global(.swiper-pagination) {
+    bottom: 2rem !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    width: auto !important;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.section[dir="rtl"] .historySwiper :global(.swiper-pagination) {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+}
 .floatingBadge {
     position: absolute;
     bottom: 3rem;

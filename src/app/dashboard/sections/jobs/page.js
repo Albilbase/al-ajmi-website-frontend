@@ -739,7 +739,7 @@ export default function JobsManager() {
               </div>
               <div className={localStyles.formGroup}>
                 <label className={localStyles.label}>Qualification</label>
-                <input className={localStyles.input} value={currentVacancy?.en?.qualification || ""} onChange={(e) => updateField('en', 'qualification', e.target.value)} />
+                <textarea className={localStyles.textarea} value={currentVacancy?.en?.qualification || ""} onChange={(e) => updateField('en', 'qualification', e.target.value)} rows={3} />
               </div>
           </div>
           <div dir="rtl">
@@ -764,7 +764,7 @@ export default function JobsManager() {
               </div>
               <div className={localStyles.formGroup}>
                 <label className={localStyles.label}>المؤهلات</label>
-                <input className={localStyles.input} value={currentVacancy?.ar?.qualification || ""} onChange={(e) => updateField('ar', 'qualification', e.target.value)} />
+                <textarea className={localStyles.textarea} value={currentVacancy?.ar?.qualification || ""} onChange={(e) => updateField('ar', 'qualification', e.target.value)} rows={3} />
               </div>
           </div>
         </div>

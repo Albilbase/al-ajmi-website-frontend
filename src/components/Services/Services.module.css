@@ -108,6 +108,7 @@
   grid-template-columns: 1.5fr 1fr;
   gap: 40px;
   margin-bottom: 60px;
+  align-items: start;
 }
 
 /* Featured Card */
@@ -126,7 +127,7 @@
 .featuredContent {
   position: relative;
   height: 100%;
-  min-height: 600px;
+  min-height: 700px;
 }
 
 .imageWrapper {
@@ -216,9 +217,12 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
-  max-height: 600px;
+  max-height: 750px;
   overflow-y: auto;
-  padding-right: 10px;
+  padding: 20px;
+  margin: -20px; /* Offset the padding to maintain visual boundaries while allowing overflow */
+  margin-top: -20px;
+  width: calc(100% + 40px);
   
   /* Hide scrollbar */
   scrollbar-width: none; /* Firefox */
@@ -407,12 +411,6 @@
   .cardTitle {
     font-size: 0.9rem;
   }
-}
-
-/* RTL Support */
-[dir="rtl"] .servicesGrid {
-  padding-right: 0;
-  padding-left: 10px;
 }
 
 [dir="rtl"] .numberBadge {

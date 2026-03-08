@@ -137,9 +137,9 @@ const Awards = ({ homeData }) => {
   const displayAwards = apiData.awards.length > 0 
     ? apiData.awards.map(award => ({
         ...award,
-        src: award.images && award.images.length > 0 
+        src: award.images && award.images.length > 0 && award.images[0]
           ? `http://192.168.15.95:5000${award.images[0]}` 
-          : '/images/placeholder.png'
+          : '/images/Our-Owards/1feb2023-1.png' // Fallback to a real existing static image
       }))
     : staticAwards;
 
@@ -229,6 +229,7 @@ const Awards = ({ homeData }) => {
                   fill
                   className={styles.modalImage}
                   priority
+                  unoptimized={apiData.awards.length > 0}
                 />
               </div>
               <div className={styles.modalInfo}>

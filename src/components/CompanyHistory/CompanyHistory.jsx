@@ -3,17 +3,18 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import styles from './CompanyHistory.module.css';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, EffectFade, Pagination } from 'swiper/modules';
+import { Autoplay, EffectFade, Pagination, Navigation } from 'swiper/modules';
 
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
+import 'swiper/css/navigation';
 
 const CompanyHistory = ({ homeData }) => {
     const { t, i18n } = useTranslation();
@@ -66,7 +67,7 @@ const CompanyHistory = ({ homeData }) => {
                         className={styles.imageInner}
                     >
                         <Swiper
-                            modules={[Autoplay, EffectFade, Pagination]}
+                            modules={[Autoplay, EffectFade, Pagination, Navigation]}
                             effect="fade"
                             speed={1000}
                             autoplay={{
@@ -74,6 +75,10 @@ const CompanyHistory = ({ homeData }) => {
                                 disableOnInteraction: false,
                             }}
                             loop={true}
+                            navigation={{
+                                nextEl: `.${styles.nextBtn}`,
+                                prevEl: `.${styles.prevBtn}`,
+                            }}
                             pagination={{
                                 clickable: true,
                                 dynamicBullets: true,
@@ -97,6 +102,17 @@ const CompanyHistory = ({ homeData }) => {
                             ))}
                         </Swiper>
                     </motion.div>
+
+                    {/* Navigation Arrows - Moved outside parallax div for stability */}
+                    <div className={styles.navButtons}>
+                        <button className={`${styles.navBtn} ${styles.prevBtn}`}>
+                            <ChevronLeft size={24} />
+                        </button>
+                        <button className={`${styles.navBtn} ${styles.nextBtn}`}>
+                            <ChevronRight size={24} />
+                        </button>
+                    </div>
+
                     <div className={styles.imageOverlay} />
                     
                     {/* Floating Badge - 45+ Years of Excellence */}

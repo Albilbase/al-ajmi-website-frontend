@@ -83,6 +83,19 @@ const JobsPage = () => {
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
     if (selectedFile) {
+      const allowedExtensions = ['pdf', 'doc', 'docx'];
+      const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
+      
+      if (!allowedExtensions.includes(fileExtension)) {
+        toast.error(isRTL 
+          ? "عذراً، يسمح فقط بملفات PDF و Word (.doc, .docx)" 
+          : "Sorry, only PDF and Word files (.doc, .docx) are allowed.");
+        event.target.value = ""; // Clear the input
+        setFile(null);
+        setFileName("");
+        return;
+      }
+
       setFile(selectedFile);
       setFileName(selectedFile.name);
     } else {

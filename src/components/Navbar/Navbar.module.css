@@ -16,9 +16,9 @@
 
 .container {
   width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 0 5rem;
+  max-width: 1800px; /* Increased to accommodate content without being TOO wide */
+  margin: 0 auto;
+  padding: 0 4rem;
 }
 
 .tabletContact {
@@ -76,19 +76,18 @@
 /* Desktop Navigation */
 .navLinks {
   display: flex;
-  gap: 1.25rem;
+  gap: 2.5rem; /* Adjusted for better spacing */
   align-items: center;
   flex: 1;
-  justify-content: flex-end;
-  padding-left: 2rem; /* Reduced from 4rem */
+  justify-content: center;
+  padding: 0;
 }
 
 :global([dir="rtl"]) .navLinks {
-  padding-left: 0;
-  padding-right: 5rem;
-  justify-content: flex-start;
+  padding: 0;
+  justify-content: center;
   flex: 1;
-  gap: 1.75rem; /* Increased from 1.25rem for Arabic */
+  gap: 2.5rem;
 }
 
 
@@ -421,15 +420,15 @@
 /* Responsive Overrides */
 @media (max-width: 1440px) {
   .container { padding: 0 2.5rem; }
-  .navLinks { gap: 1rem; padding-left: 2rem; }
-  :global([dir="rtl"]) .navLinks { gap: 1.5rem; } /* Increased from 1rem */
+  .navLinks { gap: 1.5rem; justify-content: center; padding: 0; }
+  :global([dir="rtl"]) .navLinks { gap: 1.5rem; justify-content: center; padding: 0; }
   .navLink { font-size: 0.72rem; }
 }
 
 @media (max-width: 1200px) {
   .container { padding: 0 1.5rem; }
-  .navLinks { gap: 0.7rem; padding-left: 1.5rem; }
-  :global([dir="rtl"]) .navLinks { gap: 1rem; padding-right: 1.5rem; } /* Increased from 0.7rem */
+  .navLinks { gap: 1rem; justify-content: center; padding: 0; }
+  :global([dir="rtl"]) .navLinks { gap: 1rem; justify-content: center; padding: 0; }
   .navLink { font-size: 0.68rem; letter-spacing: 0.3px; }
   .navItem:last-child { margin-left: 1rem; }
   :global([dir="rtl"]) .navItem:last-child { margin-right: 1rem; }
@@ -457,11 +456,11 @@
   .navLinks {
     display: flex;
     order: 2;
-    flex-basis: auto;
-    justify-content: flex-end;
+    flex: 1;
+    justify-content: center;
     margin-top: 0;
-    padding-left: 1rem;
-    gap: 0.6rem;
+    padding: 0;
+    gap: 1.2rem;
     flex-wrap: nowrap;
   }
   .navLink {
@@ -477,9 +476,9 @@
     margin-left: 0;
   }
   :global([dir="rtl"]) .navLinks {
-    padding-right: 1rem;
-    padding-left: 0;
-    gap: 0.9rem; /* Increased from 0.6rem */
+    padding: 0;
+    gap: 1.2rem;
+    justify-content: center;
   }
   .mobileToggle {
     display: none !important;
@@ -497,7 +496,10 @@
     height: 55px;
   }
   .container {
-    padding: 0 1.5rem;
+    width: 100%;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 0 4rem;
   }
 }
 

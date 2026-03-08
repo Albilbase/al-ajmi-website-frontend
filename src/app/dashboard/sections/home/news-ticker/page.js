@@ -53,7 +53,7 @@ export default function NewsTickerManager() {
               id: s.id,
               text_en: s.title_en,
               text_ar: s.title_ar
-            }));
+            })).sort((a, b) => (a.id || 0) - (b.id || 0)); // Sort by ID ASC
             setNewsItems(mappedNews);
           }
 
@@ -101,7 +101,7 @@ export default function NewsTickerManager() {
         text_ar: newItem.text_ar
       };
       
-      setNewsItems([...newsItems, addedItem]);
+      setNewsItems(prev => [...prev, addedItem].sort((a, b) => (a.id || 0) - (b.id || 0)));
       toast.success(response.message || 'تمت إضافة الخبر بنجاح');
       setIsModalOpen(false);
       
