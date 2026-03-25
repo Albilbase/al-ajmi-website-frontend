@@ -182,7 +182,7 @@ const SuppliersPage = () => {
 
       if (files.length > 0) {
         files.forEach(f => {
-          submitData.append('Files', f);
+          submitData.append('files', f);
         });
       }
 
