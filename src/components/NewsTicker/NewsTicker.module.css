@@ -6,8 +6,8 @@
     display: flex;
     align-items: center;
     overflow: hidden;
-    position: relative;
     z-index: 100;
+    pointer-events: none; /* Crucial: ensures it doesn't block clicks to dropdowns */
 }
 
 .container {

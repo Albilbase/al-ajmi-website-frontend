@@ -18,12 +18,14 @@ import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './hse-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { confirmDelete } from '@/lib/sweetalert';
 
 
 export default function HseManager() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   const [content, setContent] = useState({
     hero: {
@@ -73,6 +75,13 @@ export default function HseManager() {
   const [activeModal, setActiveModal] = useState(null);
   const [newItem, setNewItem] = useState({ en: "", ar: "" });
 
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
+  };
+
   // Fetch all data on mount
   useEffect(() => {
     const fetchAllData = async () => {
@@ -91,7 +100,7 @@ export default function HseManager() {
                 id: hero.id,
                 title_en: hero.title_en || "",
                 title_ar: hero.title_ar || "",
-                bgImage: hero.images?.[0] ? `http://192.168.15.95:5000${hero.images[0]}` : null,
+                bgImage: getImageUrl(hero.images?.[0]),
                 rawImage: hero.images?.[0] || null
               }
             }));
@@ -143,6 +152,16 @@ export default function HseManager() {
           // 5. Responsibility
           const responsibilityHeader = hseSections.find(s => s.type === 'responsibility_header');
           const responsibilityItems = hseSections.filter(s => s.type === 'responsibility_item');
+          
+          let respDetails = {};
+          try {
+            respDetails = typeof responsibilityHeader?.details === 'string' 
+              ? JSON.parse(responsibilityHeader.details) 
+              : responsibilityHeader?.details || {};
+          } catch(e) {
+            console.error("Failed to parse responsibility details", e);
+          }
+
           setContent(prev => ({
             ...prev,
             responsibility: {
@@ -151,15 +170,15 @@ export default function HseManager() {
               title_ar: responsibilityHeader?.title_ar || "",
               intro_en: responsibilityHeader?.description_en || "",
               intro_ar: responsibilityHeader?.description_ar || "",
-              footer_en: responsibilityHeader?.details?.footer_en || "",
-              footer_ar: responsibilityHeader?.details?.footer_ar || "",
+              footer_en: respDetails?.footer_en || "",
+              footer_ar: respDetails?.footer_ar || "",
               list: responsibilityItems.map(r => ({ id: r.id, en: r.title_en, ar: r.title_ar }))
             }
           }));
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        toast.error("حدث خطأ أثناء تحميل البيانات");
+        toast.error("An error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -175,13 +194,11 @@ export default function HseManager() {
         [field]: value
       }
     }));
-  };
-
-  const handleHeroImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setHeroImageFile(file);
-      setHeroImagePreview(URL.createObjectURL(file));
+    const errorKey = `${section}_${field}`;
+    if (formErrors[errorKey]) {
+      const newErrors = { ...formErrors };
+      delete newErrors[errorKey];
+      setFormErrors(newErrors);
     }
   };
 
@@ -189,13 +206,11 @@ export default function HseManager() {
     if (heroImageFile) {
        setHeroImageFile(null);
        setHeroImagePreview(null);
-       const input = document.getElementById('heroImageInput');
-       if (input) input.value = '';
        return;
     }
 
     if (content.hero.id && content.hero.rawImage) {
-       const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة نهائياً من السيرفر؟');
+       const result = await confirmDelete('Delete Image', 'Are you sure you want to delete this hero image permanently?');
        if (result.isConfirmed) {
 
           try {
@@ -204,16 +219,27 @@ export default function HseManager() {
                 ...prev,
                 hero: { ...prev.hero, bgImage: null, rawImage: null }
              }));
-             toast.success("تم حذف الصورة");
+             toast.success("Image deleted successfully");
           } catch (e) {
              console.error(e);
-             toast.error("فشل حذف الصورة");
+             toast.error("Failed to delete image");
           }
        }
     }
   };
 
   const handleSaveHero = async () => {
+    if (!content.hero.title_en) errors.hero_title_en = true;
+    if (!content.hero.title_ar) errors.hero_title_ar = true;
+    if (!content.hero.bgImage && !heroImageFile) errors.hero_bgImage = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all hero banner fields and upload an image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'hse');
@@ -240,22 +266,35 @@ export default function HseManager() {
            hero: {
              ...prev.hero,
              id: response.data.id,
-             bgImage: response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : content.hero.bgImage,
+             bgImage: getImageUrl(response.data.images?.[0]),
              rawImage: response.data.images?.[0] || content.hero.rawImage
            }
         }));
       }
-      toast.success("تم حفظ البانر بنجاح");
+      toast.success("Hero banner saved successfully");
       setHeroImageFile(null);
       setHeroImagePreview(null);
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البانر");
+      toast.error("An error occurred while saving the hero banner");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSavePurpose = async () => {
+    const errors = {};
+    if (!content.purpose.title_en) errors.purpose_title_en = true;
+    if (!content.purpose.title_ar) errors.purpose_title_ar = true;
+    if (!content.purpose.text_en) errors.purpose_text_en = true;
+    if (!content.purpose.text_ar) errors.purpose_text_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all purpose fields");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'hse');
@@ -272,15 +311,25 @@ export default function HseManager() {
       } else {
         await createSectionAPI(formData);
       }
-      toast.success("تم حفظ قسم الغرض بنجاح");
+      toast.success("Purpose section saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ الغرض");
+      toast.error("An error occurred while saving purpose");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSavePrinciplesHeader = async () => {
+    if (!content.principles.title_en) errors.principles_title_en = true;
+    if (!content.principles.title_ar) errors.principles_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in principles header title");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'hse');
@@ -295,15 +344,27 @@ export default function HseManager() {
       } else {
         await createSectionAPI(formData);
       }
-      toast.success("تم حفظ عنوان المبادئ بنجاح");
+      toast.success("Principles header saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ عنوان المبادئ");
+      toast.error("An error occurred while saving principles header");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveStatementHeader = async () => {
+    if (!content.statement.title_en) errors.statement_title_en = true;
+    if (!content.statement.title_ar) errors.statement_title_ar = true;
+    if (!content.statement.intro_en) errors.statement_intro_en = true;
+    if (!content.statement.intro_ar) errors.statement_intro_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all policy statement header fields");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'hse');
@@ -320,15 +381,29 @@ export default function HseManager() {
       } else {
         await createSectionAPI(formData);
       }
-      toast.success("تم حفظ عنوان بيان السياسة بنجاح");
+      toast.success("Policy statement header saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ عنوان بيان السياسة");
+      toast.error("An error occurred while saving policy statement header");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveResponsibilityHeader = async () => {
+    if (!content.responsibility.title_en) errors.responsibility_title_en = true;
+    if (!content.responsibility.title_ar) errors.responsibility_title_ar = true;
+    if (!content.responsibility.intro_en) errors.responsibility_intro_en = true;
+    if (!content.responsibility.intro_ar) errors.responsibility_intro_ar = true;
+    if (!content.responsibility.footer_en) errors.responsibility_footer_en = true;
+    if (!content.responsibility.footer_ar) errors.responsibility_footer_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all responsibility fields");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'hse');
@@ -351,20 +426,26 @@ export default function HseManager() {
       } else {
         await createSectionAPI(formData);
       }
-      toast.success("تم حفظ عنوان المسؤولية بنجاح");
+      toast.success("Responsibility header saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ عنوان المسؤولية");
+      toast.error("An error occurred while saving responsibility header");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleAddItemFromModal = async () => {
-    if (!newItem.en || !newItem.ar) {
-      toast.error("Please fill in both English and Arabic fields");
+    const errors = {};
+    if (!newItem.en) errors.modal_en = true;
+    if (!newItem.ar) errors.modal_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in both English and Arabic content");
       return;
     }
-    
+
+    setFormErrors({});
     setIsSubmitting(true);
     const type = `${activeModal}_item`;
     
@@ -381,11 +462,11 @@ export default function HseManager() {
       
       handleUpdate(activeModal, 'list', [...content[activeModal].list, addedItem]);
       
-      toast.success("تمت الإضافة بنجاح");
+      toast.success("Item added successfully");
       setActiveModal(null);
       setNewItem({ en: "", ar: "" });
     } catch (error) {
-      toast.error("حدث خطأ أثناء الإضافة");
+      toast.error("An error occurred while adding item");
     } finally {
       setIsSubmitting(false);
     }
@@ -401,9 +482,9 @@ export default function HseManager() {
         await deleteSectionAPI(id);
         const newList = content[section].list.filter((_, i) => i !== index);
         handleUpdate(section, 'list', newList);
-        toast.success("تم الحذف بنجاح");
+        toast.success("Item deleted successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting");
       }
     }
   };
@@ -412,12 +493,30 @@ export default function HseManager() {
     const newList = [...content[section].list];
     newList[index] = { ...newList[index], [lang]: value };
     handleUpdate(section, 'list', newList);
+    
+    const errorKey = `${section}_${index}_${lang}`;
+    if (formErrors[errorKey]) {
+      const newErrors = { ...formErrors };
+      delete newErrors[errorKey];
+      setFormErrors(newErrors);
+    }
   };
 
   const saveListItem = async (section, index) => {
     const item = content[section].list[index];
     if (!item.id) return;
 
+    const errors = {};
+    if (!item.en) errors[`${section}_${index}_en`] = true;
+    if (!item.ar) errors[`${section}_${index}_ar`] = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Content cannot be empty");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const type = `${section}_item`;
 
@@ -430,9 +529,9 @@ export default function HseManager() {
 
     try {
       await updateSectionAPI(item.id, formData);
-      toast.success("تم التحديث بنجاح");
+      toast.success("Item updated successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء التحديث");
+      toast.error("An error occurred while updating");
     } finally {
       setIsSubmitting(false);
     }
@@ -470,34 +569,32 @@ export default function HseManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Page Title (EN)</label>
-                <input value={content.hero.title_en} onChange={(e) => handleUpdate('hero', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <input value={content.hero.title_en} onChange={(e) => handleUpdate('hero', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.hero_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>عنوان الصفحة (AR)</label>
-                <input value={content.hero.title_ar} onChange={(e) => handleUpdate('hero', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                <input value={content.hero.title_ar} onChange={(e) => handleUpdate('hero', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.hero_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Banner Image</label>
-              <div className={localStyles.mediaPreview}>
-                <img src={heroImagePreview || content.hero.bgImage || "/images/placeholder.png"} alt="Banner" />
-                <div className={localStyles.mediaOverlay}>
-                   <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                     <ImageIcon size={18} /> Change Banner
-                     <input id="heroImageInput" type="file" accept="image/*" onChange={handleHeroImageChange} style={{ display: 'none' }} />
-                   </label>
-                   <button 
-                      onClick={removeHeroImage}
-                      className={localStyles.deleteBtn}
-                      style={{ height: '36px', width: '36px', padding: 0, background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2', marginLeft: '0.5rem' }}
-                      type="button"
-                      title="Remove Image"
-                   >
-                     <Trash2 size={18} />
-                   </button>
-                </div>
-              </div>
-           </div>
+              <ImageUpload 
+                value={heroImagePreview || content.hero.bgImage}
+                mode="hero"
+                height="180px"
+                 onChange={(file) => {
+                   setHeroImageFile(file);
+                   setHeroImagePreview(URL.createObjectURL(file));
+                   if(formErrors.hero_bgImage) {
+                      const newErrors = { ...formErrors };
+                      delete newErrors.hero_bgImage;
+                      setFormErrors(newErrors);
+                   }
+                 }}
+                 onDelete={removeHeroImage}
+               />
+               {formErrors.hero_bgImage && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-181px', height: '181px', pointerEvents: 'none' }}></div>}
+            </div>
         </div>
 
         {/* Purpose Section */}
@@ -514,21 +611,21 @@ export default function HseManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Purpose Title (EN)</label>
-                <input value={content.purpose.title_en} onChange={(e) => handleUpdate('purpose', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <input value={content.purpose.title_en} onChange={(e) => handleUpdate('purpose', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.purpose_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>عنوان الغرض (AR)</label>
-                <input value={content.purpose.title_ar} onChange={(e) => handleUpdate('purpose', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                <label className={localStyles.fieldLabel}>Purpose Title (AR)</label>
+                <input value={content.purpose.title_ar} onChange={(e) => handleUpdate('purpose', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.purpose_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                  <label className={localStyles.fieldLabel}>Purpose Text (EN)</label>
-                 <textarea rows="4" value={content.purpose.text_en} onChange={(e) => handleUpdate('purpose', 'text_en', e.target.value)} className={localStyles.textareaField} />
+                 <textarea rows="4" value={content.purpose.text_en} onChange={(e) => handleUpdate('purpose', 'text_en', e.target.value)} className={`${localStyles.textareaField} ${formErrors.purpose_text_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>نص الغرض (AR)</label>
-                 <textarea rows="4" value={content.purpose.text_ar} onChange={(e) => handleUpdate('purpose', 'text_ar', e.target.value)} className={localStyles.textareaField} />
+                 <label className={localStyles.fieldLabel}>Purpose Text (AR)</label>
+                 <textarea rows="4" value={content.purpose.text_ar} onChange={(e) => handleUpdate('purpose', 'text_ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors.purpose_text_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
         </div>
@@ -556,12 +653,12 @@ export default function HseManager() {
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Title (EN)</label>
-                <input value={content.principles.title_en} onChange={(e) => handleUpdate('principles', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <label className={localStyles.fieldLabel}>Section Title (EN)</label>
+                <input value={content.principles.title_en} onChange={(e) => handleUpdate('principles', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.principles_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                <input value={content.principles.title_ar} onChange={(e) => handleUpdate('principles', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                <label className={localStyles.fieldLabel}>Principles Title (AR)</label>
+                <input value={content.principles.title_ar} onChange={(e) => handleUpdate('principles', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.principles_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.listManager}>
@@ -569,9 +666,9 @@ export default function HseManager() {
               <div className={localStyles.scrollableList}>
                 {content.principles.list.map((item, idx) => (
                   <div key={item.id || idx} className={localStyles.listItem}>
-                     <textarea rows="3" value={item.en} onChange={(e) => updateListItem('principles', idx, 'en', e.target.value)} className={localStyles.textareaField} />
+                     <textarea rows="3" value={item.en} onChange={(e) => updateListItem('principles', idx, 'en', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`principles_${idx}_en`] ? dashboardStyles.invalidInput : ''}`} />
                      <div dir="rtl">
-                       <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('principles', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
+                       <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('principles', idx, 'ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`principles_${idx}_ar`] ? dashboardStyles.invalidInput : ''}`} />
                      </div>
                      <div style={{ display: 'flex', gap: '0.5rem' }}>
                        <button onClick={() => saveListItem('principles', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
@@ -610,22 +707,22 @@ export default function HseManager() {
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Title (EN)</label>
-                <input value={content.statement.title_en} onChange={(e) => handleUpdate('statement', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <label className={localStyles.fieldLabel}>Policy Statement Title (EN)</label>
+                <input value={content.statement.title_en} onChange={(e) => handleUpdate('statement', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.statement_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                <input value={content.statement.title_ar} onChange={(e) => handleUpdate('statement', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                <label className={localStyles.fieldLabel}>Policy Statement Title (AR)</label>
+                <input value={content.statement.title_ar} onChange={(e) => handleUpdate('statement', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.statement_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                  <label className={localStyles.fieldLabel}>Intro (EN)</label>
-                 <textarea rows="2" value={content.statement.intro_en} onChange={(e) => handleUpdate('statement', 'intro_en', e.target.value)} className={localStyles.textareaField} />
+                 <textarea rows="2" value={content.statement.intro_en} onChange={(e) => handleUpdate('statement', 'intro_en', e.target.value)} className={`${localStyles.textareaField} ${formErrors.statement_intro_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>مقدمة (AR)</label>
-                 <textarea rows="2" value={content.statement.intro_ar} onChange={(e) => handleUpdate('statement', 'intro_ar', e.target.value)} className={localStyles.textareaField} />
+                 <label className={localStyles.fieldLabel}>Intro (AR)</label>
+                 <textarea rows="2" value={content.statement.intro_ar} onChange={(e) => handleUpdate('statement', 'intro_ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors.statement_intro_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.listManager}>
@@ -633,9 +730,9 @@ export default function HseManager() {
               <div className={localStyles.scrollableList}>
                 {content.statement.list.map((item, idx) => (
                   <div key={item.id || idx} className={localStyles.listItem}>
-                     <textarea rows="3" value={item.en} onChange={(e) => updateListItem('statement', idx, 'en', e.target.value)} className={localStyles.textareaField} />
+                     <textarea rows="3" value={item.en} onChange={(e) => updateListItem('statement', idx, 'en', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`statement_${idx}_en`] ? dashboardStyles.invalidInput : ''}`} />
                      <div dir="rtl">
-                       <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('statement', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
+                       <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('statement', idx, 'ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`statement_${idx}_ar`] ? dashboardStyles.invalidInput : ''}`} />
                      </div>
                      <div style={{ display: 'flex', gap: '0.5rem' }}>
                        <button onClick={() => saveListItem('statement', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
@@ -674,22 +771,22 @@ export default function HseManager() {
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Title (EN)</label>
-                <input value={content.responsibility.title_en} onChange={(e) => handleUpdate('responsibility', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <label className={localStyles.fieldLabel}>Section Title (EN)</label>
+                <input value={content.responsibility.title_en} onChange={(e) => handleUpdate('responsibility', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.responsibility_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                <input value={content.responsibility.title_ar} onChange={(e) => handleUpdate('responsibility', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                <label className={localStyles.fieldLabel}>Responsibility Title (AR)</label>
+                <input value={content.responsibility.title_ar} onChange={(e) => handleUpdate('responsibility', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.responsibility_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                  <label className={localStyles.fieldLabel}>Intro (EN)</label>
-                 <textarea rows="2" value={content.responsibility.intro_en} onChange={(e) => handleUpdate('responsibility', 'intro_en', e.target.value)} className={localStyles.textareaField} />
+                 <textarea rows="2" value={content.responsibility.intro_en} onChange={(e) => handleUpdate('responsibility', 'intro_en', e.target.value)} className={`${localStyles.textareaField} ${formErrors.responsibility_intro_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>مقدمة (AR)</label>
-                 <textarea rows="2" value={content.responsibility.intro_ar} onChange={(e) => handleUpdate('responsibility', 'intro_ar', e.target.value)} className={localStyles.textareaField} />
+                 <label className={localStyles.fieldLabel}>Intro (AR)</label>
+                 <textarea rows="2" value={content.responsibility.intro_ar} onChange={(e) => handleUpdate('responsibility', 'intro_ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors.responsibility_intro_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.listManager}>
@@ -697,9 +794,9 @@ export default function HseManager() {
               <div className={localStyles.scrollableList}>
                 {content.responsibility.list.map((item, idx) => (
                   <div key={item.id || idx} className={localStyles.listItem}>
-                     <textarea rows="3" value={item.en} onChange={(e) => updateListItem('responsibility', idx, 'en', e.target.value)} className={localStyles.textareaField} />
+                     <textarea rows="3" value={item.en} onChange={(e) => updateListItem('responsibility', idx, 'en', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`responsibility_${idx}_en`] ? dashboardStyles.invalidInput : ''}`} />
                      <div dir="rtl">
-                       <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('responsibility', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
+                       <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('responsibility', idx, 'ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`responsibility_${idx}_ar`] ? dashboardStyles.invalidInput : ''}`} />
                      </div>
                      <div style={{ display: 'flex', gap: '0.5rem' }}>
                        <button onClick={() => saveListItem('responsibility', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
@@ -716,11 +813,11 @@ export default function HseManager() {
            <div className={localStyles.formGrid} style={{ marginTop: '1.5rem' }}>
               <div className={localStyles.inputGroup}>
                  <label className={localStyles.fieldLabel}>Footer Quote (EN)</label>
-                 <textarea rows="2" value={content.responsibility.footer_en} onChange={(e) => handleUpdate('responsibility', 'footer_en', e.target.value)} className={localStyles.textareaField} />
+                 <textarea rows="2" value={content.responsibility.footer_en} onChange={(e) => handleUpdate('responsibility', 'footer_en', e.target.value)} className={`${localStyles.textareaField} ${formErrors.responsibility_footer_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>اقتباس الختام (AR)</label>
-                 <textarea rows="2" value={content.responsibility.footer_ar} onChange={(e) => handleUpdate('responsibility', 'footer_ar', e.target.value)} className={localStyles.textareaField} />
+                 <label className={localStyles.fieldLabel}>Footer Quote (AR)</label>
+                 <textarea rows="2" value={content.responsibility.footer_ar} onChange={(e) => handleUpdate('responsibility', 'footer_ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors.responsibility_footer_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
         </div>

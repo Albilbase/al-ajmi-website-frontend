@@ -28,6 +28,7 @@ import { confirmDelete } from '@/lib/sweetalert';
 export default function VisionManager() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   const [content, setContent] = useState({
     hero: {
@@ -298,6 +299,17 @@ export default function VisionManager() {
   };
 
   const handleSaveHero = async () => {
+    const errors = {};
+    if (!content.hero.title_en) errors.hero_title_en = true;
+    if (!content.hero.title_ar) errors.hero_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عناوين البانر المطلوبة");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'vision');
@@ -348,6 +360,17 @@ export default function VisionManager() {
   };
 
   const handleSaveVisionHeader = async () => {
+    const errors = {};
+    if (!content.vision.title_en) errors.vision_title_en = true;
+    if (!content.vision.title_ar) errors.vision_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عنوان الرؤية");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'vision');
@@ -373,6 +396,17 @@ export default function VisionManager() {
   };
 
   const handleSaveMission = async () => {
+    const errors = {};
+    if (!content.mission.title_en) errors.mission_title_en = true;
+    if (!content.mission.title_ar) errors.mission_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عنوان الرسالة");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'vision');
@@ -398,6 +432,17 @@ export default function VisionManager() {
   };
 
   const handleSaveValuesHeader = async () => {
+    const errors = {};
+    if (!content.valuesHeader.title_en) errors.values_header_en = true;
+    if (!content.valuesHeader.title_ar) errors.values_header_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عنوان قسم القيم");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'vision');
@@ -423,6 +468,18 @@ export default function VisionManager() {
   };
 
   const handleSaveStats = async () => {
+    const errors = {};
+    if (!content.stats.number) errors.stats_number = true;
+    if (!content.stats.label_en) errors.stats_label_en = true;
+    if (!content.stats.label_ar) errors.stats_label_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إكمال بيانات الإحصائيات");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'vision');
@@ -522,6 +579,17 @@ export default function VisionManager() {
     const item = target.list[index];
     if (!item.id) return;
 
+    const errors = {};
+    if (!item.en) errors[`${section}_${subSection || ''}_${index}_en`] = true;
+    if (!item.ar) errors[`${section}_${subSection || ''}_${index}_ar`] = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("المحتوى مطلوب لحفظ التعديلات");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     let type = '';
     if (section === 'vision') {
@@ -579,11 +647,11 @@ export default function VisionManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Main Title (EN)</label>
-                <input value={content.hero.title_en} onChange={(e) => handleUpdate('hero.title_en', e.target.value)} className={localStyles.inputField} />
+                <input value={content.hero.title_en} onChange={(e) => handleUpdate('hero.title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.hero_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
-                <input value={content.hero.title_ar} onChange={(e) => handleUpdate('hero.title_ar', e.target.value)} className={localStyles.inputField} />
+                <input value={content.hero.title_ar} onChange={(e) => handleUpdate('hero.title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.hero_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>
@@ -654,11 +722,11 @@ export default function VisionManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Vision Title (EN)</label>
-                <input value={content.vision.title_en} onChange={(e) => handleUpdate('vision.title_en', e.target.value)} className={localStyles.inputField} />
+                <input value={content.vision.title_en} onChange={(e) => handleUpdate('vision.title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.vision_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>عنوان الرؤية (AR)</label>
-                <input value={content.vision.title_ar} onChange={(e) => handleUpdate('vision.title_ar', e.target.value)} className={localStyles.inputField} />
+                <input value={content.vision.title_ar} onChange={(e) => handleUpdate('vision.title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.vision_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>

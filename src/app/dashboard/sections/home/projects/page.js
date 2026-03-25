@@ -27,6 +27,7 @@ export default function ProjectsManager() {
   const [projects, setProjects] = useState([]);
   const [activeItem, setActiveItem] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -124,7 +125,7 @@ export default function ProjectsManager() {
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        toast.error('فشل تحميل البيانات');
+        toast.error('Failed to load data');
       } finally {
         setLoading(false);
       }
@@ -133,8 +134,16 @@ export default function ProjectsManager() {
   }, [sections]);
 
   const handleAddProject = async () => {
-    if (!newProject.fullName_en || !newProject.fullName_ar) {
-      toast.error("Please fill in both English and Arabic names");
+    const errors = {};
+    if (!newProject.fullName_en) errors.new_fullName_en = true;
+    if (!newProject.fullName_ar) errors.new_fullName_ar = true;
+    if (!newProject.type_en) errors.new_type_en = true;
+    if (!newProject.type_ar) errors.new_type_ar = true;
+    if (!newProject.logoFile) errors.new_logo = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -156,8 +165,9 @@ export default function ProjectsManager() {
       await createSectionAPI(formData);
       await refreshSections();
       
-      toast.success('تمت إضافة المشروع بنجاح');
+      toast.success('Project added successfully');
       setIsModalOpen(false);
+      setFormErrors({});
       
       setNewProject({
         fullName_en: "",
@@ -169,7 +179,7 @@ export default function ProjectsManager() {
       });
       // Optionally update activeItem
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء إضافة المشروع');
+      toast.error(error.response?.data?.message || 'Error occurred while adding the project');
     } finally {
       setIsSubmitting(false);
     }
@@ -178,11 +188,24 @@ export default function ProjectsManager() {
   const handleSaveChanges = async () => {
     const currentProject = projects[activeItem];
     if (!currentProject || !currentProject.id) {
-      toast.error("لا يمكن تحديث مشروع غير محفوظ.");
+      toast.error("Cannot update an unsaved project.");
       return;
     }
 
-    setIsSubmitting(true);
+    const errors = {};
+    if (!currentProject.fullName_en) errors.fullName_en = true;
+    if (!currentProject.fullName_ar) errors.fullName_ar = true;
+    if (!currentProject.type_en) errors.type_en = true;
+    if (!currentProject.type_ar) errors.type_ar = true;
+    if (!currentProject.logo && !editorFile) errors.logo = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setFormErrors({});
     try {
       const formData = new FormData();
       formData.append('title_en', currentProject.fullName_en);
@@ -199,13 +222,13 @@ export default function ProjectsManager() {
 
       await updateSectionAPI(currentProject.id, formData);
       await refreshSections();
-      toast.success('تم تحديث المشروع بنجاح');
+      toast.success('Project updated successfully');
       
       setEditorFile(null);
       setEditorPreview(null);
     } catch (error) {
       console.error("Update Error:", error.response?.data || error);
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء التحديث');
+      toast.error(error.response?.data?.message || 'Error occurred while updating');
     } finally {
       setIsSubmitting(false);
     }
@@ -214,17 +237,17 @@ export default function ProjectsManager() {
   const removeProject = async (id) => {
     if (!id) return;
 
-    const result = await confirmDelete('حذف المشروع', 'هل أنت متأكد من رغبتك في حذف هذا المشروع؟');
+    const result = await confirmDelete('Delete Project', 'Are you sure you want to delete this project?');
     if (result.isConfirmed) {
 
       try {
         await deleteSectionAPI(id);
         await refreshSections();
         setActiveItem(0);
-        toast.success('تم حذف المشروع بنجاح');
+        toast.success('Project deleted successfully');
       } catch (error) {
         console.error(error);
-        toast.error('حدث خطأ أثناء الحذف');
+        toast.error('An error occurred while deleting');
       }
     }
   };
@@ -233,6 +256,12 @@ export default function ProjectsManager() {
     const updatedProjects = [...projects];
     updatedProjects[activeItem][field] = value;
     setProjects(updatedProjects);
+    
+    if(formErrors[field]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[field];
+       setFormErrors(newErrors);
+    }
   };
 
   const handleNewProjectLogoChange = (e) => {
@@ -243,6 +272,11 @@ export default function ProjectsManager() {
         logoFile: file,
         logoPreview: URL.createObjectURL(file)
       });
+      if(formErrors.new_logo) {
+         const newErrors = { ...formErrors };
+         delete newErrors.new_logo;
+         setFormErrors(newErrors);
+      }
     }
   };
 
@@ -255,6 +289,12 @@ export default function ProjectsManager() {
       const updatedProjects = [...projects];
       updatedProjects[activeItem].logo = URL.createObjectURL(file);
       setProjects(updatedProjects);
+      
+      if(formErrors.logo) {
+         const newErrors = { ...formErrors };
+         delete newErrors.logo;
+         setFormErrors(newErrors);
+      }
     }
   };
 
@@ -264,15 +304,33 @@ export default function ProjectsManager() {
       setBannerFile(file);
       setBannerPreview(URL.createObjectURL(file));
       setBanner(prev => ({ ...prev, image: URL.createObjectURL(file) }));
+      
+      if(formErrors.banner_image) {
+         const newErrors = { ...formErrors };
+         delete newErrors.banner_image;
+         setFormErrors(newErrors);
+      }
     }
   };
 
   const updateBanner = (field, value) => {
     setBanner(prev => ({ ...prev, [field]: value }));
+    const errorKey = `banner_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const updateSectionHeader = (field, value) => {
     setSectionHeader(prev => ({ ...prev, [field]: value }));
+    const errorKey = `header_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const removeImage = async (type) => {
@@ -294,7 +352,7 @@ export default function ProjectsManager() {
       
       // Server image
       if (currentProject?.id && currentProject?.logo) {
-         const result = await confirmDelete('حذف الشعار', 'حذف شعار المشروع نهائياً من السيرفر؟');
+         const result = await confirmDelete('Delete Logo', 'Are you sure you want to delete this project logo permanently?');
          if (result.isConfirmed) {
 
             try {
@@ -307,10 +365,10 @@ export default function ProjectsManager() {
                updatedProjects[activeItem].logo = null;
                updatedProjects[activeItem].rawImage = null;
                setProjects(updatedProjects);
-               toast.success("تم حذف الشعار");
+               toast.success("Logo deleted successfully");
             } catch (e) {
                console.error(e);
-               toast.error("فشل حذف الشعار");
+               toast.error("Failed to delete logo");
             }
          }
       }
@@ -328,7 +386,7 @@ export default function ProjectsManager() {
 
       // Server image
       if (banner.id && banner.image) {
-        const result = await confirmDelete('حذف البانر', 'حذف صورة البانر نهائياً من السيرفر؟');
+        const result = await confirmDelete('Delete Banner', 'Are you sure you want to permanently delete the banner image from the server?');
         if (result.isConfirmed) {
           try {
 
@@ -337,10 +395,10 @@ export default function ProjectsManager() {
              await refreshSections();
              
              setBanner(prev => ({ ...prev, image: null, rawImage: null }));
-             toast.success("تم حذف البانر");
+             toast.success("Banner deleted successfully");
           } catch (e) {
              console.error(e);
-             toast.error("فشل حذف البانر");
+             toast.error("Failed to delete banner");
           }
         }
       }
@@ -348,6 +406,20 @@ export default function ProjectsManager() {
   };
 
   const handleSaveBanner = async () => {
+    const errors = {};
+    if (!banner.title_en) errors.banner_title_en = true;
+    if (!banner.title_ar) errors.banner_title_ar = true;
+    if (!banner.subtitle_en) errors.banner_subtitle_en = true;
+    if (!banner.subtitle_ar) errors.banner_subtitle_ar = true;
+    if (!banner.image && !bannerFile) errors.banner_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Please fill in all banner fields and upload an image');
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -371,18 +443,31 @@ export default function ProjectsManager() {
       }
 
       await refreshSections();
-      toast.success(response.message || 'تم حفظ البانر بنجاح');
+      toast.success(response.message || 'Banner saved successfully');
       
       setBannerFile(null);
       setBannerPreview(null);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ البانر');
+      toast.error(error.response?.data?.message || 'An error occurred while saving banner');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveSectionHeader = async () => {
+    const errors = {};
+    if (!sectionHeader.title_en) errors.header_title_en = true;
+    if (!sectionHeader.title_ar) errors.header_title_ar = true;
+    if (!sectionHeader.subtitle_en) errors.header_subtitle_en = true;
+    if (!sectionHeader.subtitle_ar) errors.header_subtitle_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Please fill in all section header fields');
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -401,9 +486,9 @@ export default function ProjectsManager() {
       }
 
       await refreshSections();
-      toast.success('تم حفظ عنوان القسم بنجاح');
+      toast.success('Section header saved successfully');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ عنوان القسم');
+      toast.error(error.response?.data?.message || 'An error occurred while saving section header');
     } finally {
       setIsSubmitting(false);
     }
@@ -411,18 +496,18 @@ export default function ProjectsManager() {
 
   const handleDeleteBanner = async () => {
     if (!banner.id) {
-      toast.error('لا يوجد بانر لحذفه');
+      toast.error('No banner to delete');
       return;
     }
 
-    const result = await confirmDelete('حذف البانر', 'هل أنت متأكد من رغبتك في حذف البانر؟');
+    const result = await confirmDelete('Delete Banner', 'Are you sure you want to delete the banner?');
     if (result.isConfirmed) {
       setLoading(true);
       try {
 
         await deleteSectionAPI(banner.id);
         await refreshSections();
-        toast.success('تم حذف البانر بنجاح');
+        toast.success('Banner deleted successfully');
         setBanner({
           id: null,
           title_en: "",
@@ -434,7 +519,7 @@ export default function ProjectsManager() {
         setBannerFile(null);
         setBannerPreview(null);
       } catch (error) {
-        toast.error('حدث خطأ أثناء حذف البانر');
+        toast.error('An error occurred while deleting');
         console.error(error);
       } finally {
         setLoading(false);
@@ -444,18 +529,18 @@ export default function ProjectsManager() {
 
   const handleDeleteSectionHeader = async () => {
     if (!sectionHeader.id) {
-      toast.error('لا يوجد عنوان قسم لحذفه');
+      toast.error('No section header to delete');
       return;
     }
 
-    const result = await confirmDelete('حذف العنوان', 'هل أنت متأكد من رغبتك في حذف عنوان القسم؟');
+    const result = await confirmDelete('Delete Header', 'Are you sure you want to delete the section header?');
     if (result.isConfirmed) {
       setLoading(true);
       try {
 
         await deleteSectionAPI(sectionHeader.id);
         await refreshSections();
-        toast.success('تم حذف عنوان القسم بنجاح');
+        toast.success('Section header deleted successfully');
         setSectionHeader({
           id: null,
           title_en: "",
@@ -464,7 +549,7 @@ export default function ProjectsManager() {
           subtitle_ar: ""
         });
       } catch (error) {
-        toast.error('حدث خطأ أثناء حذف عنوان القسم');
+        toast.error('An error occurred while deleting');
         console.error(error);
       } finally {
         setLoading(false);
@@ -568,17 +653,17 @@ export default function ProjectsManager() {
                     type="text" 
                     value={projects[activeItem].fullName_en}
                     onChange={(e) => updateActiveProject('fullName_en', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.fullName_en ? dashboardStyles.invalidInput : ''}`}
                     style={{ fontWeight: '700' }}
                   />
                 </div>
                 <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>اسم العميل/المشروع (AR)</label>
+                  <label className={localStyles.fieldLabel}>Client/Project Name (AR)</label>
                   <input 
                     type="text" 
                     value={projects[activeItem].fullName_ar}
                     onChange={(e) => updateActiveProject('fullName_ar', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.fullName_ar ? dashboardStyles.invalidInput : ''}`}
                     style={{ fontWeight: '700' }}
                   />
                 </div>
@@ -592,16 +677,16 @@ export default function ProjectsManager() {
                     type="text" 
                     value={projects[activeItem].type_en}
                     onChange={(e) => updateActiveProject('type_en', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.type_en ? dashboardStyles.invalidInput : ''}`}
                   />
                 </div>
                 <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>تصنيف المشروع (AR)</label>
+                  <label className={localStyles.fieldLabel}>Project Category (AR)</label>
                   <input 
                     type="text" 
                     value={projects[activeItem].type_ar}
                     onChange={(e) => updateActiveProject('type_ar', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.type_ar ? dashboardStyles.invalidInput : ''}`}
                   />
                 </div>
               </div>
@@ -614,7 +699,7 @@ export default function ProjectsManager() {
                     {projects[activeItem].logo ? (
                       <img src={projects[activeItem].logo} alt="" />
                     ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9', border: formErrors.logo ? '2px solid #DC143C' : 'none', borderRadius: '12px' }}>
                         <ImageIcon size={48} color="#94a3b8" />
                       </div>
                     )}
@@ -671,7 +756,7 @@ export default function ProjectsManager() {
                 {banner.image ? (
                   <img src={banner.image} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9', border: formErrors.banner_image ? '2px solid #DC143C' : 'none', borderRadius: '12px' }}>
                     <ImageIcon size={48} color="#94a3b8" />
                   </div>
                 )}
@@ -714,16 +799,16 @@ export default function ProjectsManager() {
                   type="text" 
                   value={banner.title_en}
                   onChange={(e) => updateBanner('title_en', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.banner_title_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>عنوان البانر (AR)</label>
+                <label className={localStyles.fieldLabel}>Banner Title (AR)</label>
                 <input 
                   type="text" 
                   value={banner.title_ar}
                   onChange={(e) => updateBanner('title_ar', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.banner_title_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
             </div>
@@ -734,16 +819,16 @@ export default function ProjectsManager() {
                   type="text" 
                   value={banner.subtitle_en}
                   onChange={(e) => updateBanner('subtitle_en', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.banner_subtitle_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الفرعي للبانر (AR)</label>
+                <label className={localStyles.fieldLabel}>Banner Subtitle (AR)</label>
                 <input 
                   type="text" 
                   value={banner.subtitle_ar}
                   onChange={(e) => updateBanner('subtitle_ar', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.banner_subtitle_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
             </div>
@@ -879,7 +964,7 @@ export default function ProjectsManager() {
               placeholder="e.g. Saudi Aramco"
               value={newProject.fullName_en}
               onChange={(e) => setNewProject({...newProject, fullName_en: e.target.value})}
-              className={localStyles.inputField}
+              className={`${localStyles.inputField} ${formErrors.new_fullName_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
@@ -889,7 +974,7 @@ export default function ProjectsManager() {
               placeholder="مثال: شركة أرامكو السعودية"
               value={newProject.fullName_ar}
               onChange={(e) => setNewProject({...newProject, fullName_ar: e.target.value})}
-              className={localStyles.inputField}
+              className={`${localStyles.inputField} ${formErrors.new_fullName_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>
@@ -901,7 +986,7 @@ export default function ProjectsManager() {
               placeholder="e.g. Energy & Oil"
               value={newProject.type_en}
               onChange={(e) => setNewProject({...newProject, type_en: e.target.value})}
-              className={localStyles.inputField}
+              className={`${localStyles.inputField} ${formErrors.new_type_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
@@ -911,7 +996,7 @@ export default function ProjectsManager() {
               placeholder="مثال: الطاقة والنفط"
               value={newProject.type_ar}
               onChange={(e) => setNewProject({...newProject, type_ar: e.target.value})}
-              className={localStyles.inputField}
+              className={`${localStyles.inputField} ${formErrors.new_type_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>
@@ -944,14 +1029,14 @@ export default function ProjectsManager() {
           ) : (
             <label style={{ 
               padding: '2rem', 
-              border: '2px dashed #e2e8f0', 
+              border: formErrors.new_logo ? `2px dashed ${dashboardStyles.invalidInput ? '#DC143C' : '#ef4444'}` : '2px dashed #e2e8f0', 
               borderRadius: '12px', 
               textAlign: 'center', 
               cursor: 'pointer',
               display: 'block'
             }}>
-              <ImageIcon size={32} color="#64748b" style={{ marginBottom: '0.5rem' }} />
-              <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Click to upload client logo</p>
+              <ImageIcon size={32} color={formErrors.new_logo ? '#DC143C' : '#64748b'} style={{ marginBottom: '0.5rem' }} />
+              <p style={{ fontSize: '0.85rem', color: formErrors.new_logo ? '#DC143C' : '#64748b' }}>Click to upload client logo</p>
               <input 
                 type="file" 
                 accept="image/*" 

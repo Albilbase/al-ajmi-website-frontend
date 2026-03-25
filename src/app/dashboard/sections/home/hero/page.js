@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './hero-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
@@ -29,6 +30,7 @@ export default function HeroManager() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -91,10 +93,26 @@ export default function HeroManager() {
     if (!currentSlide) return;
 
     if (!currentSlide.id) {
-       toast.error("لا يمكن تحديث شريحة غير محفوظة.");
+       toast.error("Cannot update an unsaved slide.");
        return;
     }
 
+    const errors = {};
+    if (!currentSlide.title_en) errors.title_en = true;
+    if (!currentSlide.title_ar) errors.title_ar = true;
+    if (!currentSlide.description_en) errors.description_en = true;
+    if (!currentSlide.description_ar) errors.description_ar = true;
+    if (!currentSlide.cta_en) errors.cta_en = true;
+    if (!currentSlide.cta_ar) errors.cta_ar = true;
+    if (!currentSlide.image && !editorFile) errors.image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required fields and upload an image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     
@@ -121,7 +139,7 @@ export default function HeroManager() {
     try {
         const response = await updateSectionAPI(currentSlide.id, formData);
         await refreshSections();
-        toast.success(response.message || 'تم تحديث الشريحة بنجاح');
+        toast.success(response.message || 'Slide updated successfully');
         
         // Update local state with the new image from server if available
         if (response.data && response.data.images && response.data.images.length > 0) {
@@ -137,7 +155,7 @@ export default function HeroManager() {
         }
     } catch (error) {
         console.error("Update Error:", error.response?.data || error);
-        toast.error(error.response?.data?.message || 'حدث خطأ أثناء التحديث');
+        toast.error(error.response?.data?.message || 'An error occurred while updating');
     } finally {
         setIsSubmitting(false);
     }
@@ -153,6 +171,12 @@ export default function HeroManager() {
       const updatedSlides = [...slides];
       updatedSlides[activeSlide].image = URL.createObjectURL(file);
       setSlides(updatedSlides);
+      
+      if(formErrors.image) {
+        const newErrors = { ...formErrors };
+        delete newErrors.image;
+        setFormErrors(newErrors);
+      }
     }
   };
 
@@ -174,7 +198,7 @@ export default function HeroManager() {
     }
 
     // If it's an existing image on the server
-    const result = await confirmDelete('حذف الصورة', 'حذف الصورة نهائياً من السيرفر؟');
+    const result = await confirmDelete('Delete Image', 'Are you sure you want to delete this image permanently?');
     if (result.isConfirmed) {
 
       try {
@@ -185,30 +209,45 @@ export default function HeroManager() {
         updatedSlides[activeSlide].image = null;
         updatedSlides[activeSlide].rawImage = null;
         setSlides(updatedSlides);
-        toast.success("تم حذف الصورة من السيرفر");
+        toast.success("Image deleted successfully");
       } catch (error) {
-        toast.error("فشل حذف الصورة");
+        toast.error("Failed to delete image");
       }
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (file) => {
     if (file) {
       setNewSlide({
         ...newSlide,
         imageFile: file,
         imagePreview: URL.createObjectURL(file)
       });
+      if(formErrors.new_image) {
+        const newErrors = { ...formErrors };
+        delete newErrors.new_image;
+        setFormErrors(newErrors);
+      }
     }
   };
 
   const handleAddSlide = async () => {
-    if (!newSlide.title_en || !newSlide.title_ar || !newSlide.imageFile) {
-      toast.error('يرجى ملء كافة الحقول واختيار صورة');
+    const errors = {};
+    if (!newSlide.title_en) errors.new_title_en = true;
+    if (!newSlide.title_ar) errors.new_title_ar = true;
+    if (!newSlide.description_en) errors.new_description_en = true;
+    if (!newSlide.description_ar) errors.new_description_ar = true;
+    if (!newSlide.cta_en) errors.new_cta_en = true;
+    if (!newSlide.cta_ar) errors.new_cta_ar = true;
+    if (!newSlide.imageFile) errors.new_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Please fill in all required fields and upload an image');
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     
@@ -248,7 +287,7 @@ export default function HeroManager() {
       };
       
       setSlides([...slides, addedSlide]);
-      toast.success(response.message || 'تمت إضافة السلايد بنجاح');
+      toast.success(response.message || 'Slide added successfully');
       setIsModalOpen(false);
       
       // Reset form
@@ -264,7 +303,7 @@ export default function HeroManager() {
       });
       setActiveSlide(slides.length);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء إضافة السلايد');
+      toast.error(error.response?.data?.message || 'Error occurred while adding the slide');
     } finally {
       setIsSubmitting(false);
     }
@@ -273,7 +312,7 @@ export default function HeroManager() {
   const removeSlide = async (id) => {
     if (!id) return;
 
-    const result = await confirmDelete('حذف الشريحة', 'هل أنت متأكد من رغبتك في حذف هذه الشريحة؟');
+    const result = await confirmDelete('Delete Slide', 'Are you sure you want to delete this slide?');
     if (result.isConfirmed) {
 
       try {
@@ -282,10 +321,11 @@ export default function HeroManager() {
         const updatedSlides = slides.filter(slide => slide.id !== id);
         setSlides(updatedSlides);
         setActiveSlide(0);
-        toast.success('تم حذف الشريحة بنجاح');
+        toast.success('Slide deleted successfully');
       } catch (error) {
         // Error handled globally or log here
         console.error(error);
+        toast.error('An error occurred while deleting');
       }
     }
   };
@@ -294,6 +334,13 @@ export default function HeroManager() {
     const updatedSlides = [...slides];
     updatedSlides[activeSlide][field] = value;
     setSlides(updatedSlides);
+    
+    // Fixed: Properly detect title_en vs title_en in formErrors
+    if(formErrors[field]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[field];
+       setFormErrors(newErrors);
+    }
   };
 
   return (
@@ -368,7 +415,7 @@ export default function HeroManager() {
                         type="text" 
                         value={slides[activeSlide]?.title_en || ""}
                         onChange={(e) => updateActiveSlide('title_en', e.target.value)}
-                        className={localStyles.inputField}
+                        className={`${localStyles.inputField} ${formErrors.title_en ? dashboardStyles.invalidInput : ''}`}
                         style={{ fontWeight: '700' }}
                       />
                     </div>
@@ -378,7 +425,7 @@ export default function HeroManager() {
                         rows="3"
                         value={slides[activeSlide]?.description_en || ""}
                         onChange={(e) => updateActiveSlide('description_en', e.target.value)}
-                        className={localStyles.textareaField}
+                        className={`${localStyles.textareaField} ${formErrors.description_en ? dashboardStyles.invalidInput : ''}`}
                       />
                     </div>
                     <div className={localStyles.inputGroup}>
@@ -387,7 +434,7 @@ export default function HeroManager() {
                         type="text" 
                         value={slides[activeSlide]?.cta_en || ""}
                         onChange={(e) => updateActiveSlide('cta_en', e.target.value)}
-                        className={localStyles.inputField}
+                        className={`${localStyles.inputField} ${formErrors.cta_en ? dashboardStyles.invalidInput : ''}`}
                       />
                     </div>
                 </div>
@@ -399,31 +446,31 @@ export default function HeroManager() {
                       
                     </div>
                     <div dir="rtl" className={localStyles.inputGroup}>
-                      <label className={localStyles.fieldLabel} >العنوان الرئيسي(AR) </label>
+                      <label className={localStyles.fieldLabel} >Main Title (AR) </label>
                       <input 
                         type="text" 
                         value={slides[activeSlide]?.title_ar || ""}
                         onChange={(e) => updateActiveSlide('title_ar', e.target.value)}
-                        className={localStyles.inputField}
+                        className={`${localStyles.inputField} ${formErrors.title_ar ? dashboardStyles.invalidInput : ''}`}
                         style={{ fontWeight: '700' }}
                       />
                     </div>
                     <div dir="rtl" className={localStyles.inputGroup}>
-                      <label className={localStyles.fieldLabel}>وصف السلايدر (AR) </label>
+                      <label className={localStyles.fieldLabel}>Slider Description (AR) </label>
                       <textarea 
                         rows="3"
                         value={slides[activeSlide]?.description_ar || ""}
                         onChange={(e) => updateActiveSlide('description_ar', e.target.value)}
-                        className={localStyles.textareaField}
+                        className={`${localStyles.textareaField} ${formErrors.description_ar ? dashboardStyles.invalidInput : ''}`}
                       />
                     </div>
                     <div dir="rtl" className={localStyles.inputGroup}>
-                      <label className={localStyles.fieldLabel}>نص زر الانتقال (AR)</label>
+                      <label className={localStyles.fieldLabel}>CTA Button Text (AR)</label>
                       <input 
                         type="text" 
                         value={slides[activeSlide]?.cta_ar || ""}
                         onChange={(e) => updateActiveSlide('cta_ar', e.target.value)}
-                        className={localStyles.inputField}
+                        className={`${localStyles.inputField} ${formErrors.cta_ar ? dashboardStyles.invalidInput : ''}`}
                       />
                     </div>
                 </div>
@@ -432,47 +479,22 @@ export default function HeroManager() {
               {/* Media Settings */}
               <div className={localStyles.mediaSection}>
                 <label className={localStyles.fieldLabel}>Background Image</label>
-                <div className={localStyles.mediaGrid}>
-                  <div className={localStyles.mediaPreview} style={{ position: 'relative' }}>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleEditorImageChange}
-                      id="editorImageInput"
-                      style={{ display: 'none' }}
-                    />
-                    <label htmlFor="editorImageInput" style={{ cursor: 'pointer', display: 'block', height: '100%', width: '100%' }}>
-                        <img 
-                          src={editorPreview || slides[activeSlide]?.image || "/images/placeholder.jpg"} 
-                          alt="" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                        />
-                        <div className={localStyles.mediaOverlay}>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <div className={localStyles.changeMediaBtn}>
-                                <ImageIcon size={20} /> Change
-                            </div>
-                            {(editorPreview || slides[activeSlide]?.image) && (
-                              <button 
-                                className={localStyles.deleteBtn}
-                                style={{ background: '#ef4444', color: 'white', padding: '0.6rem' }}
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage(); }}
-                              >
-                                <Trash2 size={20} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                    </label>
-                  </div>
-                  <div className={localStyles.mediaInfoBox}>
-                    <p className={localStyles.mediaInfoText}>
-                      Click the image to upload a new one.<br/>
-                      This image will be used as the high-resolution background.<br/><br/>
-                      <strong>Recommended:</strong> 1920x1080px<br/> <strong>Format:</strong> WEBP or JPEG
-                    </p>
-                  </div>
-                </div>
+                <ImageUpload 
+                  value={editorPreview || slides[activeSlide]?.image}
+                  mode="slider"
+                  height="220px"
+                  onChange={(file) => {
+                    setEditorFile(file);
+                    setEditorPreview(URL.createObjectURL(file));
+                    if(formErrors.image) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.image;
+                       setFormErrors(newErrors);
+                    }
+                  }}
+                  onDelete={handleRemoveImage}
+                />
+                {formErrors.image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-220px', height: '220px', pointerEvents: 'none' }}></div>}
               </div>
             </div>
           ) : (
@@ -505,19 +527,33 @@ export default function HeroManager() {
             <input 
               type="text" 
               value={newSlide.title_en}
-              onChange={(e) => setNewSlide({...newSlide, title_en: e.target.value})}
-              className={localStyles.inputField}
-              placeholder="Slide Title in English"
+              onChange={(e) => {
+                setNewSlide({...newSlide, title_en: e.target.value});
+                if(formErrors.new_title_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_title_en;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_title_en ? dashboardStyles.invalidInput : ''}`}
+              placeholder="e.g. Innovating the Future"
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>العنوان (AR)</label>
+            <label className={localStyles.fieldLabel}>Title (AR)</label>
             <input 
               type="text" 
               value={newSlide.title_ar}
-              onChange={(e) => setNewSlide({...newSlide, title_ar: e.target.value})}
-              className={localStyles.inputField}
-              placeholder="العنوان باللغة العربية"
+              onChange={(e) => {
+                setNewSlide({...newSlide, title_ar: e.target.value});
+                if(formErrors.new_title_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_title_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_title_ar ? dashboardStyles.invalidInput : ''}`}
+              placeholder="e.g. Innovating the Future"
             />
           </div>
         </div>
@@ -528,17 +564,31 @@ export default function HeroManager() {
             <textarea 
               rows="2"
               value={newSlide.description_en}
-              onChange={(e) => setNewSlide({...newSlide, description_en: e.target.value})}
-              className={localStyles.textareaField}
+              onChange={(e) => {
+                setNewSlide({...newSlide, description_en: e.target.value});
+                if(formErrors.new_description_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_description_en;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.textareaField} ${formErrors.new_description_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>الوصف (AR)</label>
+            <label className={localStyles.fieldLabel}>Description (AR)</label>
             <textarea 
               rows="2"
               value={newSlide.description_ar}
-              onChange={(e) => setNewSlide({...newSlide, description_ar: e.target.value})}
-              className={localStyles.textareaField}
+              onChange={(e) => {
+                setNewSlide({...newSlide, description_ar: e.target.value});
+                if(formErrors.new_description_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_description_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.textareaField} ${formErrors.new_description_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>
@@ -549,56 +599,54 @@ export default function HeroManager() {
             <input 
               type="text" 
               value={newSlide.cta_en}
-              onChange={(e) => setNewSlide({...newSlide, cta_en: e.target.value})}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewSlide({...newSlide, cta_en: e.target.value});
+                if(formErrors.new_cta_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_cta_en;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_cta_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>نص الزر (AR)</label>
+            <label className={localStyles.fieldLabel}>CTA (AR)</label>
             <input 
               type="text" 
               value={newSlide.cta_ar}
-              onChange={(e) => setNewSlide({...newSlide, cta_ar: e.target.value})}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewSlide({...newSlide, cta_ar: e.target.value});
+                if(formErrors.new_cta_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_cta_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_cta_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>
 
         <div className={localStyles.inputGroup}>
-          <label className={localStyles.fieldLabel}>Background Image</label>
-          <div dir="ltr" style={{ position: 'relative', overflow: 'hidden' }}>
-            <input 
-              type="file" 
-              accept="image/*"
-              onChange={handleImageChange}
-              id="slideImageInput"
-              style={{ display: 'none' }}
-            />
-            <label 
-              htmlFor="slideImageInput"
-              style={{ 
-                padding: '2rem', 
-                border: '2px dashed #e2e8f0', 
-                borderRadius: '12px', 
-                textAlign: 'center', 
-                cursor: 'pointer',
-                display: 'block',
-                background: newSlide.imagePreview ? `url(${newSlide.imagePreview}) center/cover no-repeat` : 'transparent'
-              }}
-            >
-              {!newSlide.imagePreview ? (
-                <>
-                  <ImageIcon size={32} color="#64748b" style={{ marginBottom: '0.5rem' }} />
-                  <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Click to upload slide image</p>
-                </>
-              ) : (
-                <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.8)', borderRadius: '8px', display: 'inline-block' }}>
-                  <ImageIcon size={20} color="#DC143C" />
-                  <p style={{ fontSize: '0.85rem', color: '#DC143C', fontWeight: 'bold' }}>Change Image</p>
-                </div>
-              )}
-            </label>
-          </div>
+          <label className={localStyles.fieldLabel}>Slide Image (Background)</label>
+          <ImageUpload 
+            value={newSlide.imagePreview}
+            mode="slider"
+            height="180px"
+            onChange={(file) => {
+              setNewSlide({...newSlide, imageFile: file, imagePreview: URL.createObjectURL(file)});
+              if(formErrors.new_image) {
+                 const newErrors = { ...formErrors };
+                 delete newErrors.new_image;
+                 setFormErrors(newErrors);
+              }
+            }}
+            onDelete={() => {
+              setNewSlide({...newSlide, imageFile: null, imagePreview: null});
+            }}
+          />
+          {formErrors.new_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-180px', height: '180px', pointerEvents: 'none' }}></div>}
         </div>
       </Modal>
     </motion.div>

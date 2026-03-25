@@ -19,12 +19,15 @@ import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './why-ajami-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { confirmDelete } from '@/lib/sweetalert';
 
 
 export default function WhyAjamiManager() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   const [content, setContent] = useState({
     hero: {
@@ -79,8 +82,14 @@ export default function WhyAjamiManager() {
   const [petroleumImageFile, setPetroleumImageFile] = useState(null);
   const [petroleumImagePreview, setPetroleumImagePreview] = useState(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [newItem, setNewItem] = useState({ en: "", ar: "" });
+
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
+  };
 
   // Fetch all data on mount
   useEffect(() => {
@@ -102,8 +111,7 @@ export default function WhyAjamiManager() {
                 title_ar: hero.title_ar || "",
                 subtitle_en: hero.description_en || "",
                 subtitle_ar: hero.description_ar || "",
-                subtitle_ar: hero.description_ar || "",
-                bgImage: hero.images?.[0] ? `http://192.168.15.95:5000${hero.images[0]}` : null,
+                bgImage: getImageUrl(hero.images?.[0]),
                 rawImage: hero.images?.[0] || null
               }
             }));
@@ -120,7 +128,7 @@ export default function WhyAjamiManager() {
                 title_ar: intro.title_ar || "",
                 text_en: intro.description_en || "",
                 text_ar: intro.description_ar || "",
-                image: intro.images?.[0] ? `http://192.168.15.95:5000${intro.images[0]}` : null,
+                image: getImageUrl(intro.images?.[0]),
                 rawImage: intro.images?.[0] || null
               }
             }));
@@ -137,7 +145,7 @@ export default function WhyAjamiManager() {
                 title_ar: petroleum.title_ar || "",
                 text_en: petroleum.description_en || "",
                 text_ar: petroleum.description_ar || "",
-                image: petroleum.images?.[0] ? `http://192.168.15.95:5000${petroleum.images[0]}` : null,
+                image: getImageUrl(petroleum.images?.[0]),
                 rawImage: petroleum.images?.[0] || null
               }
             }));
@@ -193,54 +201,21 @@ export default function WhyAjamiManager() {
     }));
   };
 
-  const handleHeroImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setHeroImageFile(file);
-      setHeroImagePreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleIntroImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setIntroImageFile(file);
-      setIntroImagePreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handlePetroleumImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPetroleumImageFile(file);
-      setPetroleumImagePreview(URL.createObjectURL(file));
-    }
-  };
-
   const removeImage = async (section) => {
     // Local preview removal
-    if (section === 'hero' && (heroImageFile || (content.hero.bgImage && content.hero.bgImage.startsWith('blob:')))) {
+    if (section === 'hero' && heroImageFile) {
       setHeroImageFile(null);
       setHeroImagePreview(null);
-      setContent(prev => ({ ...prev, hero: { ...prev.hero, bgImage: null } }));
-      const input = document.getElementById('heroImageInput');
-      if (input) input.value = '';
       return;
     }
-    if (section === 'intro' && (introImageFile || (content.intro.image && content.intro.image.startsWith('blob:')))) {
+    if (section === 'intro' && introImageFile) {
       setIntroImageFile(null);
       setIntroImagePreview(null);
-      setContent(prev => ({ ...prev, intro: { ...prev.intro, image: null } }));
-      const input = document.getElementById('introImageInput');
-      if (input) input.value = '';
       return;
     }
-    if (section === 'petroleum' && (petroleumImageFile || (content.petroleum.image && content.petroleum.image.startsWith('blob:')))) {
+    if (section === 'petroleum' && petroleumImageFile) {
       setPetroleumImageFile(null);
       setPetroleumImagePreview(null);
-      setContent(prev => ({ ...prev, petroleum: { ...prev.petroleum, image: null } }));
-      const input = document.getElementById('petroleumImageInput');
-      if (input) input.value = '';
       return;
     }
 
@@ -285,6 +260,17 @@ export default function WhyAjamiManager() {
   };
 
   const handleSaveHero = async () => {
+    const errors = {};
+    if (!content.hero.title_en) errors.hero_title_en = true;
+    if (!content.hero.title_ar) errors.hero_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عناوين البانر");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'why_ajami');
@@ -309,16 +295,13 @@ export default function WhyAjamiManager() {
       
       // Update state with new data from server to reflect image immediately
       if (response && response.data) {
-        const newImage = response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : content.hero.bgImage;
-        const newRawImage = response.data.images?.[0] || content.hero.rawImage;
-        
         setContent(prev => ({
           ...prev,
           hero: {
             ...prev.hero,
             id: response.data.id,
-            bgImage: newImage,
-            rawImage: newRawImage
+            bgImage: getImageUrl(response.data.images?.[0]),
+            rawImage: response.data.images?.[0] || prev.hero.rawImage
           }
         }));
       }
@@ -335,6 +318,17 @@ export default function WhyAjamiManager() {
   };
 
   const handleSaveIntro = async () => {
+    const errors = {};
+    if (!content.intro.title_en) errors.intro_title_en = true;
+    if (!content.intro.title_ar) errors.intro_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عنوان الإمكانيات");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'why_ajami');
@@ -358,16 +352,13 @@ export default function WhyAjamiManager() {
       }
 
       if (response && response.data) {
-        const newImage = response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : content.intro.image;
-        const newRawImage = response.data.images?.[0] || content.intro.rawImage;
-
         setContent(prev => ({
           ...prev,
           intro: {
             ...prev.intro,
             id: response.data.id,
-            image: newImage,
-            rawImage: newRawImage
+            image: getImageUrl(response.data.images?.[0]),
+            rawImage: response.data.images?.[0] || prev.intro.rawImage
           }
         }));
       }
@@ -384,6 +375,17 @@ export default function WhyAjamiManager() {
   };
 
   const handleSavePetroleum = async () => {
+    const errors = {};
+    if (!content.petroleum.title_en) errors.petro_title_en = true;
+    if (!content.petroleum.title_ar) errors.petro_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عنوان البترول");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'why_ajami');
@@ -407,16 +409,13 @@ export default function WhyAjamiManager() {
       }
 
       if (response && response.data) {
-        const newImage = response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : content.petroleum.image;
-        const newRawImage = response.data.images?.[0] || content.petroleum.rawImage;
-
         setContent(prev => ({
           ...prev,
           petroleum: {
             ...prev.petroleum,
             id: response.data.id,
-            image: newImage,
-            rawImage: newRawImage
+            image: getImageUrl(response.data.images?.[0]),
+            rawImage: response.data.images?.[0] || prev.petroleum.rawImage
           }
         }));
       }
@@ -433,6 +432,17 @@ export default function WhyAjamiManager() {
   };
 
   const handleSaveExpertiseHeader = async () => {
+    const errors = {};
+    if (!content.expertise.title_en) errors.exp_header_en = true;
+    if (!content.expertise.title_ar) errors.exp_header_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عنوان الخبرات");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'why_ajami');
@@ -458,6 +468,17 @@ export default function WhyAjamiManager() {
   };
 
   const handleSaveOffices = async () => {
+    const errors = {};
+    if (!content.offices.title_en) errors.offices_title_en = true;
+    if (!content.offices.title_ar) errors.offices_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عناوين قسم المكاتب");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'why_ajami');
@@ -483,11 +504,17 @@ export default function WhyAjamiManager() {
   };
 
   const addExpertiseItemFromModal = async () => {
-    if (!newItem.en || !newItem.ar) {
-      toast.error("Please fill in both English and Arabic fields");
+    const errors = {};
+    if (!newItem.en) errors.modal_en = true;
+    if (!newItem.ar) errors.modal_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى تعبئة الحقول المطلوبة");
       return;
     }
-    
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'why_ajami');
@@ -548,6 +575,17 @@ export default function WhyAjamiManager() {
     const item = content.expertise.list[index];
     if (!item.id) return;
 
+    const errors = {};
+    if (!item.en) errors[`expertise_${index}_en`] = true;
+    if (!item.ar) errors[`expertise_${index}_ar`] = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى تعبئة الحقول المطلوبة");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'why_ajami');
@@ -598,11 +636,11 @@ export default function WhyAjamiManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Main Title (EN)</label>
-                <input value={content.hero.title_en} onChange={(e) => handleUpdate('hero', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <input value={content.hero.title_en} onChange={(e) => handleUpdate('hero', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.hero_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
-                <input value={content.hero.title_ar} onChange={(e) => handleUpdate('hero', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                <input value={content.hero.title_ar} onChange={(e) => handleUpdate('hero', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.hero_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>
@@ -615,29 +653,19 @@ export default function WhyAjamiManager() {
                 <input value={content.hero.subtitle_ar} onChange={(e) => handleUpdate('hero', 'subtitle_ar', e.target.value)} className={localStyles.inputField} />
               </div>
            </div>
-           <div className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>Banner Image</label>
-              <div className={localStyles.mediaPreview} style={{ aspectRatio: '32/9', maxWidth: '800px' }}>
-                <img src={heroImagePreview || content.hero.bgImage || "/images/placeholder.png"} alt="" />
-                <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                        <ImageIcon size={18} /> Change
-                        <input id="heroImageInput" type="file" accept="image/*" onChange={handleHeroImageChange} style={{ display: 'none' }} />
-                      </label>
-                      <button 
-                        onClick={() => removeImage('hero')}
-                        className={localStyles.deleteBtn}
-                        style={{ height: '42px', padding: '0 1rem', background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2' }}
-                        type="button"
-                        title="Remove Image"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                   </div>
-                </div>
-              </div>
-           </div>
+            <div className={localStyles.inputGroup}>
+               <label className={localStyles.fieldLabel}>Banner Image</label>
+               <ImageUpload 
+                 value={heroImagePreview || content.hero.bgImage}
+                 mode="hero"
+                 height="180px"
+                 onChange={(file) => {
+                   setHeroImageFile(file);
+                   setHeroImagePreview(URL.createObjectURL(file));
+                 }}
+                 onDelete={() => removeImage('hero')}
+               />
+            </div>
         </div>
 
         {/* Integrated Capabilities & Transport */}
@@ -654,11 +682,11 @@ export default function WhyAjamiManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Intro Title (EN)</label>
-                <input value={content.intro.title_en} onChange={(e) => handleUpdate('intro', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <input value={content.intro.title_en} onChange={(e) => handleUpdate('intro', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.intro_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>عنوان المقدمة (AR)</label>
-                <input value={content.intro.title_ar} onChange={(e) => handleUpdate('intro', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                <input value={content.intro.title_ar} onChange={(e) => handleUpdate('intro', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.intro_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>
@@ -671,29 +699,19 @@ export default function WhyAjamiManager() {
                  <textarea rows="4" value={content.intro.text_ar} onChange={(e) => handleUpdate('intro', 'text_ar', e.target.value)} className={localStyles.textareaField} />
               </div>
            </div>
-           <div className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>Fleet Image</label>
-              <div className={localStyles.mediaPreview} style={{ height: '200px', maxWidth: '400px' }}>
-                <img src={introImagePreview || content.intro.image || "/images/placeholder.png"} alt="" />
-                <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                        <ImageIcon size={18} /> Change
-                        <input id="introImageInput" type="file" accept="image/*" onChange={handleIntroImageChange} style={{ display: 'none' }} />
-                      </label>
-                       <button 
-                        onClick={() => removeImage('intro')}
-                        className={localStyles.deleteBtn}
-                        style={{ height: '42px', padding: '0 1rem', background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2' }}
-                        type="button"
-                        title="Remove Image"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                   </div>
-                </div>
-              </div>
-           </div>
+            <div className={localStyles.inputGroup}>
+               <label className={localStyles.fieldLabel}>Fleet Image</label>
+               <ImageUpload 
+                 value={introImagePreview || content.intro.image}
+                 mode="standard"
+                 height="200px"
+                 onChange={(file) => {
+                   setIntroImageFile(file);
+                   setIntroImagePreview(URL.createObjectURL(file));
+                 }}
+                 onDelete={() => removeImage('intro')}
+               />
+            </div>
         </div>
 
         {/* Petroleum Services */}
@@ -710,11 +728,11 @@ export default function WhyAjamiManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Section Title (EN)</label>
-                <input value={content.petroleum.title_en} onChange={(e) => handleUpdate('petroleum', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <input value={content.petroleum.title_en} onChange={(e) => handleUpdate('petroleum', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.petro_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>عنوان القسم (AR)</label>
-                <input value={content.petroleum.title_ar} onChange={(e) => handleUpdate('petroleum', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                <input value={content.petroleum.title_ar} onChange={(e) => handleUpdate('petroleum', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.petro_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>
@@ -727,29 +745,19 @@ export default function WhyAjamiManager() {
                  <textarea rows="4" value={content.petroleum.text_ar} onChange={(e) => handleUpdate('petroleum', 'text_ar', e.target.value)} className={localStyles.textareaField} />
               </div>
            </div>
-           <div className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>Petroleum Image</label>
-              <div className={localStyles.mediaPreview} style={{ height: '200px', maxWidth: '400px' }}>
-                <img src={petroleumImagePreview || content.petroleum.image || "/images/placeholder.png"} alt="" />
-                <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                        <ImageIcon size={18} /> Change
-                         <input id="petroleumImageInput" type="file" accept="image/*" onChange={handlePetroleumImageChange} style={{ display: 'none' }} />
-                      </label>
-                       <button 
-                        onClick={() => removeImage('petroleum')}
-                        className={localStyles.deleteBtn}
-                        style={{ height: '42px', padding: '0 1rem', background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2' }}
-                        type="button"
-                        title="Remove Image"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                   </div>
-                </div>
-              </div>
-           </div>
+            <div className={localStyles.inputGroup}>
+               <label className={localStyles.fieldLabel}>Petroleum Image</label>
+               <ImageUpload 
+                 value={petroleumImagePreview || content.petroleum.image}
+                 mode="standard"
+                 height="200px"
+                 onChange={(file) => {
+                   setPetroleumImageFile(file);
+                   setPetroleumImagePreview(URL.createObjectURL(file));
+                 }}
+                 onDelete={() => removeImage('petroleum')}
+               />
+            </div>
         </div>
 
         {/* Expertise Grid Management */}
@@ -784,7 +792,7 @@ export default function WhyAjamiManager() {
                 <input 
                   value={content.expertise.title_en} 
                   onChange={(e) => handleUpdate('expertise', 'title_en', e.target.value)} 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.exp_header_en ? dashboardStyles.invalidInput : ''}`} 
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
@@ -792,7 +800,7 @@ export default function WhyAjamiManager() {
                 <input 
                   value={content.expertise.title_ar} 
                   onChange={(e) => handleUpdate('expertise', 'title_ar', e.target.value)} 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.exp_header_ar ? dashboardStyles.invalidInput : ''}`} 
                 />
               </div>
            </div>
@@ -866,11 +874,11 @@ export default function WhyAjamiManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                  <label className={localStyles.fieldLabel}>Presence Title (EN)</label>
-                 <input value={content.offices.title_en} onChange={(e) => handleUpdate('offices', 'title_en', e.target.value)} className={localStyles.inputField} />
+                 <input value={content.offices.title_en} onChange={(e) => handleUpdate('offices', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.offices_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                  <label className={localStyles.fieldLabel}>عنوان التواجد (AR)</label>
-                 <input value={content.offices.title_ar} onChange={(e) => handleUpdate('offices', 'title_ar', e.target.value)} className={localStyles.inputField} />
+                 <input value={content.offices.title_ar} onChange={(e) => handleUpdate('offices', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.offices_title_ar ? dashboardStyles.invalidInput : ''}`} />
               </div>
            </div>
            <div className={localStyles.formGrid}>
@@ -903,7 +911,7 @@ export default function WhyAjamiManager() {
         <div className={localStyles.inputGroup}>
           <label className={localStyles.fieldLabel}>Feature Description (English)</label>
           <textarea 
-            className={localStyles.textareaField} 
+            className={`${localStyles.textareaField} ${formErrors.modal_en ? dashboardStyles.invalidInput : ''}`} 
             value={newItem.en} 
             onChange={(e) => setNewItem({...newItem, en: e.target.value})}
             placeholder="Enter feature in English..."
@@ -913,7 +921,7 @@ export default function WhyAjamiManager() {
         <div className={localStyles.inputGroup} dir="rtl">
           <label className={localStyles.fieldLabel}>وصف الميزة (بالعربية)</label>
           <textarea 
-            className={localStyles.textareaField} 
+            className={`${localStyles.textareaField} ${formErrors.modal_ar ? dashboardStyles.invalidInput : ''}`} 
             value={newItem.ar} 
             onChange={(e) => setNewItem({...newItem, ar: e.target.value})}
             placeholder="أدخل الميزة بالعربية..."

@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './services-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
@@ -27,6 +28,7 @@ export default function ServicesManager() {
   const [services, setServices] = useState([]);
   const [activeItem, setActiveItem] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -123,6 +125,7 @@ export default function ServicesManager() {
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
+        toast.error('Failed to load data');
       } finally {
         setLoading(false);
       }
@@ -131,11 +134,20 @@ export default function ServicesManager() {
   }, [sections]);
 
   const handleAddService = async () => {
-    if (!newService.title_en || !newService.title_ar) {
-      toast.error("Please fill in both English and Arabic titles");
+    const errors = {};
+    if (!newService.title_en) errors.new_title_en = true;
+    if (!newService.title_ar) errors.new_title_ar = true;
+    if (!newService.description_en) errors.new_description_en = true;
+    if (!newService.description_ar) errors.new_description_ar = true;
+    if (!newService.imageFile) errors.new_image = true;
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Please fill in all required fields and upload an image');
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -154,7 +166,7 @@ export default function ServicesManager() {
       await createSectionAPI(formData);
       await refreshSections();
       
-      toast.success('تمت إضافة الخدمة بنجاح');
+      toast.success('Service added successfully');
       setIsModalOpen(false);
       
       setNewService({
@@ -167,7 +179,7 @@ export default function ServicesManager() {
       });
       // Optionally update activeItem if you want to focus on the new one, but fetching fresh data handles the list.
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء إضافة الخدمة');
+      toast.error(error.response?.data?.message || 'Error occurred while adding the service');
     } finally {
       setIsSubmitting(false);
     }
@@ -175,11 +187,20 @@ export default function ServicesManager() {
 
   const handleSaveChanges = async () => {
     const currentService = services[activeItem];
-    if (!currentService || !currentService.id) {
-      toast.error("لا يمكن تحديث خدمة غير محفوظة.");
+    const errors = {};
+    if (!currentService.title_en) errors.edit_title_en = true;
+    if (!currentService.title_ar) errors.edit_title_ar = true;
+    if (!currentService.description_en) errors.edit_description_en = true;
+    if (!currentService.description_ar) errors.edit_description_ar = true;
+    if (!currentService.image && !editorFile) errors.edit_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required fields and upload an image");
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -197,13 +218,13 @@ export default function ServicesManager() {
 
       await updateSectionAPI(currentService.id, formData);
       await refreshSections();
-      toast.success('تم تحديث الخدمة بنجاح');
+      toast.success('Service updated successfully');
       
       setEditorFile(null);
       setEditorPreview(null);
     } catch (error) {
       console.error("Update Error:", error.response?.data || error);
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء التحديث');
+      toast.error(error.response?.data?.message || 'An error occurred while updating');
     } finally {
       setIsSubmitting(false);
     }
@@ -212,17 +233,17 @@ export default function ServicesManager() {
   const removeService = async (id) => {
     if (!id) return;
 
-    const result = await confirmDelete('حذف الخدمة', 'هل أنت متأكد من رغبتك في حذف هذه الخدمة؟');
+    const result = await confirmDelete('Delete Service', 'Are you sure you want to delete this service?');
     if (result.isConfirmed) {
       try {
 
         await deleteSectionAPI(id);
         await refreshSections();
         setActiveItem(0);
-        toast.success('تم حذف الخدمة بنجاح');
+        toast.success('Service deleted successfully');
       } catch (error) {
         console.error(error);
-        toast.error('حدث خطأ أثناء الحذف');
+        toast.error('An error occurred while deleting');
       }
     }
   };
@@ -231,46 +252,33 @@ export default function ServicesManager() {
     const updatedServices = [...services];
     updatedServices[activeItem][field] = value;
     setServices(updatedServices);
-  };
-
-  const handleNewServiceImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setNewService({
-        ...newService,
-        imageFile: file,
-        imagePreview: URL.createObjectURL(file)
-      });
+    const errorKey = `edit_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
     }
   };
 
-  const handleEditorImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setEditorFile(file);
-      setEditorPreview(URL.createObjectURL(file));
-      
-      const updatedServices = [...services];
-      updatedServices[activeItem].image = URL.createObjectURL(file);
-      setServices(updatedServices);
-    }
-  };
-
-  const handleBannerImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
-      setBanner(prev => ({ ...prev, image: URL.createObjectURL(file) }));
-    }
-  };
 
   const updateBanner = (field, value) => {
     setBanner(prev => ({ ...prev, [field]: value }));
+    const errorKey = `banner_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const updateSectionHeader = (field, value) => {
     setSectionHeader(prev => ({ ...prev, [field]: value }));
+    const errorKey = `header_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const removeImage = async (type, id = null) => {
@@ -285,15 +293,12 @@ export default function ServicesManager() {
         const updatedServices = [...services];
         updatedServices[activeItem].image = null;
         setServices(updatedServices);
-
-        const fileInput = document.getElementById('serviceImageInput');
-        if (fileInput) fileInput.value = '';
         return;
       }
       
       // Server image
       if (currentService && currentService.image && currentService.id) {
-        const result = await confirmDelete('حذف الصورة', 'حذف صورة الخدمة نهائياً من السيرفر؟');
+        const result = await confirmDelete('Delete Image', 'Are you sure you want to delete this service image permanently?');
         if (result.isConfirmed) {
           try {
 
@@ -304,10 +309,10 @@ export default function ServicesManager() {
              const updatedServices = [...services];
              updatedServices[activeItem].image = null;
              setServices(updatedServices);
-             toast.success("تم حذف الصورة");
+             toast.success("Image deleted successfully");
           } catch (e) {
              console.error(e);
-             toast.error("فشل حذف الصورة");
+             toast.error("Failed to delete image");
           }
         }
       }
@@ -319,31 +324,42 @@ export default function ServicesManager() {
          
          // Remove blob from banner state
          setBanner(prev => ({ ...prev, image: null }));
-
-         const fileInput = document.getElementById('bannerImageInput');
-         if (fileInput) fileInput.value = '';
          return;
        }
        
-       // Server image
-       if (banner.id && banner.image) {
-         const result = await confirmDelete('حذف البانر', 'حذف صورة البانر نهائياً من السيرفر؟');
-         if (result.isConfirmed) {
+        // Server image
+        if (banner.id && banner.image) {
+          const result = await confirmDelete('Delete Banner Image', 'Are you sure you want to delete the banner image permanently?');
+          if (result.isConfirmed) {
            try {
               await deleteImageAPI(banner.id, banner.rawImage || banner.image.replace('http://192.168.15.95:5000', ''));
-              await refreshSections();
-              setBanner(prev => ({ ...prev, image: null, rawImage: null }));
-              toast.success("تم حذف البانر");
-           } catch (e) {
-              console.error(e);
-              toast.error("فشل حذف البانر");
-           }
-         }
-       }
+               await refreshSections();
+               setBanner(prev => ({ ...prev, image: null, rawImage: null }));
+               toast.success("Banner image deleted successfully");
+            } catch (e) {
+               console.error(e);
+               toast.error("Failed to delete banner image");
+            }
+          }
+        }
     }
   };
 
   const handleSaveBanner = async () => {
+    const errors = {};
+    if (!banner.title_en) errors.banner_title_en = true;
+    if (!banner.title_ar) errors.banner_title_ar = true;
+    if (!banner.subtitle_en) errors.banner_subtitle_en = true;
+    if (!banner.subtitle_ar) errors.banner_subtitle_ar = true;
+    if (!banner.image && !bannerFile) errors.banner_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all banner fields and upload an image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -367,18 +383,31 @@ export default function ServicesManager() {
       }
 
       await refreshSections();
-      toast.success(response.message || 'تم حفظ البانر بنجاح');
+      toast.success(response.message || 'Banner saved successfully');
       
       setBannerFile(null);
       setBannerPreview(null);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ البانر');
+      toast.error(error.response?.data?.message || 'An error occurred while saving the banner');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveSectionHeader = async () => {
+    const errors = {};
+    if (!sectionHeader.title_en) errors.header_title_en = true;
+    if (!sectionHeader.title_ar) errors.header_title_ar = true;
+    if (!sectionHeader.subtitle_en) errors.header_subtitle_en = true;
+    if (!sectionHeader.subtitle_ar) errors.header_subtitle_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all section header fields");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -397,9 +426,9 @@ export default function ServicesManager() {
       }
 
       await refreshSections();
-      toast.success('تم حفظ عنوان القسم بنجاح');
+      toast.success('Section header saved successfully');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ عنوان القسم');
+      toast.error(error.response?.data?.message || 'An error occurred while saving section header');
     } finally {
       setIsSubmitting(false);
     }
@@ -407,18 +436,18 @@ export default function ServicesManager() {
 
   const handleDeleteBanner = async () => {
     if (!banner.id) {
-      toast.error('لا يوجد بانر لحذفه');
+      toast.error('No banner to delete');
       return;
     }
 
-    const result = await confirmDelete('حذف البانر', 'هل أنت متأكد من رغبتك في حذف البانر؟');
+    const result = await confirmDelete('Delete Banner', 'Are you sure you want to delete the banner?');
     if (result.isConfirmed) {
       setLoading(true);
       try {
 
         await deleteSectionAPI(banner.id);
         await refreshSections();
-        toast.success('تم حذف البانر بنجاح');
+        toast.success('Banner deleted successfully');
         setBanner({
           id: null,
           title_en: "",
@@ -430,7 +459,7 @@ export default function ServicesManager() {
         setBannerFile(null);
         setBannerPreview(null);
       } catch (error) {
-        toast.error('حدث خطأ أثناء حذف البانر');
+        toast.error('An error occurred while deleting the banner');
         console.error(error);
       } finally {
         setLoading(false);
@@ -440,18 +469,18 @@ export default function ServicesManager() {
 
   const handleDeleteSectionHeader = async () => {
     if (!sectionHeader.id) {
-      toast.error('لا يوجد عنوان قسم لحذفه');
+      toast.error('No section header to delete');
       return;
     }
 
-    const result = await confirmDelete('حذف العنوان', 'هل أنت متأكد من رغبتك في حذف عنوان القسم؟');
+    const result = await confirmDelete('Delete Header', 'Are you sure you want to delete the section header?');
     if (result.isConfirmed) {
       setLoading(true);
       try {
 
         await deleteSectionAPI(sectionHeader.id);
         await refreshSections();
-        toast.success('تم حذف عنوان القسم بنجاح');
+        toast.success('Section header deleted successfully');
         setSectionHeader({
           id: null,
           title_en: "",
@@ -460,7 +489,7 @@ export default function ServicesManager() {
           subtitle_ar: ""
         });
       } catch (error) {
-        toast.error('حدث خطأ أثناء حذف عنوان القسم');
+        toast.error('An error occurred while deleting section header');
         console.error(error);
       } finally {
         setLoading(false);
@@ -564,17 +593,17 @@ export default function ServicesManager() {
                     type="text" 
                     value={services[activeItem].title_en}
                     onChange={(e) => updateActiveService('title_en', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.edit_title_en ? dashboardStyles.invalidInput : ''}`}
                     style={{ fontWeight: '700' }}
                   />
                 </div>
                 <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>عنوان الخدمة (AR)</label>
+                  <label className={localStyles.fieldLabel}>Service Title (AR)</label>
                   <input 
                     type="text" 
                     value={services[activeItem].title_ar}
                     onChange={(e) => updateActiveService('title_ar', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.edit_title_ar ? dashboardStyles.invalidInput : ''}`}
                     style={{ fontWeight: '700' }}
                   />
                 </div>
@@ -588,16 +617,16 @@ export default function ServicesManager() {
                     rows="4"
                     value={services[activeItem].description_en}
                     onChange={(e) => updateActiveService('description_en', e.target.value)}
-                    className={localStyles.textareaField}
+                    className={`${localStyles.textareaField} ${formErrors.edit_description_en ? dashboardStyles.invalidInput : ''}`}
                   />
                 </div>
                 <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>وصف الخدمة (AR)</label>
+                  <label className={localStyles.fieldLabel}>Service Description (AR)</label>
                   <textarea 
                     rows="4"
                     value={services[activeItem].description_ar}
                     onChange={(e) => updateActiveService('description_ar', e.target.value)}
-                    className={localStyles.textareaField}
+                    className={`${localStyles.textareaField} ${formErrors.edit_description_ar ? dashboardStyles.invalidInput : ''}`}
                   />
                 </div>
               </div>
@@ -605,57 +634,26 @@ export default function ServicesManager() {
               {/* Image Preview */}
               <div className={localStyles.mediaSection}>
                 <label className={localStyles.fieldLabel}>Featured Image</label>
-                <div className={localStyles.mediaGrid}>
-                  <div className={localStyles.mediaPreview}>
-                    {services[activeItem].image || editorPreview ? (
-                      <>
-                        <img src={editorPreview || services[activeItem].image} alt="" />
-                        <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                              <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                                <ImageIcon size={20} /> Change
-                                <input 
-                                  id="serviceImageInput"
-                                  type="file" 
-                                  accept="image/*" 
-                                  onChange={handleEditorImageChange}
-                                  style={{ display: 'none' }}
-                                />
-                              </label>
-                              <button 
-                                onClick={() => removeImage('service')}
-                                className={localStyles.deleteBtn}
-                                style={{ background: 'white', color: '#DC143C', width: '40px', display: 'flex', justifyContent: 'center' }}
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                           </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9', cursor: 'pointer' }}>
-                        <label style={{ cursor: 'pointer', textAlign: 'center' }}>
-                           <ImageIcon size={48} color="#94a3b8" />
-                           <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>Click to Upload</p>
-                           <input 
-                              id="serviceImageInput"
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleEditorImageChange}
-                              style={{ display: 'none' }}
-                            />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                  <div className={localStyles.mediaInfoBox}>
-                    <p className={localStyles.mediaInfoText}>
-                      <strong>Current Image:</strong> <br/>
-                      {services[activeItem].image || 'No image uploaded'} <br/><br/>
-                      Recommended format: <strong>WEBP/PNG</strong>
-                    </p>
-                  </div>
-                </div>
+                <ImageUpload 
+                  value={services[activeItem].image}
+                  mode="standard"
+                  height="220px"
+                  onChange={(file) => {
+                    setEditorFile(file);
+                    setEditorPreview(URL.createObjectURL(file));
+                    
+                    const updatedServices = [...services];
+                    updatedServices[activeItem].image = URL.createObjectURL(file);
+                    setServices(updatedServices);
+                    if(formErrors.edit_image) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.edit_image;
+                       setFormErrors(newErrors);
+                    }
+                  }}
+                  onDelete={() => removeImage('service')}
+                />
+                {formErrors.edit_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-220px', height: '220px', pointerEvents: 'none' }}></div>}
               </div>
             </div>
           ) : (
@@ -673,56 +671,28 @@ export default function ServicesManager() {
               <h3 className={localStyles.sectionTitle}>Services Page Hero Banner</h3>
             </div>
             
-            <div className={localStyles.mediaGrid} style={{ marginBottom: '1.5rem' }}>
-               <div className={localStyles.mediaPreview} style={{ height: '180px' }}>
-                {banner.image || bannerPreview ? (
-                  <>
-                    <img src={bannerPreview || banner.image} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                            <ImageIcon size={20} /> Change
-                            <input 
-                              id="bannerImageInput"
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleBannerImageChange}
-                              style={{ display: 'none' }}
-                            />
-                          </label>
-                          <button 
-                            onClick={() => removeImage('banner')}
-                            className={localStyles.deleteBtn}
-                            style={{ background: 'white', color: '#DC143C', width: '40px', display: 'flex', justifyContent: 'center' }}
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                       </div>
-                    </div>
-                  </>
-                ) : (
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9' }}>
-                     <label style={{ cursor: 'pointer', textAlign: 'center' }}>
-                        <ImageIcon size={48} color="#94a3b8" />
-                        <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>Click to Upload Banner</p>
-                        <input 
-                          id="bannerImageInput"
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleBannerImageChange}
-                          style={{ display: 'none' }}
-                        />
-                     </label>
-                   </div>
-                )}
-              </div>
-              <div className={localStyles.mediaInfoBox}>
-                <p className={localStyles.mediaInfoText}>
-                  <strong>Banner Image:</strong> <br/>
-                  {banner.image || 'No image uploaded'} <br/><br/>
-                  This banner appears only on the <strong>/services</strong> page.
-                </p>
-              </div>
+            <div className={localStyles.mediaSection} style={{ marginBottom: '1.5rem' }}>
+               <label className={localStyles.fieldLabel}>Banner Image</label>
+               <ImageUpload 
+                  value={banner.image}
+                  mode="hero"
+                  height="200px"
+                  onChange={(file) => {
+                    setBannerFile(file);
+                     setBannerPreview(URL.createObjectURL(file));
+                     setBanner(prev => ({ ...prev, image: URL.createObjectURL(file) }));
+                     if(formErrors.banner_image) {
+                        const newErrors = { ...formErrors };
+                        delete newErrors.banner_image;
+                        setFormErrors(newErrors);
+                     }
+                   }}
+                   onDelete={() => removeImage('banner')}
+                />
+                {formErrors.banner_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-200px', height: '200px', pointerEvents: 'none' }}></div>}
+                <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem' }}>
+                 This banner appears only on the <strong>/services</strong> page.
+               </p>
             </div>
 
             <div className={localStyles.formGrid}>
@@ -732,16 +702,16 @@ export default function ServicesManager() {
                   type="text" 
                   value={banner.title_en}
                   onChange={(e) => updateBanner('title_en', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.banner_title_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>عنوان البانر (AR)</label>
+                <label className={localStyles.fieldLabel}>Banner Title (AR)</label>
                 <input 
                   type="text" 
                   value={banner.title_ar}
                   onChange={(e) => updateBanner('title_ar', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.banner_title_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
             </div>
@@ -750,19 +720,19 @@ export default function ServicesManager() {
                 <label className={localStyles.fieldLabel}>Banner Subtitle (EN)</label>
                 <input 
                   type="text" 
-                  value={banner.subtitle_en}
-                  onChange={(e) => updateBanner('subtitle_en', e.target.value)}
-                  className={localStyles.inputField}
-                />
+                   value={banner.subtitle_en}
+                   onChange={(e) => updateBanner('subtitle_en', e.target.value)}
+                   className={`${localStyles.inputField} ${formErrors.banner_subtitle_en ? dashboardStyles.invalidInput : ''}`}
+                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الفرعي للبانر (AR)</label>
+                <label className={localStyles.fieldLabel}>Banner Subtitle (AR)</label>
                 <input 
                   type="text" 
-                  value={banner.subtitle_ar}
-                  onChange={(e) => updateBanner('subtitle_ar', e.target.value)}
-                  className={localStyles.inputField}
-                />
+                   value={banner.subtitle_ar}
+                   onChange={(e) => updateBanner('subtitle_ar', e.target.value)}
+                   className={`${localStyles.inputField} ${formErrors.banner_subtitle_ar ? dashboardStyles.invalidInput : ''}`}
+                 />
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
@@ -809,16 +779,16 @@ export default function ServicesManager() {
                   type="text" 
                   value={sectionHeader.title_en}
                   onChange={(e) => updateSectionHeader('title_en', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.header_title_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الرئيسي للقسم (AR)</label>
+                <label className={localStyles.fieldLabel}>Section Title (AR)</label>
                 <input 
                   type="text" 
                   value={sectionHeader.title_ar}
                   onChange={(e) => updateSectionHeader('title_ar', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.header_title_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
             </div>
@@ -827,19 +797,19 @@ export default function ServicesManager() {
                 <label className={localStyles.fieldLabel}>Section Subtitle (EN)</label>
                 <textarea 
                   rows="2"
-                  value={sectionHeader.subtitle_en}
-                  onChange={(e) => updateSectionHeader('subtitle_en', e.target.value)}
-                  className={localStyles.textareaField}
-                />
+                   value={sectionHeader.subtitle_en}
+                   onChange={(e) => updateSectionHeader('subtitle_en', e.target.value)}
+                   className={`${localStyles.textareaField} ${formErrors.header_subtitle_en ? dashboardStyles.invalidInput : ''}`}
+                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الفرعي للقسم (AR)</label>
+                <label className={localStyles.fieldLabel}>Section Subtitle (AR)</label>
                 <textarea 
                   rows="2"
-                  value={sectionHeader.subtitle_ar}
-                  onChange={(e) => updateSectionHeader('subtitle_ar', e.target.value)}
-                  className={localStyles.textareaField}
-                />
+                   value={sectionHeader.subtitle_ar}
+                   onChange={(e) => updateSectionHeader('subtitle_ar', e.target.value)}
+                   className={`${localStyles.textareaField} ${formErrors.header_subtitle_ar ? dashboardStyles.invalidInput : ''}`}
+                 />
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
@@ -896,18 +866,32 @@ export default function ServicesManager() {
               type="text" 
               placeholder="Enter title in English"
               value={newService.title_en}
-              onChange={(e) => setNewService({...newService, title_en: e.target.value})}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewService({...newService, title_en: e.target.value});
+                if(formErrors.new_title_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_title_en;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_title_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>عنوان الخدمة (AR)</label>
+            <label className={localStyles.fieldLabel}>Service Title (AR)</label>
             <input 
               type="text" 
-              placeholder="أدخل العنوان بالعربية"
+              placeholder="e.g. Earthmoving & Excavation"
               value={newService.title_ar}
-              onChange={(e) => setNewService({...newService, title_ar: e.target.value})}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewService({...newService, title_ar: e.target.value});
+                if(formErrors.new_title_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_title_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_title_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>
@@ -918,66 +902,62 @@ export default function ServicesManager() {
               rows="3"
               placeholder="Enter description in English"
               value={newService.description_en}
-              onChange={(e) => setNewService({...newService, description_en: e.target.value})}
-              className={localStyles.textareaField}
+              onChange={(e) => {
+                setNewService({...newService, description_en: e.target.value});
+                if(formErrors.new_description_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_description_en;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.textareaField} ${formErrors.new_description_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>وصف الخدمة (AR)</label>
+            <label className={localStyles.fieldLabel}>Service Description (AR)</label>
             <textarea 
               rows="3"
-              placeholder="أدخل الوصف بالعربية"
+              placeholder="e.g. Detailed description of the service..."
               value={newService.description_ar}
-              onChange={(e) => setNewService({...newService, description_ar: e.target.value})}
-              className={localStyles.textareaField}
+              onChange={(e) => {
+                setNewService({...newService, description_ar: e.target.value});
+                if(formErrors.new_description_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_description_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.textareaField} ${formErrors.new_description_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>
         <div className={localStyles.inputGroup}>
-          <label className={localStyles.fieldLabel}>Upload Service Image</label>
-          {newService.imagePreview ? (
-            <div style={{ position: 'relative' }}>
-              <img 
-                src={newService.imagePreview} 
-                alt="Preview" 
-                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px' }}
-              />
-              <button
-                onClick={() => setNewService({...newService, imageFile: null, imagePreview: null})}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  background: 'white',
-                  border: 'none',
-                  borderRadius: '50%',
-                  padding: '8px',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}
-              >
-                <X size={16} color="#ef4444" />
-              </button>
-            </div>
-          ) : (
-            <label style={{ 
-              padding: '2rem', 
-              border: '2px dashed #e2e8f0', 
-              borderRadius: '12px', 
-              textAlign: 'center', 
-              cursor: 'pointer',
-              display: 'block'
-            }}>
-              <ImageIcon size={32} color="#64748b" style={{ marginBottom: '0.5rem' }} />
-              <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Click to upload or drag image here</p>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleNewServiceImageChange}
-                style={{ display: 'none' }}
-              />
-            </label>
-          )}
+          <label className={localStyles.fieldLabel}>Service Image</label>
+          <ImageUpload 
+            value={newService.imagePreview}
+            mode="standard"
+            height="200px"
+            onChange={(file) => {
+              setNewService({
+                ...newService,
+                imageFile: file,
+                imagePreview: URL.createObjectURL(file)
+              });
+              if(formErrors.new_image) {
+                const newErrors = { ...formErrors };
+                delete newErrors.new_image;
+                setFormErrors(newErrors);
+              }
+            }}
+            onDelete={() => {
+              setNewService({
+                ...newService,
+                imageFile: null,
+                imagePreview: null
+              });
+            }}
+          />
+          {formErrors.new_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-200px', height: '200px', pointerEvents: 'none' }}></div>}
         </div>
       </Modal>
     </motion.div>

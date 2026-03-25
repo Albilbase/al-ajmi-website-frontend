@@ -23,8 +23,10 @@ import {
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './media-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
+import { validateImage } from '@/lib/validation';
 
 
 export default function MediaManager() {
@@ -34,6 +36,7 @@ export default function MediaManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
   
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -45,9 +48,7 @@ export default function MediaManager() {
   const [mainImageFile, setMainImageFile] = useState(null);
   const [sliderImageFiles, setSliderImageFiles] = useState([]);
 
-  const mainImageInputRef = useRef(null);
   const sliderImagesInputRef = useRef(null);
-  const bannerInputRef = useRef(null);
 
   const getImageUrl = (path) => {
     if (!path) return "";
@@ -94,7 +95,7 @@ export default function MediaManager() {
         }
       } catch (error) {
         console.error("Failed to fetch media data:", error);
-        toast.error("حدث خطأ أثناء تحميل البيانات");
+        toast.error("An error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -132,9 +133,8 @@ export default function MediaManager() {
   };
 
   const handleDelete = async (id) => {
-    const result = await confirmDelete('حذف العنصر', 'Are you sure you want to delete this media item?');
+    const result = await confirmDelete('Delete Item', 'Are you sure you want to delete this media item?');
     if (result.isConfirmed) {
-
       try {
         await deleteSectionAPI(id);
         setData(prev => ({
@@ -142,14 +142,30 @@ export default function MediaManager() {
           items: prev.items.filter(i => i.id !== id)
         }));
         await refreshSections();
-        toast.success("تم حذف العنصر بنجاح");
+        toast.success("Item deleted successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting the item");
       }
     }
   };
 
   const handleSave = async () => {
+    const errors = {};
+    if (!currentItem.en.title) errors.item_title_en = true;
+    if (!currentItem.ar.title) errors.item_title_ar = true;
+    if (!currentItem.en.description) errors.item_desc_en = true;
+    if (!currentItem.ar.description) errors.item_desc_ar = true;
+    if (!currentItem.tag_en) errors.item_tag_en = true;
+    if (!currentItem.tag_ar) errors.item_tag_ar = true;
+    if (!currentItem.id && !mainImageFile) errors.item_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required fields and upload a cover image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'media');
@@ -182,10 +198,10 @@ export default function MediaManager() {
       let response;
       if (currentItem.id) {
         response = await updateSectionAPI(currentItem.id, formData);
-        toast.success("تم تحديث العنصر بنجاح");
+        toast.success("Item updated successfully");
       } else {
         response = await createSectionAPI(formData);
-        toast.success("تمت إضافة العنصر بنجاح");
+        toast.success("Item added successfully");
       }
 
       await refreshSections();
@@ -220,7 +236,7 @@ export default function MediaManager() {
       }
       setIsModalOpen(false);
     } catch (error) {
-      toast.error("حدث خطأ أثناء الحفظ");
+      toast.error("An error occurred while saving the item");
     } finally {
       setIsSubmitting(false);
     }
@@ -231,16 +247,9 @@ export default function MediaManager() {
       ...prev,
       [lang]: { ...prev[lang], [field]: value }
     }));
+    if(formErrors[`item_${field}_${lang}`]) setFormErrors({...formErrors, [`item_${field}_${lang}`]: false});
   };
 
-  const handleMainImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setMainImageFile(file);
-      const url = URL.createObjectURL(file);
-      setCurrentItem(prev => ({...prev, image: url, rawMainImage: null})); // Clear raw path as it's a new file
-    }
-  };
 
   const removeMainImage = async () => {
     if (!currentItem.image) return;
@@ -252,7 +261,7 @@ export default function MediaManager() {
       return;
     }
 
-    const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف الصورة الرئيسية؟');
+    const result = await confirmDelete('Delete Cover Image', 'Are you sure you want to delete the main cover photo?');
     if (result.isConfirmed) {
       try {
         await deleteImageAPI(currentItem.id, currentItem.rawMainImage);
@@ -270,29 +279,33 @@ export default function MediaManager() {
         });
         
         await refreshSections();
-        toast.success("تم حذف الصورة بنجاح");
+        toast.success("Cover image deleted successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting the image");
       }
     }
   };
 
   const handleSliderImagesUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      setSliderImageFiles(prev => [...prev, ...files]);
-      const urls = files.map(file => URL.createObjectURL(file));
-      setCurrentItem(prev => ({
-        ...prev, 
-        sliderImages: [...(prev.sliderImages || []), ...urls]
-      }));
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      const validFiles = files.filter(file => validateImage(file, 'slider'));
+      
+      if (validFiles.length > 0) {
+        setSliderImageFiles(prev => [...prev, ...validFiles]);
+        const urls = validFiles.map(file => URL.createObjectURL(file));
+        setCurrentItem(prev => ({
+          ...prev, 
+          sliderImages: [...(prev.sliderImages || []), ...urls]
+        }));
+        if(formErrors.item_slider) setFormErrors({...formErrors, item_slider: false});
+      }
     }
   };
-
   const removeSliderImage = async (index, isExisting) => {
     if (isExisting) {
       const imageName = currentItem.rawSliderImages[index];
-      const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة؟');
+      const result = await confirmDelete('Delete Photo', 'Are you sure you want to delete this photo?');
       if (result.isConfirmed) {
 
         try {
@@ -314,9 +327,9 @@ export default function MediaManager() {
           });
           
           await refreshSections();
-          toast.success("تم حذف الصورة بنجاح");
+          toast.success("Photo deleted successfully");
         } catch (error) {
-          toast.error("حدث خطأ أثناء حذف الصورة");
+          toast.error("An error occurred while deleting the photo");
         }
       }
     } else {
@@ -330,16 +343,14 @@ export default function MediaManager() {
     }
   };
 
-  const handleBannerUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
-    }
-  };
 
   const handleSaveBanner = async () => {
-    if (!bannerFile) return;
+    if (!bannerFile) {
+      toast.warning("Please choose a banner image first");
+      setFormErrors({...formErrors, banner_image: true});
+      return;
+    }
+    setFormErrors({...formErrors, banner_image: false});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'media');
@@ -359,9 +370,9 @@ export default function MediaManager() {
       setBannerFile(null);
       setBannerPreview(null);
       await refreshSections();
-      toast.success("تم حفظ البانر بنجاح");
+      toast.success("Banner saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البانر");
+      toast.error("An error occurred while saving the banner");
     } finally {
       setIsSubmitting(false);
     }
@@ -378,7 +389,7 @@ export default function MediaManager() {
       return;
     }
 
-    const result = await confirmDelete('حذف البانر', 'هل أنت متأكد من حذف صورة البانر؟');
+    const result = await confirmDelete('Delete Banner', 'Are you sure you want to delete the banner image?');
     if (result.isConfirmed) {
 
       try {
@@ -387,9 +398,9 @@ export default function MediaManager() {
         setBannerFile(null);
         setBannerPreview(null);
         await refreshSections();
-        toast.success("تم حذف البانر بنجاح");
+        toast.success("Banner deleted successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting");
       }
     }
   };
@@ -430,35 +441,18 @@ export default function MediaManager() {
             <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Banner'}
           </button>
         </div>
-        <div className={localStyles.bannerPreviewWrapper} style={{ position: 'relative' }}>
-          <img 
-            src={bannerPreview || data.banner || "/images/placeholder.png"} 
-            alt="Banner" 
-            className={localStyles.bannerImage} 
-            onClick={() => bannerInputRef.current?.click()}
-          />
-          {(bannerPreview || data.banner) && (
-            <button 
-              onClick={(e) => { e.stopPropagation(); removeBannerImage(); }}
-              style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(220, 20, 60, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <X size={20} />
-            </button>
-          )}
-          <div className={localStyles.bannerOverlay} onClick={() => bannerInputRef.current?.click()}>
-            <div style={{ color: 'white', textAlign: 'center' }}>
-              <UploadCloud size={32} style={{ marginBottom: '0.5rem' }} />
-              <div style={{ fontWeight: 700 }}>Click to change banner</div>
-            </div>
-          </div>
-          <input 
-            type="file" 
-            hidden 
-            ref={bannerInputRef} 
-            onChange={handleBannerUpload} 
-            accept="image/*"
-          />
-        </div>
+        <ImageUpload 
+          value={bannerPreview || data.banner}
+          mode="hero"
+          height="180px"
+          onChange={(file) => {
+            setBannerFile(file);
+            setBannerPreview(URL.createObjectURL(file));
+            if(formErrors.banner_image) setFormErrors({...formErrors, banner_image: false});
+          }}
+          onDelete={removeBannerImage}
+        />
+        {formErrors.banner_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-180px', height: '180px', pointerEvents: 'none', position: 'relative', zIndex: 10 }}></div>}
       </div>
 
       {/* Items List */}
@@ -539,11 +533,11 @@ export default function MediaManager() {
               </div>
               <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
                 <label className={localStyles.label}>Category / Tag (EN)</label>
-                <input className={localStyles.input} value={currentItem.tag_en} onChange={(e) => setCurrentItem({...currentItem, tag_en: e.target.value})} placeholder="e.g. News" />
+                <input className={`${localStyles.input} ${formErrors.item_tag_en ? dashboardStyles.invalidInput : ''}`} value={currentItem.tag_en} onChange={(e) => {setCurrentItem({...currentItem, tag_en: e.target.value}); if(formErrors.item_tag_en) setFormErrors({...formErrors, item_tag_en: false});}} placeholder="e.g. News" />
               </div>
               <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
                 <label className={localStyles.label}>Category / Tag (AR)</label>
-                <input className={localStyles.input} value={currentItem.tag_ar} onChange={(e) => setCurrentItem({...currentItem, tag_ar: e.target.value})} placeholder="مثلاً: أخبار" />
+                <input className={`${localStyles.input} ${formErrors.item_tag_ar ? dashboardStyles.invalidInput : ''}`} value={currentItem.tag_ar} onChange={(e) => {setCurrentItem({...currentItem, tag_ar: e.target.value}); if(formErrors.item_tag_ar) setFormErrors({...formErrors, item_tag_ar: false});}} placeholder="مثلاً: أخبار" />
               </div>
             </div>
 
@@ -597,59 +591,55 @@ export default function MediaManager() {
                 <h4 style={{ marginBottom: '1rem', color: '#DC143C' }}>English Details</h4>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.label}>Title</label>
-                  <input className={localStyles.input} value={currentItem.en.title} onChange={(e) => updateField('en', 'title', e.target.value)} />
+                  <input className={`${localStyles.input} ${formErrors.item_title_en ? dashboardStyles.invalidInput : ''}`} value={currentItem.en.title} onChange={(e) => updateField('en', 'title', e.target.value)} />
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.label}>Description</label>
-                  <textarea className={localStyles.textarea} rows={5} value={currentItem.en.description} onChange={(e) => updateField('en', 'description', e.target.value)} />
+                  <textarea className={`${localStyles.textarea} ${formErrors.item_desc_en ? dashboardStyles.invalidInput : ''}`} rows={5} value={currentItem.en.description} onChange={(e) => updateField('en', 'description', e.target.value)} />
                 </div>
               </div>
 
               {/* Arabic */}
               <div className={localStyles.formSection} dir="rtl">
-                <h4 style={{ marginBottom: '1rem', color: '#DC143C' }}>التفاصيل بالعربية</h4>
+                <h4 style={{ marginBottom: '1rem', color: '#DC143C' }}>Arabic Details</h4>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.label}>العنوان</label>
-                  <input className={localStyles.input} value={currentItem.ar.title} onChange={(e) => updateField('ar', 'title', e.target.value)} />
+                  <label className={localStyles.label}>Title</label>
+                  <input className={`${localStyles.input} ${formErrors.item_title_ar ? dashboardStyles.invalidInput : ''}`} value={currentItem.ar.title} onChange={(e) => updateField('ar', 'title', e.target.value)} />
                 </div>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.label}>الوصف</label>
-                  <textarea className={localStyles.textarea} rows={5} value={currentItem.ar.description} onChange={(e) => updateField('ar', 'description', e.target.value)} />
+                  <label className={localStyles.label}>Description</label>
+                  <textarea className={`${localStyles.textarea} ${formErrors.item_desc_ar ? dashboardStyles.invalidInput : ''}`} rows={5} value={currentItem.ar.description} onChange={(e) => updateField('ar', 'description', e.target.value)} />
                 </div>
               </div>
             </div>
 
             {/* Row 3: Image Management */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', paddingTop: '2rem', borderTop: '2px solid #f1f5f9' }}>
-               {/* Cover Image DropZone */}
-               <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
+              {/* Cover Image DropZone */}
+              <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
                 <label className={localStyles.label}>Main Cover Image</label>
-                <div className={localStyles.dropZone} style={{ height: '220px', justifyContent: 'center' }} onClick={() => mainImageInputRef.current?.click()}>
-                  <input type="file" hidden ref={mainImageInputRef} onChange={handleMainImageUpload} accept="image/*" />
-                  {currentItem.image ? (
-                    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src={currentItem.image} alt="Preview" className={localStyles.previewImage} style={{ maxHeight: '180px' }} />
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); removeMainImage(); }}
-                        style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(220, 20, 60, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', zIndex: 10 }}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <UploadCloud size={48} strokeWidth={1} color="#94a3b8" />
-                      <p style={{ fontWeight: 600, color: '#64748b' }}>Upload Cover Image</p>
-                    </>
-                  )}
-                </div>
+                <ImageUpload
+                  value={currentItem.image}
+                  mode="standard"
+                  height="220px"
+                  onChange={(file) => {
+                    setMainImageFile(file);
+                    setCurrentItem(prev => ({
+                      ...prev,
+                      image: URL.createObjectURL(file)
+                    }));
+                    if (formErrors.item_image) setFormErrors({ ...formErrors, item_image: false });
+                  }}
+                  onDelete={removeMainImage}
+                />
+                {formErrors.item_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-220px', height: '220px', pointerEvents: 'none', position: 'relative', zIndex: 10 }}></div>}
               </div>
 
               {/* Slider Gallery Management */}
               <div className={localStyles.sliderManagement} style={{ marginTop: 0, paddingTop: 0, border: 'none' }}>
                 <label className={localStyles.label}>Gallery / Slider Images</label>
                 <div className={localStyles.sliderGrid} style={{ marginTop: '0.2rem' }}>
-                   {currentItem.sliderImages?.map((img, idx) => (
+                  {currentItem.sliderImages?.map((img, idx) => (
                     <div key={idx} className={localStyles.sliderItem}>
                       <img src={img} className={localStyles.sliderImg} alt={`Slider ${idx}`} />
                       <button className={localStyles.removeSliderImg} onClick={() => removeSliderImage(idx, idx < (currentItem.rawSliderImages?.length || 0))}>

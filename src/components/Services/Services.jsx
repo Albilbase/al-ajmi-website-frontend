@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion"; // animation library
 import { useTranslation } from "react-i18next"; // i18next library
 import Image from "next/image";
@@ -12,6 +12,7 @@ export default function Services({ homeData }) {
   const isAr = i18n.language === 'ar';
   const [activeService, setActiveService] = useState(0); // active service state
   const [hoveredService, setHoveredService] = useState(null); // hovered service state
+  const gridRef = useRef(null); // Ref to scroll grid into view
 
   const [apiData, setApiData] = useState({
       header: null,
@@ -59,6 +60,21 @@ export default function Services({ homeData }) {
     }
   }, [displayServices.length]);
 
+  // Sync scroll position with active service inside the container only
+  useEffect(() => {
+    if (gridRef.current) {
+        const container = gridRef.current;
+        const activeElement = container.children[activeService];
+        
+        if (activeElement) {
+            // Scroll ONLY the container, NOT the whole page
+            container.scrollTo({
+                top: activeElement.offsetTop - container.offsetTop - 20, // 20px padding offset
+                behavior: 'smooth'
+            });
+        }
+    }
+  }, [activeService]);
   if (displayServices.length === 0) return null;
 
   return (
@@ -154,7 +170,7 @@ export default function Services({ homeData }) {
           </div>
 
           {/* Service Navigation Grid */}
-          <div className={styles.servicesGrid}>
+          <div className={styles.servicesGrid} ref={gridRef}>
             {displayServices.map((service, index) => (
               <motion.div
                 key={service.id || index}

@@ -44,6 +44,9 @@ const JobsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
     const jobsSections = (sections || []).filter(section => section.section_key === 'jobs');
     if (jobsSections.length > 0) {
@@ -77,8 +80,26 @@ const JobsPage = () => {
           console.error("Error parsing form settings:", error);
         }
       }
+
+      // Initialize form data
+      const initialForm = {};
+      fields.forEach(f => {
+        initialForm[f.id] = "";
+      });
+      setFormData(initialForm);
     }
   }, [sections]);
+
+  const handleInputChange = (fieldId, value) => {
+    setFormData(prev => ({ ...prev, [fieldId]: value }));
+    if (errors[fieldId]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldId];
+        return newErrors;
+      });
+    }
+  };
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -98,46 +119,87 @@ const JobsPage = () => {
 
       setFile(selectedFile);
       setFileName(selectedFile.name);
+      if (errors['file']) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors['file'];
+          return newErrors;
+        });
+      }
     } else {
       setFile(null);
       setFileName("");
     }
   };
 
+  const validate = () => {
+    const newErrors = {};
+    formFields.forEach(field => {
+      const value = formData[field.id]?.toString().trim() || "";
+      const label = isRTL ? field.title_ar : field.title_en;
+
+      if (!value) {
+        newErrors[field.id] = isRTL ? `حقل ${label} مطلوب` : `${label} is required`;
+      } else {
+        const isEmail = field.description_en === 'email' || 
+                        field.title_en?.toLowerCase().includes('email') || 
+                        field.title_ar?.includes('البريد');
+        
+        if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
+        }
+      }
+    });
+
+    if (!file) {
+      newErrors['file'] = isRTL ? "يرجى إرفاق السيرة الذاتية" : "Please attach your resume";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validate()) {
+      toast.error(isRTL 
+        ? "يرجى التأكد من ملء جميع الحقول المطلوبة بشكل صحيح" 
+        : "Please ensure all required fields are filled correctly");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData();
-      // "Career - Job Title"
+      const submitData = new FormData();
       const jobTitleEn = selectedJob?.title_en || "General Application";
-      formData.append('name', `Career - ${jobTitleEn}`);
-      formData.append('send_to', recipientEmail);
+      submitData.append('name', `Career - ${jobTitleEn}`);
+      submitData.append('send_to', recipientEmail);
 
       const dataObj = {};
       formFields.forEach(field => {
-        const element = document.getElementById(`f-${field.id}`);
-        if (element) {
-          
-          const key = field.title_en || `field_${field.id}`;
-          dataObj[key] = element.value;
-        }
+        const key = field.title_en || `field_${field.id}`;
+        dataObj[key] = formData[field.id];
       });
       
-      // Append data as stringified JSON
-      formData.append('data', JSON.stringify(dataObj));
+      submitData.append('data', JSON.stringify(dataObj));
 
       if (file) {
-        formData.append('file', file);
+        submitData.append('file', file);
       }
 
-      await submitContactFormAPI(formData);
+      await submitContactFormAPI(submitData);
 
       toast.success(isRTL ? "تم إرسال طلبك بنجاح!" : "Application sent successfully!");
-      e.target.reset();
+      
+      // Reset form
+      const resetForm = {};
+      formFields.forEach(f => { resetForm[f.id] = ""; });
+      setFormData(resetForm);
       setFile(null);
       setFileName("");
+      setErrors({});
       setIsApplyModalOpen(false);
     } catch (error) {
       console.error(error);
@@ -318,6 +380,7 @@ const JobsPage = () => {
                   width = field.description_ar || "full";
                 }
 
+                const hasError = !!errors[field.id];
                 const groupClass = `${styles.formGroup} ${width === 'full' ? styles.fullWidth : ''}`;
 
                 return (
@@ -326,14 +389,54 @@ const JobsPage = () => {
                       {field.type === 'form_input' ? (
                         <>
                           {field.description_en === 'textarea' ? (
-                            <textarea id={`f-${field.id}`} className={styles.textarea} required placeholder=" " />
-                          ) : (
-                            <input type={field.description_en || "text"} id={`f-${field.id}`} className={styles.input} required placeholder=" " />
-                          )}
+                            <textarea 
+                              id={`f-${field.id}`} 
+                              className={`${styles.textarea} ${hasError ? styles.inputError : ''}`} 
+                              value={formData[field.id] || ""}
+                              onChange={(e) => handleInputChange(field.id, e.target.value)}
+                              placeholder=" " 
+                            />
+                          ) : (() => {
+                            const isEmail = field.description_en === 'email' || 
+                                            field.title_en?.toLowerCase().includes('email') || 
+                                            field.title_en?.toLowerCase().includes('mail') || 
+                                            field.title_ar?.includes('البريد') || 
+                                            field.title_ar?.includes('ايميل') ||
+                                            field.title_ar?.includes('عنوان');
+
+                            const isTel = field.description_en === 'tel' || 
+                                          field.title_en?.toLowerCase().includes('phone') || 
+                                          field.title_en?.toLowerCase().includes('tel') || 
+                                          field.title_en?.toLowerCase().includes('mobile') ||
+                                          field.title_ar?.includes('هاتف') || 
+                                          field.title_ar?.includes('جوال') || 
+                                          field.title_ar?.includes('تلفون');
+
+                            return (
+                              <input 
+                                type={isEmail ? "email" : (isTel ? "tel" : (field.description_en || "text"))} 
+                                id={`f-${field.id}`} 
+                                className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
+                                value={formData[field.id] || ""}
+                                onChange={(e) => handleInputChange(field.id, e.target.value)}
+                                placeholder=" " 
+                                onInput={(e) => {
+                                  if (isTel) {
+                                    e.target.value = e.target.value.replace(/[^0-9+]/g, '');
+                                  }
+                                }}
+                              />
+                            );
+                          })()}
                         </>
                       ) : (
                         <>
-                          <select id={`f-${field.id}`} className={styles.select} required defaultValue="">
+                          <select 
+                            id={`f-${field.id}`} 
+                            className={`${styles.select} ${hasError ? styles.inputError : ''}`} 
+                            value={formData[field.id] || ""}
+                            onChange={(e) => handleInputChange(field.id, e.target.value)}
+                          >
                             <option value="" disabled></option>
                             {(isRTL ? (field.description_ar?.split('|')[0] || "") : (field.description_en || "")).split(';').map((opt, idx) => (
                               <option key={idx} value={opt.trim()}>{opt.trim()}</option>
@@ -346,6 +449,11 @@ const JobsPage = () => {
                         {isRTL ? field.title_ar : field.title_en}
                       </label>
                     </div>
+                    {hasError && (
+                      <span className={styles.errorMessage}>
+                        <Info size={14} /> {errors[field.id]}
+                      </span>
+                    )}
                   </div>
                 );
               })
@@ -365,9 +473,8 @@ const JobsPage = () => {
                   className={styles.fileInput} 
                   onChange={handleFileChange}
                   accept=".pdf,.doc,.docx"
-                  required
                 />
-                <div className={`${styles.fileDecor} ${fileName ? styles.fileSelected : ''}`}>
+                <div className={`${styles.fileDecor} ${fileName ? styles.fileSelected : ''} ${errors['file'] ? styles.inputError : ''}`}>
                   <div className={styles.iconWrapper}>
                     {fileName ? <CheckCircle2 size={32} /> : <UploadCloud size={32} />}
                   </div>
@@ -376,6 +483,11 @@ const JobsPage = () => {
                   </span>
                 </div>
               </div>
+              {errors['file'] && (
+                <span className={styles.errorMessage}>
+                  <Info size={14} /> {errors['file']}
+                </span>
+              )}
             </div>
 
             <div className={styles.fullWidth} style={{ marginTop: '1rem' }}>

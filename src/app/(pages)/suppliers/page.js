@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { UploadCloud, CheckCircle2, ChevronDown, Loader2, Info } from 'lucide-react'; 
+import { UploadCloud, CheckCircle2, ChevronDown, Loader2, Info, X, FileText, File } from 'lucide-react'; 
 import useCMSStore from '@/store/useCMSStore';
 import styles from './suppliers.module.css';
 
@@ -13,13 +13,16 @@ const SuppliersPage = () => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const sections = useCMSStore((state) => state.sections);
-  const [fileName, setFileName] = useState("");
-  const [file, setFile] = useState(null);
+  const [fileNames, setFileNames] = useState([]);
+  const [files, setFiles] = useState([]);
   const storeLoading = useCMSStore((state) => state.isLoading);
   const [hero, setHero] = useState(null);
   const [formFields, setFormFields] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
+
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const suppliersSections = (sections || []).filter(section => section.section_key === 'suppliers');
@@ -49,55 +52,151 @@ const SuppliersPage = () => {
           console.error("Error parsing form settings:", error);
         }
       }
+
+      // Initialize form data
+      const initialForm = {};
+      fields.forEach(f => {
+        initialForm[f.id] = "";
+      });
+      setFormData(initialForm);
     }
   }, [sections]);
 
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setFileName(selectedFile.name);
-    } else {
-      setFile(null);
-      setFileName("");
+  const handleInputChange = (fieldId, value) => {
+    setFormData(prev => ({ ...prev, [fieldId]: value }));
+    if (errors[fieldId]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldId];
+        return newErrors;
+      });
     }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    formFields.forEach(field => {
+      const value = formData[field.id]?.toString().trim() || "";
+      const label = isRTL ? field.title_ar : field.title_en;
+
+      if (!value) {
+        newErrors[field.id] = isRTL ? `حقل ${label} مطلوب` : `${label} is required`;
+      } else {
+        const isEmail = field.description_en === 'email' || 
+                        field.title_en?.toLowerCase().includes('email') || 
+                        field.title_ar?.includes('البريد');
+        
+        const isTel = field.description_en === 'tel' || 
+                      field.title_en?.toLowerCase().includes('phone') || 
+                      field.title_ar?.includes('هاتف');
+
+        if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
+        }
+        
+        if (isTel && value.length < 8) {
+          newErrors[field.id] = isRTL ? "الرقم  قصير جداًا" : " number is too short";
+        }
+      }
+    });
+
+    if (files.length === 0) {
+      newErrors['file'] = isRTL ? "يرجى إرفاق ملف الشركة / الملف التعريفي" : "Please attach company profile / file";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleFileChange = (event) => {
+    const newSelectedFiles = Array.from(event.target.files);
+    if (newSelectedFiles.length > 0) {
+      const allowedExtensions = ['pdf', 'doc', 'docx'];
+      const invalidFiles = newSelectedFiles.filter(f => {
+        const ext = f.name.split('.').pop().toLowerCase();
+        return !allowedExtensions.includes(ext);
+      });
+
+      if (invalidFiles.length > 0) {
+        toast.error(isRTL ? "يرجى اختيار ملفات PDF أو Word فقط." : "Please select only PDF or Word files.");
+        event.target.value = ''; 
+        return;
+      }
+      
+      // Combine with existing files if you want cumulative selection
+      // But usually, standard <input> replaces files. To support cumulative, we must merge.
+      // However the user just wants to "see them", let's make it cumulative so they see a growing list.
+      const combinedFiles = [...files, ...newSelectedFiles];
+      const combinedNames = [...fileNames, ...newSelectedFiles.map(f => f.name)];
+      
+      setFiles(combinedFiles);
+      setFileNames(combinedNames);
+      
+      // Clear file error
+      if (errors['file']) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors['file'];
+          return newErrors;
+        });
+      }
+      
+      // Reset input value to allow re-selecting same file
+      event.target.value = '';
+    }
+  };
+
+  const removeSpecificFile = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newFiles = files.filter((_, i) => i !== index);
+    const newFileNames = fileNames.filter((_, i) => i !== index);
+    setFiles(newFiles);
+    setFileNames(newFileNames);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validate()) {
+      toast.error(isRTL 
+        ? "يرجى التأكد من ملء جميع الحقول المطلوبة بشكل صحيح" 
+        : "Please ensure all required fields are filled correctly");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData();
-      // Set the subject/form name
-      formData.append('name', 'Suppliers Registration');
-      formData.append('send_to', recipientEmail);
+      const submitData = new FormData();
+      submitData.append('name', 'Suppliers Registration');
+      submitData.append('send_to', recipientEmail);
 
       const dataObj = {};
       formFields.forEach(field => {
-        const element = document.getElementById(`field-${field.id}`);
-        if (element) {
-          
-          const key = field.title_en || `field_${field.id}`;
-          dataObj[key] = element.value;
-        }
+        const key = field.title_en || `field_${field.id}`;
+        dataObj[key] = formData[field.id];
       });
       
-      // Append data as stringified JSON
-      formData.append('data', JSON.stringify(dataObj));
+      submitData.append('data', JSON.stringify(dataObj));
 
-      if (file) {
-        formData.append('file', file);
+      if (files.length > 0) {
+        files.forEach(f => {
+          submitData.append('Files', f);
+        });
       }
 
-      await submitContactFormAPI(formData);
+      await submitContactFormAPI(submitData);
       
       toast.success(isRTL ? "تم إرسال النموذج بنجاح!" : "Form submitted successfully!");
       
       // Reset form
-      e.target.reset();
-      setFile(null);
-      setFileName("");
+      const resetForm = {};
+      formFields.forEach(f => { resetForm[f.id] = ""; });
+      setFormData(resetForm);
+      setFiles([]);
+      setFileNames([]);
+      setErrors({});
     } catch (error) {
       console.error(error);
       toast.error(isRTL ? "حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى." : "Error submitting form. Please try again.");
@@ -166,8 +265,8 @@ const SuppliersPage = () => {
                 } else if (!isDropdown) {
                   width = field.description_ar || "full";
                 }
-
-                // If it's a textarea, it often looks better full width, but we respect the dashboard setting
+                
+                const hasError = !!errors[field.id];
                 const groupClass = `${styles.formGroup} ${width === 'full' ? styles.fullWidth : ''}`;
 
                 return (
@@ -177,19 +276,43 @@ const SuppliersPage = () => {
                         {field.description_en === 'textarea' ? (
                           <textarea 
                              id={`field-${field.id}`}
-                             className={styles.textarea} 
-                             required 
+                             className={`${styles.textarea} ${hasError ? styles.inputError : ''}`} 
+                             value={formData[field.id] || ""}
+                             onChange={(e) => handleInputChange(field.id, e.target.value)}
                              placeholder=" "
                           />
-                        ) : (
-                          <input 
-                            type={field.description_en || "text"} 
-                            id={`field-${field.id}`}
-                            className={styles.input} 
-                            required 
-                            placeholder=" "
-                          />
-                        )}
+                        ) : (() => {
+                          const isEmail = field.description_en === 'email' || 
+                                          field.title_en?.toLowerCase().includes('email') || 
+                                          field.title_en?.toLowerCase().includes('mail') || 
+                                          field.title_ar?.includes('البريد') || 
+                                          field.title_ar?.includes('ايميل') ||
+                                          field.title_ar?.includes('عنوان');
+
+                          const isTel = field.description_en === 'tel' || 
+                                        field.title_en?.toLowerCase().includes('phone') || 
+                                        field.title_en?.toLowerCase().includes('tel') || 
+                                        field.title_en?.toLowerCase().includes('mobile') ||
+                                        field.title_ar?.includes('هاتف') || 
+                                        field.title_ar?.includes('جوال') || 
+                                        field.title_ar?.includes('تلفون');
+                          
+                          return (
+                            <input 
+                              type={isEmail ? "email" : (isTel ? "tel" : (field.description_en || "text"))} 
+                              id={`field-${field.id}`}
+                              className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
+                              value={formData[field.id] || ""}
+                              onChange={(e) => handleInputChange(field.id, e.target.value)}
+                              placeholder=" "
+                              onInput={(e) => {
+                                if (isTel) {
+                                  e.target.value = e.target.value.replace(/[^0-9+]/g, '');
+                                }
+                              }}
+                            />
+                          );
+                        })()}
                         <label htmlFor={`field-${field.id}`} className={styles.label}>
                           {isRTL ? field.title_ar : field.title_en}
                         </label>
@@ -198,9 +321,9 @@ const SuppliersPage = () => {
                       <div className={styles.inputWrapper}>
                         <select 
                           id={`field-${field.id}`} 
-                          className={styles.select} 
-                          required 
-                          defaultValue=""
+                          className={`${styles.select} ${hasError ? styles.inputError : ''}`} 
+                          value={formData[field.id] || ""}
+                          onChange={(e) => handleInputChange(field.id, e.target.value)}
                         >
                           <option value="" disabled></option>
                           {(isRTL ? (field.description_ar?.split('|')[0] || "") : field.description_en || "").split(';').map((opt, idx) => {
@@ -218,6 +341,11 @@ const SuppliersPage = () => {
                         </label>
                         <ChevronDown size={16} style={{position: 'absolute', [isRTL ? 'left' : 'right']: '1rem', top:'50%', transform:'translateY(-50%)', pointerEvents:'none', opacity:0.5}}/>
                       </div>
+                    )}
+                    {hasError && (
+                      <span className={styles.errorMessage}>
+                        <Info size={14} /> {errors[field.id]}
+                      </span>
                     )}
                   </div>
                 );
@@ -237,16 +365,48 @@ const SuppliersPage = () => {
                   id="file"
                   className={styles.fileInput} 
                   onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx"
+                  multiple
                 />
-                <div className={`${styles.fileDecor} ${fileName ? styles.fileSelected : ''}`}>
+                <div className={`${styles.fileDecor} ${fileNames.length > 0 ? styles.fileSelected : ''} ${errors['file'] ? styles.inputError : ''}`}>
                    <div className={styles.iconWrapper}>
-                     {fileName ? <CheckCircle2 size={32} /> : <UploadCloud size={32} />}
+                     {fileNames.length > 0 ? <CheckCircle2 size={32} /> : <UploadCloud size={32} />}
                    </div>
                    <span className={styles.fileName}>
-                     {fileName || t('suppliersPage.form.uploadFile')}
+                     {t('suppliersPage.form.uploadFile')}
                    </span>
                 </div>
               </div>
+
+              {/* Selected Files List Moved Outside Fixed Height Container */}
+              {fileNames.length > 0 && (
+                <div className={styles.fileList}>
+                  {fileNames.map((name, idx) => {
+                    const isPDF = name.toLowerCase().endsWith('.pdf');
+                    return (
+                      <div key={idx} className={styles.fileItem}>
+                        <div className={styles.fileIcon}>
+                          {isPDF ? <FileText size={20} /> : <File size={20} />}
+                        </div>
+                        <span className={styles.fileItemName}>{name}</span>
+                        <button 
+                          type="button" 
+                          className={styles.removeFile} 
+                          onClick={(e) => removeSpecificFile(e, idx)}
+                          title="Remove file"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {errors['file'] && (
+                <span className={styles.errorMessage}>
+                  <Info size={14} /> {errors['file']}
+                </span>
+              )}
             </div>
 
             <div className={styles.buttonWrapper}>

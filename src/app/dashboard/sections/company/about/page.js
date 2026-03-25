@@ -20,12 +20,15 @@ import useCMSStore from '@/store/useCMSStore';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './about-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { confirmDelete } from '@/lib/sweetalert';
+import { validateImage } from '@/lib/validation';
 
 
 export default function AboutManager() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -87,6 +90,13 @@ export default function AboutManager() {
   const [activeModal, setActiveModal] = useState(null); // 'certificates' or 'partners'
   const [newItem, setNewItem] = useState({ en: "", ar: "" });
 
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
+  };
+
   // Fetch all about data on mount
   React.useEffect(() => {
     const fetchAllData = () => {
@@ -106,7 +116,7 @@ export default function AboutManager() {
                 title_ar: hero.title_ar || "",
                 subtitle_en: hero.description_en || "",
                 subtitle_ar: hero.description_ar || "",
-                bgImage: hero.images?.[0] ? `http://192.168.15.95:5000${hero.images[0]}` : null
+                bgImage: getImageUrl(hero.images?.[0])
               }
             }));
           }
@@ -127,7 +137,7 @@ export default function AboutManager() {
                 expYears: intro.details?.expYears || 0,
                 expText_en: intro.details?.expText_en || "",
                 expText_ar: intro.details?.expText_ar || "",
-                images: intro.images?.map(img => `http://192.168.15.95:5000${img}`) || [],
+                images: intro.images?.map(img => getImageUrl(img)) || [],
                 rawImages: intro.images || []
               }
             }));
@@ -144,7 +154,7 @@ export default function AboutManager() {
                 title_ar: caps.title_ar || "",
                 text_en: caps.description_en || "",
                 text_ar: caps.description_ar || "",
-                image: caps.images?.[0] ? `http://192.168.15.95:5000${caps.images[0]}` : null
+                image: getImageUrl(caps.images?.[0])
               }
             }));
           }
@@ -173,7 +183,7 @@ export default function AboutManager() {
         }
       } catch (error) {
         console.error("Failed to fetch About data:", error);
-        toast.error("حدث خطأ أثناء تحميل البيانات");
+        toast.error("An error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -189,32 +199,28 @@ export default function AboutManager() {
         [field]: value
       }
     }));
-  };
-
-  const handleHeroImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setHeroImageFile(file);
-      setHeroImagePreview(URL.createObjectURL(file));
+    const errorKey = `${section}_${field}`;
+    if (formErrors[errorKey]) {
+      const newErrors = { ...formErrors };
+      delete newErrors[errorKey];
+      setFormErrors(newErrors);
     }
   };
 
   const handleIntroImagesChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      setIntroImageFiles(prev => [...prev, ...files]);
-      const newPreviews = files.map(file => URL.createObjectURL(file));
-      setIntroImagePreviews(prev => [...prev, ...newPreviews]);
+      const validFiles = files.filter(file => validateImage(file, 'standard'));
+      if (validFiles.length > 0) {
+        setIntroImageFiles(prev => [...prev, ...validFiles]);
+        const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+        setIntroImagePreviews(prev => [...prev, ...newPreviews]);
+      }
+      // Reset input value to allow selecting same file again if needed
+      e.target.value = '';
     }
   };
 
-  const handleCapabilitiesImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setCapabilitiesImageFile(file);
-      setCapabilitiesImagePreview(URL.createObjectURL(file));
-    }
-  };
 
   const removeImage = async (type, imagePath = null, index = null) => {
     if (type === 'hero') {
@@ -224,15 +230,15 @@ export default function AboutManager() {
         return;
       }
       if (content.hero.bgImage && content.hero.id) { // If it's an existing image from the server
-        const result = await confirmDelete('حذف صورة البانر', 'حذف صورة البانر نهائياً؟');
+        const result = await confirmDelete('Delete Hero Image', 'Are you sure you want to delete the hero background image permanently?');
         if (result.isConfirmed) {
           try {
 
             await deleteImageAPI(content.hero.id, content.hero.bgImage?.replace('http://192.168.15.95:5000', ''));
             await refreshSections();
             setContent(prev => ({ ...prev, hero: { ...prev.hero, bgImage: null } }));
-            toast.success("تم الحذف");
-          } catch (e) { toast.error("فشل الحذف"); }
+            toast.success("Image deleted successfully");
+          } catch (e) { toast.error("Failed to delete image"); }
         }
       }
     } else if (type === 'intro') {
@@ -246,7 +252,7 @@ export default function AboutManager() {
       }
       
       if (content.intro.id && content.intro.rawImages[index]) { // Existing image from server
-        const result = await confirmDelete('حذف صورة المعرض', 'حذف هذه الصورة من المعرض نهائياً؟');
+        const result = await confirmDelete('Delete Photo', 'Are you sure you want to delete this photo from the gallery?');
         if (result.isConfirmed) {
           try {
 
@@ -261,8 +267,8 @@ export default function AboutManager() {
                 rawImages: prev.intro.rawImages.filter((_, i) => i !== index)
               }
             }));
-            toast.success("تم حذف الصورة من المعرض");
-          } catch (e) { toast.error("فشل حذف الصورة"); }
+            toast.success("Photo deleted successfully");
+          } catch (e) { toast.error("Failed to delete photo"); }
         }
       }
     } else if (type === 'capabilities') {
@@ -272,21 +278,35 @@ export default function AboutManager() {
         return;
       }
       if (content.capabilities.image && content.capabilities.id) { // If it's an existing image from the server
-        const result = await confirmDelete('حذف صورة الإمكانيات', 'حذف صورة الإمكانيات نهائياً؟');
+        const result = await confirmDelete('Delete Image', 'Are you sure you want to delete the capabilities image permanently?');
         if (result.isConfirmed) {
           try {
 
             await deleteImageAPI(content.capabilities.id, content.capabilities.image?.replace('http://192.168.15.95:5000', ''));
             await refreshSections();
             setContent(prev => ({ ...prev, capabilities: { ...prev.capabilities, image: null } }));
-            toast.success("تم الحذف");
-          } catch (e) { toast.error("فشل الحذف"); }
+            toast.success("Image deleted successfully");
+          } catch (e) { toast.error("Failed to delete image"); }
         }
       }
     }
   };
 
   const handleSaveHero = async () => {
+    const errors = {};
+    if (!content.hero.title_en) errors.hero_title_en = true;
+    if (!content.hero.title_ar) errors.hero_title_ar = true;
+    if (!content.hero.subtitle_en) errors.hero_subtitle_en = true;
+    if (!content.hero.subtitle_ar) errors.hero_subtitle_ar = true;
+    if (!content.hero.bgImage && !heroImageFile) errors.hero_bgImage = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all hero banner fields and upload an image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'about');
@@ -308,15 +328,33 @@ export default function AboutManager() {
         await createSectionAPI(formData);
       }
       await refreshSections();
-      toast.success("تم حفظ قسم البانر بنجاح");
+      toast.success("Hero banner saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البانر");
+      toast.error("An error occurred while saving the hero banner");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveIntro = async () => {
+    const errors = {};
+    if (!content.intro.title_en) errors.intro_title_en = true;
+    if (!content.intro.title_ar) errors.intro_title_ar = true;
+    if (!content.intro.text_en) errors.intro_text_en = true;
+    if (!content.intro.text_ar) errors.intro_text_ar = true;
+    if (!content.intro.badge_en) errors.intro_badge_en = true;
+    if (!content.intro.badge_ar) errors.intro_badge_ar = true;
+    if (!content.intro.expText_en) errors.intro_expText_en = true;
+    if (!content.intro.expText_ar) errors.intro_expText_ar = true;
+    if (content.intro.images.length === 0 && introImageFiles.length === 0) errors.intro_images = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all introduction fields and upload at least one gallery image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'about');
@@ -352,17 +390,31 @@ export default function AboutManager() {
         await createSectionAPI(formData);
       }
       await refreshSections();
-      toast.success("تم حفظ قسم من نحن بنجاح");
+      toast.success("Introduction section saved successfully");
       setIntroImageFiles([]);
       setIntroImagePreviews([]);
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ قسم من نحن");
+      toast.error("An error occurred while saving the introduction section");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveCapabilities = async () => {
+    const errors = {};
+    if (!content.capabilities.title_en) errors.capabilities_title_en = true;
+    if (!content.capabilities.title_ar) errors.capabilities_title_ar = true;
+    if (!content.capabilities.text_en) errors.capabilities_text_en = true;
+    if (!content.capabilities.text_ar) errors.capabilities_text_ar = true;
+    if (!content.capabilities.image && !capabilitiesImageFile) errors.capabilities_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all capabilities fields and upload an image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'about');
@@ -384,15 +436,26 @@ export default function AboutManager() {
         await createSectionAPI(formData);
       }
       await refreshSections();
-      toast.success("تم حفظ قسم الإمكانيات بنجاح");
+      toast.success("Capabilities section saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ الإمكانيات");
+      toast.error("An error occurred while saving capabilities");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveCertificatesHeader = async () => {
+    const errors = {};
+    if (!content.certificates.title_en) errors.cert_title_en = true;
+    if (!content.certificates.title_ar) errors.cert_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all certificate titles");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'about');
@@ -408,17 +471,26 @@ export default function AboutManager() {
         await createSectionAPI(formData);
       }
       await refreshSections();
-      toast.success("تم حفظ عنوان الشهادات بنجاح");
+      toast.success("Certificate header title saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ عنوان الشهادات");
+      toast.error("An error occurred while saving the certificate title");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleAddItemFromModal = async () => {
-    if (!newItem.en || !newItem.ar) return;
-    
+    const errors = {};
+    if (!newItem.en) errors.modal_en = true;
+    if (!newItem.ar) errors.modal_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in both English and Arabic names");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const type = activeModal === 'certificates' ? 'certificate' : 'partner';
     const formData = new FormData();
@@ -445,11 +517,11 @@ export default function AboutManager() {
         }));
       }
       
-      toast.success("تمت الإضافة بنجاح");
+      toast.success("Item added successfully");
       setActiveModal(null);
       setNewItem({ en: "", ar: "" });
     } catch (error) {
-      toast.error("حدث خطأ أثناء الإضافة");
+      toast.error("An error occurred while adding the item");
     } finally {
       setIsSubmitting(false);
     }
@@ -468,12 +540,11 @@ export default function AboutManager() {
 
       try {
         await deleteSectionAPI(id);
-        await refreshSections();
         const newList = content[section].list.filter((_, i) => i !== index);
         handleUpdate(section, 'list', newList);
-        toast.success("تم الحذف بنجاح");
+        toast.success("Item deleted successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting");
       }
     }
   };
@@ -486,12 +557,25 @@ export default function AboutManager() {
       ...prev,
       [section]: { ...prev[section], list: newList }
     }));
+    if(formErrors[`${section}_${index}_en`]) setFormErrors({...formErrors, [`${section}_${index}_en`]: false});
+    if(formErrors[`${section}_${index}_ar`]) setFormErrors({...formErrors, [`${section}_${index}_ar`]: false});
   };
 
   const saveListItem = async (section, index) => {
     const item = content[section].list[index];
     if (!item.id) return;
 
+    const errors = {};
+    if (!item.en) errors[`${section}_${index}_en`] = true;
+    if (!item.ar) errors[`${section}_${index}_ar`] = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Names cannot be empty");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'about');
@@ -503,9 +587,9 @@ export default function AboutManager() {
     try {
       await updateSectionAPI(item.id, formData);
       await refreshSections();
-      toast.success("تم التحديث بنجاح");
+      toast.success("Item updated successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء التحديث");
+      toast.error("An error occurred while updating");
     } finally {
       setIsSubmitting(false);
     }
@@ -545,16 +629,16 @@ export default function AboutManager() {
                   type="text" 
                   value={content.hero.title_en}
                   onChange={(e) => handleUpdate('hero', 'title_en', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.hero_title_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
+                <label className={localStyles.fieldLabel}>Main Title (AR)</label>
                 <input 
                   type="text" 
                   value={content.hero.title_ar}
                   onChange={(e) => handleUpdate('hero', 'title_ar', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.hero_title_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
            </div>
@@ -564,36 +648,36 @@ export default function AboutManager() {
                 <textarea 
                   value={content.hero.subtitle_en}
                   onChange={(e) => handleUpdate('hero', 'subtitle_en', e.target.value)}
-                  className={localStyles.textareaField}
+                  className={`${localStyles.textareaField} ${formErrors.hero_subtitle_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الفرعي (AR)</label>
+                <label className={localStyles.fieldLabel}>Subtitle (AR)</label>
                 <textarea 
                   value={content.hero.subtitle_ar}
                   onChange={(e) => handleUpdate('hero', 'subtitle_ar', e.target.value)}
-                  className={localStyles.textareaField}
+                  className={`${localStyles.textareaField} ${formErrors.hero_subtitle_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
            </div>
             <div className={localStyles.inputGroup}>
                <label className={localStyles.fieldLabel}>Banner Background</label>
-               <div className={localStyles.mediaPreview} style={{ aspectRatio: '32/9' }}>
-                 <img src={heroImagePreview || content.hero.bgImage || "/images/placeholder.png"} alt="" />
-                 <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                        <ImageIcon size={18} /> Change
-                        <input type="file" accept="image/*" onChange={handleHeroImageChange} style={{ display: 'none' }} />
-                      </label>
-                      {(heroImagePreview || content.hero.bgImage) && (
-                        <button className={localStyles.removeBtn} onClick={() => removeImage('hero')} style={{ background: 'white', border: 'none', borderRadius: '8px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                           <Trash2 size={18} color="#DC143C" />
-                        </button>
-                      )}
-                    </div>
-                 </div>
-               </div>
+                <ImageUpload 
+                  value={heroImagePreview || content.hero.bgImage}
+                  mode="hero"
+                  height="180px"
+                  onChange={(file) => {
+                    setHeroImageFile(file);
+                    setHeroImagePreview(URL.createObjectURL(file));
+                    if(formErrors.hero_bgImage) {
+                      const newErrors = { ...formErrors };
+                      delete newErrors.hero_bgImage;
+                      setFormErrors(newErrors);
+                    }
+                  }}
+                  onDelete={() => removeImage('hero')}
+                />
+                {formErrors.hero_bgImage && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-181px', height: '181px', pointerEvents: 'none' }}></div>}
             </div>
         </div>
 
@@ -609,7 +693,7 @@ export default function AboutManager() {
                    type="text" 
                    value={content.intro.title_en}
                    onChange={(e) => handleUpdate('intro', 'title_en', e.target.value)}
-                   className={localStyles.inputField}
+                   className={`${localStyles.inputField} ${formErrors.intro_title_en ? dashboardStyles.invalidInput : ''}`}
                    style={{ fontWeight: '800', fontSize: '1.1rem', border: 'none', padding: '0.5rem', background: '#f8fafc' }}
                    placeholder="Section Title (EN)"
                  />
@@ -618,7 +702,7 @@ export default function AboutManager() {
                      type="text" 
                      value={content.intro.title_ar}
                      onChange={(e) => handleUpdate('intro', 'title_ar', e.target.value)}
-                     className={localStyles.inputField}
+                     className={`${localStyles.inputField} ${formErrors.intro_title_ar ? dashboardStyles.invalidInput : ''}`}
                      style={{ fontWeight: '800', fontSize: '1.1rem', border: 'none', padding: '0.5rem', background: '#f8fafc' }}
                      placeholder="عنوان القسم (AR)"
                    />
@@ -635,16 +719,16 @@ export default function AboutManager() {
                   type="text" 
                   value={content.intro.badge_en}
                   onChange={(e) => handleUpdate('intro', 'badge_en', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.intro_badge_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>الشارة (AR)</label>
+                <label className={localStyles.fieldLabel}>Badge (AR)</label>
                 <input 
                   type="text" 
                   value={content.intro.badge_ar}
                   onChange={(e) => handleUpdate('intro', 'badge_ar', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.intro_badge_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
            </div>
@@ -655,16 +739,16 @@ export default function AboutManager() {
                   rows="4"
                   value={content.intro.text_en}
                   onChange={(e) => handleUpdate('intro', 'text_en', e.target.value)}
-                  className={localStyles.textareaField}
+                  className={`${localStyles.textareaField} ${formErrors.intro_text_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>الوصف (AR)</label>
+                <label className={localStyles.fieldLabel}>Description (AR)</label>
                 <textarea 
                   rows="4"
                   value={content.intro.text_ar}
                   onChange={(e) => handleUpdate('intro', 'text_ar', e.target.value)}
-                  className={localStyles.textareaField}
+                  className={`${localStyles.textareaField} ${formErrors.intro_text_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
            </div>
@@ -682,12 +766,12 @@ export default function AboutManager() {
               <div className={localStyles.formGrid} style={{ flex: 1, marginBottom: 0 }}>
                  <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
                     <label className={localStyles.fieldLabel}>Exp Text (EN)</label>
-                    <input value={content.intro.expText_en} onChange={(e) => handleUpdate('intro', 'expText_en', e.target.value)} className={localStyles.inputField} />
+                    <input value={content.intro.expText_en} onChange={(e) => handleUpdate('intro', 'expText_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.intro_expText_en ? dashboardStyles.invalidInput : ''}`} />
                  </div>
                  <div dir="rtl" className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
-                    <label className={localStyles.fieldLabel}>نص الخبرة (AR)</label>
-                    <input value={content.intro.expText_ar} onChange={(e) => handleUpdate('intro', 'expText_ar', e.target.value)} className={localStyles.inputField} />
-                 </div>
+                     <label className={localStyles.fieldLabel}>Exp Text (AR)</label>
+                     <input value={content.intro.expText_ar} onChange={(e) => handleUpdate('intro', 'expText_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.intro_expText_ar ? dashboardStyles.invalidInput : ''}`} />
+                  </div>
               </div>
            </div>
            
@@ -717,9 +801,16 @@ export default function AboutManager() {
                        </div>
                     </div>
                   ))}
-                 <label className={localStyles.mediaPreview} style={{ borderStyle: 'dashed', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Plus size={32} color="#cbd5e1" />
-                    <input type="file" multiple accept="image/*" onChange={handleIntroImagesChange} style={{ display: 'none' }} />
+                 <label className={`${localStyles.mediaPreview} ${formErrors.intro_images ? dashboardStyles.invalidInput : ''}`} style={{ borderStyle: 'dashed', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', border: formErrors.intro_images ? '2px solid #DC143C' : '1px dashed #cbd5e1' }}>
+                    <Plus size={32} color={formErrors.intro_images ? "#DC143C" : "#cbd5e1"} />
+                    <input type="file" multiple accept="image/*" onChange={(e) => {
+                       handleIntroImagesChange(e);
+                       if(formErrors.intro_images) {
+                         const newErrors = { ...formErrors };
+                         delete newErrors.intro_images;
+                         setFormErrors(newErrors);
+                       }
+                     }} style={{ display: 'none' }} />
                  </label>
               </div>
            </div>
@@ -758,16 +849,16 @@ export default function AboutManager() {
                    type="text" 
                    value={content.certificates.title_en}
                    onChange={(e) => handleUpdate('certificates', 'title_en', e.target.value)}
-                   className={localStyles.inputField}
+                   className={`${localStyles.inputField} ${formErrors.cert_title_en ? dashboardStyles.invalidInput : ''}`}
                  />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>العنوان (AR)</label>
+                 <label className={localStyles.fieldLabel}>Section Title (AR)</label>
                  <input 
                    type="text" 
                    value={content.certificates.title_ar}
                    onChange={(e) => handleUpdate('certificates', 'title_ar', e.target.value)}
-                   className={localStyles.inputField}
+                   className={`${localStyles.inputField} ${formErrors.cert_title_ar ? dashboardStyles.invalidInput : ''}`}
                  />
               </div>
            </div>
@@ -780,14 +871,14 @@ export default function AboutManager() {
                         placeholder="Certificate Name (EN)"
                         value={cert.en}
                         onChange={(e) => handleListUpdate('certificates', idx, 'en', e.target.value)}
-                        className={localStyles.inputField}
+                        className={`${localStyles.inputField} ${formErrors[`certificates_${idx}_en`] ? dashboardStyles.invalidInput : ''}`}
                       />
                       <div dir="rtl">
                         <input 
-                          placeholder="اسم الشهادة (AR)"
+                          placeholder="Certificate Name (AR)"
                           value={cert.ar}
                           onChange={(e) => handleListUpdate('certificates', idx, 'ar', e.target.value)}
-                          className={localStyles.inputField}
+                          className={`${localStyles.inputField} ${formErrors[`certificates_${idx}_ar`] ? dashboardStyles.invalidInput : ''}`}
                         />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -816,41 +907,41 @@ export default function AboutManager() {
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Title (EN)</label>
-                <input value={content.capabilities.title_en} onChange={(e) => handleUpdate('capabilities', 'title_en', e.target.value)} className={localStyles.inputField} />
+                <input value={content.capabilities.title_en} onChange={(e) => handleUpdate('capabilities', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.capabilities_title_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                <input value={content.capabilities.title_ar} onChange={(e) => handleUpdate('capabilities', 'title_ar', e.target.value)} className={localStyles.inputField} />
-              </div>
+               <div dir="rtl" className={localStyles.inputGroup}>
+                 <label className={localStyles.fieldLabel}>Title (AR)</label>
+                 <input value={content.capabilities.title_ar} onChange={(e) => handleUpdate('capabilities', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.capabilities_title_ar ? dashboardStyles.invalidInput : ''}`} />
+               </div>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Description (EN)</label>
-                <textarea rows="4" value={content.capabilities.text_en} onChange={(e) => handleUpdate('capabilities', 'text_en', e.target.value)} className={localStyles.textareaField} />
+                <textarea rows="4" value={content.capabilities.text_en} onChange={(e) => handleUpdate('capabilities', 'text_en', e.target.value)} className={`${localStyles.textareaField} ${formErrors.capabilities_text_en ? dashboardStyles.invalidInput : ''}`} />
               </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>الوصف (AR)</label>
-                <textarea rows="4" value={content.capabilities.text_ar} onChange={(e) => handleUpdate('capabilities', 'text_ar', e.target.value)} className={localStyles.textareaField} />
-              </div>
+               <div dir="rtl" className={localStyles.inputGroup}>
+                 <label className={localStyles.fieldLabel}>Description (AR)</label>
+                 <textarea rows="4" value={content.capabilities.text_ar} onChange={(e) => handleUpdate('capabilities', 'text_ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors.capabilities_text_ar ? dashboardStyles.invalidInput : ''}`} />
+               </div>
            </div>
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Section Image</label>
-              <div className={localStyles.mediaPreview} style={{ height: '200px', maxWidth: '400px' }}>
-                 <img src={capabilitiesImagePreview || content.capabilities.image || "/images/placeholder.png"} alt="" />
-                 <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                       <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                          <ImageIcon size={18} /> Change
-                          <input type="file" accept="image/*" onChange={handleCapabilitiesImageChange} style={{ display: 'none' }} />
-                       </label>
-                       {(capabilitiesImagePreview || content.capabilities.image) && (
-                         <button className={localStyles.removeBtn} onClick={() => removeImage('capabilities')} style={{ background: 'white', border: 'none', borderRadius: '8px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Trash2 size={18} color="#DC143C" />
-                         </button>
-                       )}
-                    </div>
-                 </div>
-              </div>
+              <ImageUpload 
+                value={capabilitiesImagePreview || content.capabilities.image}
+                mode="standard"
+                height="200px"
+                onChange={(file) => {
+                  setCapabilitiesImageFile(file);
+                  setCapabilitiesImagePreview(URL.createObjectURL(file));
+                  if(formErrors.capabilities_image) {
+                    const newErrors = { ...formErrors };
+                    delete newErrors.capabilities_image;
+                    setFormErrors(newErrors);
+                  }
+                }}
+                onDelete={() => removeImage('capabilities')}
+              />
+              {formErrors.capabilities_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-201px', height: '201px', pointerEvents: 'none' }}></div>}
            </div>
         </div>
 
@@ -878,14 +969,14 @@ export default function AboutManager() {
                         placeholder="Partner Name (EN)"
                         value={partner.en}
                         onChange={(e) => handleListUpdate('partners', idx, 'en', e.target.value)}
-                        className={localStyles.inputField}
+                        className={`${localStyles.inputField} ${formErrors[`partners_${idx}_en`] ? dashboardStyles.invalidInput : ''}`}
                       />
                       <div dir="rtl">
                         <input 
-                          placeholder="اسم الشريك (AR)"
+                          placeholder="Partner Name (AR)"
                           value={partner.ar}
                           onChange={(e) => handleListUpdate('partners', idx, 'ar', e.target.value)}
-                          className={localStyles.inputField}
+                          className={`${localStyles.inputField} ${formErrors[`partners_${idx}_ar`] ? dashboardStyles.invalidInput : ''}`}
                         />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -920,18 +1011,32 @@ export default function AboutManager() {
         <div className={localStyles.formGrid}>
           <div className={localStyles.inputGroup}>
             <label className={localStyles.fieldLabel}>Name (EN)</label>
-            <input 
+             <input 
               value={newItem.en}
-              onChange={(e) => setNewItem({ ...newItem, en: e.target.value })}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewItem({ ...newItem, en: e.target.value });
+                if(formErrors.modal_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.modal_en;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.modal_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
-          <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>الاسم (AR)</label>
+           <div dir="rtl" className={localStyles.inputGroup}>
+            <label className={localStyles.fieldLabel}>Name (AR)</label>
             <input 
               value={newItem.ar}
-              onChange={(e) => setNewItem({ ...newItem, ar: e.target.value })}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewItem({ ...newItem, ar: e.target.value });
+                if(formErrors.modal_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.modal_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.modal_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>

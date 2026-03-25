@@ -49,6 +49,7 @@ export default function FooterManager() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentNews, setCurrentNews] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
 
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -110,7 +111,7 @@ export default function FooterManager() {
           });
         }
       } catch (error) {
-        toast.error("حدث خطأ أثناء تحميل بيانات الفوتر");
+        toast.error("Error occurred while loading footer data");
       } finally {
         setLoading(false);
       }
@@ -123,6 +124,12 @@ export default function FooterManager() {
       ...prev,
       about: { ...prev.about, [lang]: value }
     }));
+    const errorKey = `about_${lang}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const handleUpdateContact = (field, value, subfield = null) => {
@@ -134,11 +141,23 @@ export default function FooterManager() {
           [field]: { ...prev.contact[field], [subfield]: value }
         }
       }));
+      const errorKey = `contact_${field}_${subfield}`;
+      if(formErrors[errorKey]) {
+         const newErrors = { ...formErrors };
+         delete newErrors[errorKey];
+         setFormErrors(newErrors);
+      }
     } else {
       setFooterData(prev => ({
         ...prev,
         contact: { ...prev.contact, [field]: value }
       }));
+      const errorKey = `contact_${field}`;
+      if(formErrors[errorKey]) {
+         const newErrors = { ...formErrors };
+         delete newErrors[errorKey];
+         setFormErrors(newErrors);
+      }
     }
   };
 
@@ -153,6 +172,12 @@ export default function FooterManager() {
         }
       }
     }));
+    const errorKey = `hours_${key}_${lang}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const handleAddNews = () => {
@@ -166,11 +191,17 @@ export default function FooterManager() {
   };
 
   const handleSaveNews = async () => {
-    if (!currentNews.en || !currentNews.ar) {
-      toast.warning("يرجى إدخال محتوى الخبر بالعربية والإنجليزية");
+    const errors = {};
+    if (!currentNews.en) errors.news_en = true;
+    if (!currentNews.ar) errors.news_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in both English and Arabic news details");
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'footer');
@@ -182,22 +213,22 @@ export default function FooterManager() {
     try {
       if (currentNews.id) {
         await updateSectionAPI(currentNews.id, formData);
-        toast.success("تم تحديث الخبر");
+        toast.success("News item updated successfully");
       } else {
         await createSectionAPI(formData);
-        toast.success("تمت إضافة الخبر");
+        toast.success("News item added successfully");
       }
       await refreshSections();
       setIsModalOpen(false);
     } catch (error) {
-      toast.error("فشل حفظ الخبر");
+      toast.error("Failed to save news item");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteNews = async (id) => {
-    const result = await confirmDelete('حذف الخبر', 'هل أنت متأكد من حذف هذا الخبر؟');
+    const result = await confirmDelete('Delete News', 'Are you sure you want to delete this news item?');
     if (result.isConfirmed) {
 
       try {
@@ -207,9 +238,9 @@ export default function FooterManager() {
           ...prev,
           news: prev.news.filter(item => item.id !== id)
         }));
-        toast.success("تم حذف الخبر");
+        toast.success("News item deleted successfully");
       } catch (error) {
-        toast.error("فشل الحذف");
+        toast.error("Failed to delete news item");
       }
     }
   };
@@ -219,9 +250,36 @@ export default function FooterManager() {
       ...prev,
       rights: { ...prev.rights, [lang]: value }
     }));
+    const errorKey = `rights_${lang}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const handleSave = async () => {
+    const errors = {};
+    if (!footerData.about.en) errors.about_en = true;
+    if (!footerData.about.ar) errors.about_ar = true;
+    if (!footerData.contact.address.en) errors.contact_address_en = true;
+    if (!footerData.contact.address.ar) errors.contact_address_ar = true;
+    if (!footerData.contact.phone) errors.contact_phone = true;
+    if (!footerData.contact.email) errors.contact_email = true;
+    if (!footerData.contact.hours.sat.en) errors.hours_sat_en = true;
+    if (!footerData.contact.hours.sat.ar) errors.hours_sat_ar = true;
+    if (!footerData.contact.hours.week.en) errors.hours_week_en = true;
+    if (!footerData.contact.hours.week.ar) errors.hours_week_ar = true;
+    if (!footerData.rights.en) errors.rights_en = true;
+    if (!footerData.rights.ar) errors.rights_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required footer fields");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       // 1. Save About
@@ -261,9 +319,9 @@ export default function FooterManager() {
       else await createSectionAPI(rightsFD);
 
       await refreshSections();
-      toast.success("تم حفظ جميع التغييرات بنجاح");
+      toast.success("Successfully saved all changes");
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البيانات");
+      toast.error("Error occurred while saving data");
     } finally {
       setIsSubmitting(false);
     }
@@ -273,7 +331,7 @@ export default function FooterManager() {
     return (
       <div className={localStyles.loadingContainer}>
         <Loader2 className={localStyles.loaderIcon} size={40} />
-        <p>جاري تحميل بيانات الفوتر...</p>
+        <p>Loading Footer Data...</p>
       </div>
     );
   }
@@ -304,17 +362,17 @@ export default function FooterManager() {
                 About Text <span className={localStyles.langBadgeEn}>EN</span>
               </label>
               <textarea 
-                className={localStyles.textareaField}
+                className={`${localStyles.textareaField} ${formErrors.about_en ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.about.en}
                 onChange={(e) => handleUpdateAbout('en', e.target.value)}
               />
             </div>
             <div className={localStyles.inputGroup} dir="rtl">
               <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>
-                نبذة الشركة <span className={localStyles.langBadgeAr}>AR</span>
+                About Text (AR) <span className={localStyles.langBadgeAr}>AR</span>
               </label>
               <textarea 
-                className={localStyles.textareaField}
+                className={`${localStyles.textareaField} ${formErrors.about_ar ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.about.ar}
                 onChange={(e) => handleUpdateAbout('ar', e.target.value)}
               />
@@ -335,18 +393,18 @@ export default function FooterManager() {
               </label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.contact_address_en ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.contact.address.en}
                 onChange={(e) => handleUpdateContact('address', e.target.value, 'en')}
               />
             </div>
             <div className={localStyles.inputGroup} dir="rtl">
               <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>
-                <MapPin size={14} style={{ marginLeft: '5px' }} /> العنوان <span className={localStyles.langBadgeAr}>AR</span>
+                <MapPin size={14} style={{ marginLeft: '5px' }} /> Address (AR) <span className={localStyles.langBadgeAr}>AR</span>
               </label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.contact_address_ar ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.contact.address.ar}
                 onChange={(e) => handleUpdateContact('address', e.target.value, 'ar')}
               />
@@ -356,7 +414,7 @@ export default function FooterManager() {
               <label className={localStyles.fieldLabel}><Phone size={14} style={{ marginRight: '5px' }} /> Phone Number</label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.contact_phone ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.contact.phone}
                 onChange={(e) => handleUpdateContact('phone', e.target.value)}
               />
@@ -365,7 +423,7 @@ export default function FooterManager() {
               <label className={localStyles.fieldLabel}><Mail size={14} style={{ marginRight: '5px' }} /> Email Address</label>
               <input 
                 type="email" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.contact_email ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.contact.email}
                 onChange={(e) => handleUpdateContact('email', e.target.value)}
               />
@@ -385,16 +443,16 @@ export default function FooterManager() {
               <label className={localStyles.fieldLabel}>Saturday Hours (EN)</label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.hours_sat_en ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.contact.hours.sat.en}
                 onChange={(e) => handleUpdateHours('sat', 'en', e.target.value)}
               />
             </div>
             <div className={localStyles.inputGroup} dir="rtl">
-              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>ساعات السبت (AR)</label>
+              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>Saturday Hours (AR)</label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.hours_sat_ar ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.contact.hours.sat.ar}
                 onChange={(e) => handleUpdateHours('sat', 'ar', e.target.value)}
               />
@@ -405,16 +463,16 @@ export default function FooterManager() {
               <label className={localStyles.fieldLabel}>Weekdays Hours (EN)</label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.hours_week_en ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.contact.hours.week.en}
                 onChange={(e) => handleUpdateHours('week', 'en', e.target.value)}
               />
             </div>
             <div className={localStyles.inputGroup} dir="rtl">
-              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>ساعات أيام الأسبوع (AR)</label>
+              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>Weekdays Hours (AR)</label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.hours_week_ar ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.contact.hours.week.ar}
                 onChange={(e) => handleUpdateHours('week', 'ar', e.target.value)}
               />
@@ -466,16 +524,16 @@ export default function FooterManager() {
               <label className={localStyles.fieldLabel}>Copyright Text (EN)</label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.rights_en ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.rights.en}
                 onChange={(e) => handleUpdateRights('en', e.target.value)}
               />
             </div>
             <div className={localStyles.inputGroup} dir="rtl">
-              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>نص حقوق النشر (AR)</label>
+              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>Copyright Text (AR)</label>
               <input 
                 type="text" 
-                className={localStyles.inputField}
+                className={`${localStyles.inputField} ${formErrors.rights_ar ? dashboardStyles.invalidInput : ''}`}
                 value={footerData.rights.ar}
                 onChange={(e) => handleUpdateRights('ar', e.target.value)}
               />
@@ -503,19 +561,33 @@ export default function FooterManager() {
             <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>News Content (EN)</label>
               <textarea 
-                className={localStyles.textareaField}
+                className={`${localStyles.textareaField} ${formErrors.news_en ? dashboardStyles.invalidInput : ''}`}
                 value={currentNews.en}
-                onChange={(e) => setCurrentNews({ ...currentNews, en: e.target.value })}
+                onChange={(e) => {
+                   setCurrentNews({ ...currentNews, en: e.target.value });
+                   if(formErrors.news_en) {
+                      const newErrors = { ...formErrors };
+                      delete newErrors.news_en;
+                      setFormErrors(newErrors);
+                   }
+                }}
                 placeholder="Enter news in English..."
               />
             </div>
             <div className={localStyles.inputGroup} dir="rtl">
-              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>محتوى الخبر (AR)</label>
+              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>News Content (AR)</label>
               <textarea 
-                className={localStyles.textareaField}
+                className={`${localStyles.textareaField} ${formErrors.news_ar ? dashboardStyles.invalidInput : ''}`}
                 value={currentNews.ar}
-                onChange={(e) => setCurrentNews({ ...currentNews, ar: e.target.value })}
-                placeholder="أدخل الخبر بالعربية..."
+                onChange={(e) => {
+                  setCurrentNews({ ...currentNews, ar: e.target.value });
+                  if(formErrors.news_ar) {
+                     const newErrors = { ...formErrors };
+                     delete newErrors.news_ar;
+                     setFormErrors(newErrors);
+                  }
+                }}
+                placeholder="Enter news in Arabic content..."
               />
             </div>
           </div>

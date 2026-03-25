@@ -35,6 +35,7 @@ import { confirmDelete } from '@/lib/sweetalert';
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './contact-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
+import ImageUpload from '../../_components/ImageUpload/ImageUpload';
 
 export default function ContactManager() {
   // CMS Store
@@ -75,6 +76,7 @@ export default function ContactManager() {
   const [reports, setReports] = useState([]);
   const [reportColumns, setReportColumns] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -99,7 +101,7 @@ export default function ContactManager() {
         }
       } catch (error) {
         console.error("Failed to fetch reports:", error);
-        toast.error("فشل تحميل رسائل اتصل بنا");
+        toast.error("Failed to load contact messages");
       } finally {
         setReportsLoading(false);
       }
@@ -110,7 +112,6 @@ export default function ContactManager() {
   const [activeBranchIndex, setActiveBranchIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bannerFile, setBannerFile] = useState(null);
-  const fileInputRef = useRef(null);
 
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
   const [editingField, setEditingField] = useState(null);
@@ -219,7 +220,7 @@ export default function ContactManager() {
         setFormFields(fields.sort((a, b) => a.id - b.id));
       }
     } catch (error) {
-      toast.error("حدث خطأ أثناء تحميل البيانات");
+      toast.error("Error occurred while loading data");
       console.error(error);
     } finally {
       setLoading(false);
@@ -227,11 +228,22 @@ export default function ContactManager() {
   }, [sections]);
 
   const handleSaveField = async () => {
-    if (!fieldData.title_en || !fieldData.title_ar) {
-      toast.error("يرجى إدخال العناوين بالعربية والإنجليزية");
+    const errors = {};
+    if (!fieldData.title_en) errors.title_en = true;
+    if (!fieldData.title_ar) errors.title_ar = true;
+    
+    if (fieldData.type === 'dropdown') {
+      if (!fieldData.options_en) errors.field_options_en = true;
+      if (!fieldData.options_ar) errors.field_options_ar = true;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in both English and Arabic labels");
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -255,42 +267,48 @@ export default function ContactManager() {
       let response;
       if (editingField) {
         response = await updateSectionAPI(editingField.id, formData);
-        toast.success("تم تحديث الحقل بنجاح");
+        toast.success("Field updated successfully");
       } else {
         response = await createSectionAPI(formData);
-        toast.success("تم إضافة الحقل بنجاح");
+        toast.success("Field added successfully");
       }
       
       await refreshSections();
       setIsFieldModalOpen(false);
     } catch (error) {
       console.error("Field Save Error:", error);
-      toast.error("حدث خطأ أثناء حفظ الحقل");
+      toast.error("Error occurred while saving field");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteField = async (id) => {
-    const result = await confirmDelete('حذف الحقل', 'هل أنت متأكد من حذف هذا الحقل؟');
+    const result = await confirmDelete('Delete Field', 'Are you sure you want to delete this field?');
     if (result.isConfirmed) {
 
       try {
         await deleteSectionAPI(id);
         await refreshSections();
-        toast.success("تم حذف الحقل");
+        toast.success("Field deleted successfully");
       } catch (error) {
-        toast.error("فشل حذف الحقل");
+        toast.error("Failed to delete field");
       }
     }
   };
 
   const handleAddBranch = async () => {
-    if (!newBranch.name_en || !newBranch.name_ar) {
-      toast.warning("يرجى إدخال اسم الفرع بالعربية والإنجليزية");
+    const errors = {};
+    if (!newBranch.name_en) errors.branch_name_en = true;
+    if (!newBranch.name_ar) errors.branch_name_ar = true;
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all branch details");
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'contact');
@@ -313,30 +331,30 @@ export default function ContactManager() {
     try {
       await createSectionAPI(formData);
       await refreshSections();
-      toast.success("تمت إضافة الفرع بنجاح");
+      toast.success("Branch added successfully");
       setIsModalOpen(false);
       setNewBranch({
         name_en: "", name_ar: "", address_en: "", address_ar: "",
         phone: "", fax: "", poBox_en: "", poBox_ar: "", mapLink: ""
       });
     } catch (error) {
-      toast.error("فشل إضافة الفرع");
+      toast.error("Failed to add branch");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const removeBranch = async (id) => {
-    const result = await confirmDelete('حذف الفرع', 'هل أنت متأكد من حذف هذا الفرع؟');
+    const result = await confirmDelete('Delete Branch', 'Are you sure you want to delete this branch?');
     if (result.isConfirmed) {
 
       try {
         await deleteSectionAPI(id);
         await refreshSections();
-        toast.success("تم حذف الفرع");
+        toast.success("Branch deleted successfully");
         setActiveBranchIndex(0);
       } catch (error) {
-        toast.error("فشل الحذف");
+        toast.error("Failed to delete branch");
       }
     }
   };
@@ -347,6 +365,12 @@ export default function ContactManager() {
       updatedBranches[activeBranchIndex] = { ...updatedBranches[activeBranchIndex], [field]: value };
       return { ...prev, branches: updatedBranches };
     });
+    const errorKey = `branch_${activeBranchIndex}_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const updateHeroField = (field, value) => {
@@ -354,6 +378,12 @@ export default function ContactManager() {
       ...prev,
       hero: { ...prev.hero, [field]: value }
     }));
+    const errorKey = `hero_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const updateGeneralField = (field, value) => {
@@ -361,18 +391,14 @@ export default function ContactManager() {
       ...prev,
       generalInfo: { ...prev.generalInfo, [field]: value }
     }));
-  };
-
-  const handleBannerUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBannerFile(file);
-      setData(prev => ({
-        ...prev,
-        hero: { ...prev.hero, banner: URL.createObjectURL(file) }
-      }));
+    const errorKey = `gen_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
     }
   };
+
 
   const removeHeroImage = async () => {
     if (!data.hero.banner) return;
@@ -385,7 +411,7 @@ export default function ContactManager() {
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
-    const result = await confirmDelete('حذف الصورة', 'حذف الصورة نهائياً من السيرفر؟');
+    const result = await confirmDelete('Delete Image', 'Are you sure you want to delete this image from the server?');
     if (result.isConfirmed) {
 
       try {
@@ -396,14 +422,47 @@ export default function ContactManager() {
           ...prev,
           hero: { ...prev.hero, banner: "", rawImage: null }
         }));
-        toast.success("تم حذف الصورة من السيرفر");
+        toast.success("Image deleted from server successfully");
       } catch (error) {
-        toast.error("فشل حذف الصورة");
+        toast.error("Failed to delete image");
       }
     }
   };
 
   const handleSaveAll = async () => {
+    const errors = {};
+    if (!data.hero.title_en) errors.hero_title_en = true;
+    if (!data.hero.title_ar) errors.hero_title_ar = true;
+    if (!data.hero.banner && !bannerFile) errors.hero_banner = true;
+    
+    if (!data.generalInfo.phone) errors.gen_phone = true;
+    if (!data.generalInfo.email) errors.gen_email = true;
+    if (!data.generalInfo.hours_sat_en) errors.gen_hours_sat_en = true;
+    if (!data.generalInfo.hours_sat_ar) errors.gen_hours_sat_ar = true;
+    if (!data.generalInfo.hours_week_en) errors.gen_hours_week_en = true;
+    if (!data.generalInfo.hours_week_ar) errors.gen_hours_week_ar = true;
+
+    if (data.branches.length > 0) {
+      data.branches.forEach((branch, idx) => {
+        if (!branch.name_en) errors[`branch_${idx}_name_en`] = true;
+        if (!branch.name_ar) errors[`branch_${idx}_name_ar`] = true;
+        if (!branch.address_en) errors[`branch_${idx}_address_en`] = true;
+        if (!branch.address_ar) errors[`branch_${idx}_address_ar`] = true;
+        if (!branch.phone) errors[`branch_${idx}_phone`] = true;
+        if (!branch.fax) errors[`branch_${idx}_fax`] = true;
+        if (!branch.poBox_en) errors[`branch_${idx}_poBox_en`] = true;
+        if (!branch.poBox_ar) errors[`branch_${idx}_poBox_ar`] = true;
+        if (!branch.mapLink) errors[`branch_${idx}_mapLink`] = true;
+      });
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required basic fields for the current view");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       // Hero
@@ -456,10 +515,10 @@ export default function ContactManager() {
       }
 
       await refreshSections();
-      toast.success("تم حفظ جميع التغييرات بنجاح");
+      toast.success("Successfully saved all changes");
       setBannerFile(null);
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البيانات");
+      toast.error("Error occurred while saving data");
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -467,11 +526,16 @@ export default function ContactManager() {
   };
 
   const handleSaveEmailSettings = async () => {
-    if (!emailSettings.receive_email) {
-      toast.error("يرجى إدخال البريد الإلكتروني");
+    const errors = {};
+    if (!emailSettings.receive_email) errors.receive_email = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please enter a recipient email address");
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -482,16 +546,16 @@ export default function ContactManager() {
 
       if (emailSettings.id) {
         await updateSectionAPI(emailSettings.id, formData);
-        toast.success("تم تحديث إعدادات الإيميل بنجاح");
+        toast.success("Email settings updated successfully");
       } else {
         const response = await createSectionAPI(formData);
         setEmailSettings(prev => ({ ...prev, id: response.data.id }));
-        toast.success("تم إنشاء إعدادات الإيميل بنجاح");
+        toast.success("Email settings created successfully");
       }
       await refreshSections();
     } catch (error) {
       console.error("Email Settings Save Error:", error);
-      toast.error("حدث خطأ أثناء حفظ إعدادات الإيميل");
+      toast.error("Error occurred while saving email settings");
     } finally {
       setIsSubmitting(false);
     }
@@ -541,6 +605,7 @@ export default function ContactManager() {
         is_active: true
       });
     }
+    setFormErrors({});
     setIsFieldModalOpen(true);
   };
 
@@ -548,7 +613,7 @@ export default function ContactManager() {
     return (
       <div className={localStyles.loadingContainer}>
         <Loader2 className={localStyles.loaderIcon} size={40} />
-        <p>جاري تحميل بيانات الاتصال...</p>
+        <p>Loading Contact Data...</p>
       </div>
     );
   }
@@ -603,11 +668,11 @@ export default function ContactManager() {
              </div>
              <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
                 <label className={localStyles.fieldLabel}>Main Phone</label>
-                <input className={localStyles.inputField} value={data.generalInfo.phone} onChange={(e) => updateGeneralField('phone', e.target.value)} />
+                <input className={`${localStyles.inputField} ${formErrors.gen_phone ? dashboardStyles.invalidInput : ''}`} value={data.generalInfo.phone} onChange={(e) => updateGeneralField('phone', e.target.value)} />
              </div>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Main Email (Display)</label>
-                <input className={localStyles.inputField} value={data.generalInfo.email} onChange={(e) => updateGeneralField('email', e.target.value)} />
+                <input className={`${localStyles.inputField} ${formErrors.gen_email ? dashboardStyles.invalidInput : ''}`} value={data.generalInfo.email} onChange={(e) => updateGeneralField('email', e.target.value)} />
               </div>
           </div>
 
@@ -621,13 +686,20 @@ export default function ContactManager() {
              </p>
              <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Recipient Email</label>
-                <input 
-                  type="email"
-                  className={localStyles.inputField} 
-                  value={emailSettings.receive_email}
-                  onChange={(e) => setEmailSettings(prev => ({ ...prev, receive_email: e.target.value }))}
-                  placeholder="info@company.com"
-                />
+                 <input 
+                   type="email"
+                   className={`${localStyles.inputField} ${formErrors.receive_email ? dashboardStyles.invalidInput : ''}`}
+                   value={emailSettings.receive_email}
+                   onChange={(e) => {
+                     setEmailSettings(prev => ({ ...prev, receive_email: e.target.value }));
+                     if(formErrors.receive_email) {
+                        const newErrors = { ...formErrors };
+                        delete newErrors.receive_email;
+                        setFormErrors(newErrors);
+                     }
+                   }}
+                   placeholder="info@company.com"
+                 />
              </div>
              <button 
               className={localStyles.saveButton} 
@@ -658,53 +730,52 @@ export default function ContactManager() {
               <div className={localStyles.formGrid}>
                  <div className={localStyles.inputGroup}>
                    <label className={localStyles.fieldLabel}>Branch Name (EN)</label>
-                   <input className={localStyles.inputField} value={data.branches[activeBranchIndex]?.name_en || ""} onChange={(e) => updateBranchField('name_en', e.target.value)} />
+                   <input className={`${localStyles.inputField} ${formErrors[`branch_${activeBranchIndex}_name_en`] ? dashboardStyles.invalidInput : ''}`} value={data.branches[activeBranchIndex]?.name_en || ""} onChange={(e) => updateBranchField('name_en', e.target.value)} />
                  </div>
                  <div dir="rtl" className={localStyles.inputGroup}>
-                   <label className={localStyles.fieldLabel}>اسم الفرع (AR)</label>
-                   <input className={localStyles.inputField} value={data.branches[activeBranchIndex]?.name_ar || ""} onChange={(e) => updateBranchField('name_ar', e.target.value)} />
+                   <label className={localStyles.fieldLabel}>Branch Name (AR)</label>
+                   <input className={`${localStyles.inputField} ${formErrors[`branch_${activeBranchIndex}_name_ar`] ? dashboardStyles.invalidInput : ''}`} value={data.branches[activeBranchIndex]?.name_ar || ""} onChange={(e) => updateBranchField('name_ar', e.target.value)} />
                  </div>
               </div>
 
               <div className={localStyles.formGrid}>
                  <div className={localStyles.inputGroup}>
                    <label className={localStyles.fieldLabel}>Address (EN)</label>
-                   <textarea className={localStyles.textareaField} rows={2} value={data.branches[activeBranchIndex]?.address_en || ""} onChange={(e) => updateBranchField('address_en', e.target.value)} />
+                   <textarea className={`${localStyles.textareaField} ${formErrors[`branch_${activeBranchIndex}_address_en`] ? dashboardStyles.invalidInput : ''}`} rows={2} value={data.branches[activeBranchIndex]?.address_en || ""} onChange={(e) => updateBranchField('address_en', e.target.value)} />
                  </div>
                  <div dir="rtl" className={localStyles.inputGroup}>
-                   <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                   <textarea className={localStyles.textareaField} rows={2} value={data.branches[activeBranchIndex]?.address_ar || ""} onChange={(e) => updateBranchField('address_ar', e.target.value)} />
+                   <label className={localStyles.fieldLabel}>Address (AR)</label>
+                   <textarea className={`${localStyles.textareaField} ${formErrors[`branch_${activeBranchIndex}_address_ar`] ? dashboardStyles.invalidInput : ''}`} rows={2} value={data.branches[activeBranchIndex]?.address_ar || ""} onChange={(e) => updateBranchField('address_ar', e.target.value)} />
                  </div>
               </div>
 
-              <div className={localStyles.formGrid}>
+               <div className={localStyles.formGrid}>
                  <div className={localStyles.inputGroup}>
                    <label className={localStyles.fieldLabel}>Phone Number</label>
-                   <input className={localStyles.inputField} value={data.branches[activeBranchIndex]?.phone || ""} onChange={(e) => updateBranchField('phone', e.target.value)} />
+                   <input className={`${localStyles.inputField} ${formErrors[`branch_${activeBranchIndex}_phone`] ? dashboardStyles.invalidInput : ''}`} value={data.branches[activeBranchIndex]?.phone || ""} onChange={(e) => updateBranchField('phone', e.target.value)} />
                  </div>
                  <div className={localStyles.inputGroup}>
                    <label className={localStyles.fieldLabel}>Fax Number</label>
-                   <input className={localStyles.inputField} value={data.branches[activeBranchIndex]?.fax || ""} onChange={(e) => updateBranchField('fax', e.target.value)} />
+                   <input className={`${localStyles.inputField} ${formErrors[`branch_${activeBranchIndex}_fax`] ? dashboardStyles.invalidInput : ''}`} value={data.branches[activeBranchIndex]?.fax || ""} onChange={(e) => updateBranchField('fax', e.target.value)} />
                  </div>
-              </div>
+               </div>
 
-              <div className={localStyles.formGrid}>
+               <div className={localStyles.formGrid}>
                  <div className={localStyles.inputGroup}>
                    <label className={localStyles.fieldLabel}>P.O. Box (EN)</label>
-                   <input className={localStyles.inputField} value={data.branches[activeBranchIndex]?.poBox_en || ""} onChange={(e) => updateBranchField('poBox_en', e.target.value)} />
+                   <input className={`${localStyles.inputField} ${formErrors[`branch_${activeBranchIndex}_poBox_en`] ? dashboardStyles.invalidInput : ''}`} value={data.branches[activeBranchIndex]?.poBox_en || ""} onChange={(e) => updateBranchField('poBox_en', e.target.value)} />
                  </div>
                  <div dir="rtl" className={localStyles.inputGroup}>
-                   <label className={localStyles.fieldLabel}>صندوق البريد (AR)</label>
-                   <input className={localStyles.inputField} value={data.branches[activeBranchIndex]?.poBox_ar || ""} onChange={(e) => updateBranchField('poBox_ar', e.target.value)} />
+                   <label className={localStyles.fieldLabel}>P.O. Box (AR)</label>
+                   <input className={`${localStyles.inputField} ${formErrors[`branch_${activeBranchIndex}_poBox_ar`] ? dashboardStyles.invalidInput : ''}`} value={data.branches[activeBranchIndex]?.poBox_ar || ""} onChange={(e) => updateBranchField('poBox_ar', e.target.value)} />
                  </div>
-              </div>
-
-              <div className={localStyles.formGrid}>
+               </div>
+                         <div className={localStyles.formGrid}>
                  <div className={localStyles.inputGroup}>
                    <label className={localStyles.fieldLabel}>Map Output Link (iframe src)</label>
-                   <input className={localStyles.inputField} value={data.branches[activeBranchIndex]?.mapLink || ""} onChange={(e) => updateBranchField('mapLink', e.target.value)} />
+                   <input className={`${localStyles.inputField} ${formErrors[`branch_${activeBranchIndex}_mapLink`] ? dashboardStyles.invalidInput : ''}`} value={data.branches[activeBranchIndex]?.mapLink || ""} onChange={(e) => updateBranchField('mapLink', e.target.value)} />
                  </div>
-              </div>
+               </div>
             </div>
           ) : (
             <div className={dashboardStyles.contentCard} style={{ textAlign: 'center', padding: '3rem', marginBottom: '2rem' }}>
@@ -799,39 +870,37 @@ export default function ContactManager() {
                    <ImageIcon size={20} color="#DC143C" />
                    <h3 className={localStyles.sectionTitle}>Hero Banner</h3>
                 </div>
-                  <div className={localStyles.mediaPreview} style={{ height: '180px' }}>
-                    {data.hero.banner ? (
-                       <>
-                          <img src={getImageUrl(data.hero.banner)} alt="Hero" />
-                          <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button className={localStyles.changeMediaBtn} onClick={() => fileInputRef.current?.click()}>
-                                  <ImageIcon size={20} /> Change
-                                </button>
-                                <button className={localStyles.deleteBtn} style={{ background: '#ef4444', color: 'white' }} onClick={(e) => { e.stopPropagation(); removeHeroImage(); }}>
-                                  <Trash2 size={18} />
-                                </button>
-                             </div>
-                          </div>
-                       </>
-                    ) : (
-                       <div onClick={() => fileInputRef.current?.click()} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                          <UploadCloud size={40} color="#cbd5e1" />
-                          <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Upload banner</span>
-                       </div>
-                    )}
+                
+                <ImageUpload 
+                  value={data.hero.banner}
+                  mode="hero"
+                  height="180px"
+                  onChange={(file) => {
+                    setBannerFile(file);
+                    setData(prev => ({
+                      ...prev,
+                      hero: { ...prev.hero, banner: URL.createObjectURL(file) }
+                    }));
+                    if(formErrors.hero_banner) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.hero_banner;
+                       setFormErrors(newErrors);
+                    }
+                  }}
+                  onDelete={removeHeroImage}
+                />
+                {formErrors.hero_banner && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-181px', height: '181px', pointerEvents: 'none' }}></div>}
+
+                <div style={{ marginTop: '1rem' }}>
+                  <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
+                     <label className={localStyles.fieldLabel}>Title (EN)</label>
+                     <input className={`${localStyles.inputField} ${formErrors.hero_title_en ? dashboardStyles.invalidInput : ''}`} value={data.hero.title_en} onChange={(e) => updateHeroField('title_en', e.target.value)} />
                   </div>
-                  <input type="file" hidden ref={fileInputRef} onChange={handleBannerUpload} accept="image/*" />
-                  <div style={{ marginTop: '1rem' }}>
-                    <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
-                       <label className={localStyles.fieldLabel}>Title (EN)</label>
-                       <input className={localStyles.inputField} value={data.hero.title_en} onChange={(e) => updateHeroField('title_en', e.target.value)} />
-                    </div>
-                    <div dir="rtl" className={localStyles.inputGroup}>
-                       <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                       <input className={localStyles.inputField} value={data.hero.title_ar} onChange={(e) => updateHeroField('title_ar', e.target.value)} />
-                    </div>
+                  <div dir="rtl" className={localStyles.inputGroup}>
+                     <label className={localStyles.fieldLabel}>Title (AR)</label>
+                     <input className={`${localStyles.inputField} ${formErrors.hero_title_ar ? dashboardStyles.invalidInput : ''}`} value={data.hero.title_ar} onChange={(e) => updateHeroField('title_ar', e.target.value)} />
                   </div>
+                </div>
              </div>
 
              <div className={dashboardStyles.contentCard}>
@@ -841,11 +910,19 @@ export default function ContactManager() {
                 </div>
                 <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
                    <label className={localStyles.fieldLabel}>Saturday Hours (EN)</label>
-                   <input className={localStyles.inputField} value={data.generalInfo.hours_sat_en} onChange={(e) => updateGeneralField('hours_sat_en', e.target.value)} />
+                   <input className={`${localStyles.inputField} ${formErrors.gen_hours_sat_en ? dashboardStyles.invalidInput : ''}`} value={data.generalInfo.hours_sat_en} onChange={(e) => updateGeneralField('hours_sat_en', e.target.value)} />
+                </div>
+                <div dir="rtl" className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
+                   <label className={localStyles.fieldLabel}>Saturday Hours (AR)</label>
+                   <input className={`${localStyles.inputField} ${formErrors.gen_hours_sat_ar ? dashboardStyles.invalidInput : ''}`} value={data.generalInfo.hours_sat_ar} onChange={(e) => updateGeneralField('hours_sat_ar', e.target.value)} />
+                </div>
+                <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
+                   <label className={localStyles.fieldLabel}>Weekdays Hours (EN)</label>
+                   <input className={`${localStyles.inputField} ${formErrors.gen_hours_week_en ? dashboardStyles.invalidInput : ''}`} value={data.generalInfo.hours_week_en} onChange={(e) => updateGeneralField('hours_week_en', e.target.value)} />
                 </div>
                 <div dir="rtl" className={localStyles.inputGroup}>
-                   <label className={localStyles.fieldLabel}>دوام السبت (AR)</label>
-                   <input className={localStyles.inputField} value={data.generalInfo.hours_sat_ar} onChange={(e) => updateGeneralField('hours_sat_ar', e.target.value)} />
+                   <label className={localStyles.fieldLabel}>Weekdays Hours (AR)</label>
+                   <input className={`${localStyles.inputField} ${formErrors.gen_hours_week_ar ? dashboardStyles.invalidInput : ''}`} value={data.generalInfo.hours_week_ar} onChange={(e) => updateGeneralField('hours_week_ar', e.target.value)} />
                 </div>
              </div>
           </div>
@@ -935,11 +1012,11 @@ export default function ContactManager() {
         <div className={localStyles.formGrid}>
           <div className={localStyles.inputGroup}>
             <label className={localStyles.fieldLabel}>Branch Name (EN)</label>
-            <input className={localStyles.inputField} value={newBranch.name_en} onChange={(e) => setNewBranch({...newBranch, name_en: e.target.value})} />
+            <input className={`${localStyles.inputField} ${formErrors.branch_name_en ? dashboardStyles.invalidInput : ''}`} value={newBranch.name_en} onChange={(e) => setNewBranch({...newBranch, name_en: e.target.value})} />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>اسم الفرع (AR)</label>
-            <input className={localStyles.inputField} value={newBranch.name_ar} onChange={(e) => setNewBranch({...newBranch, name_ar: e.target.value})} />
+            <label className={localStyles.fieldLabel}>Branch Name (AR)</label>
+            <input className={`${localStyles.inputField} ${formErrors.branch_name_ar ? dashboardStyles.invalidInput : ''}`} value={newBranch.name_ar} onChange={(e) => setNewBranch({...newBranch, name_ar: e.target.value})} />
           </div>
         </div>
         <div className={localStyles.inputGroup}>
@@ -965,11 +1042,35 @@ export default function ContactManager() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '1rem 0' }}>
           <div className={localStyles.inputGroup}>
             <label className={localStyles.fieldLabel}>Field Label (English)</label>
-            <input className={localStyles.inputField} value={fieldData.title_en} onChange={(e) => setFieldData({...fieldData, title_en: e.target.value})} placeholder="e.g. Full Name" />
+            <input 
+              className={`${localStyles.inputField} ${formErrors.title_en ? dashboardStyles.invalidInput : ''}`} 
+              value={fieldData.title_en} 
+              onChange={(e) => {
+                setFieldData({...fieldData, title_en: e.target.value});
+                if(formErrors.title_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.title_en;
+                   setFormErrors(newErrors);
+                }
+              }} 
+              placeholder="e.g. Full Name" 
+            />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>عنوان الحقل (بالعربي)</label>
-            <input className={localStyles.inputField} value={fieldData.title_ar} onChange={(e) => setFieldData({...fieldData, title_ar: e.target.value})} placeholder="مثلاً: الاسم بالكامل" />
+            <label className={localStyles.fieldLabel}>Field Label (Arabic)</label>
+            <input 
+              className={`${localStyles.inputField} ${formErrors.title_ar ? dashboardStyles.invalidInput : ''}`} 
+              value={fieldData.title_ar} 
+              onChange={(e) => {
+                setFieldData({...fieldData, title_ar: e.target.value});
+                if(formErrors.title_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.title_ar;
+                   setFormErrors(newErrors);
+                }
+              }} 
+              placeholder="e.g. Full Name (Arabic)" 
+            />
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -1004,7 +1105,7 @@ export default function ContactManager() {
                     <option value="text">Single Line Text</option>
                     <option value="textarea">Paragraph / Message</option>
                     <option value="email">Email Address</option>
-                    <option value="number">Number</option>
+                    <option value="number">Phone / Mobile / Number</option>
                     <option value="file">File Upload</option>
                   </select>
                   <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
@@ -1014,11 +1115,35 @@ export default function ContactManager() {
             <>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Options (English) - comma separated</label>
-                <input className={localStyles.inputField} value={fieldData.options_en} onChange={(e) => setFieldData({...fieldData, options_en: e.target.value})} placeholder="Option 1, Option 2, Option 3" />
+                <input 
+                  className={`${localStyles.inputField} ${formErrors.field_options_en ? dashboardStyles.invalidInput : ''}`} 
+                  value={fieldData.options_en} 
+                  onChange={(e) => {
+                    setFieldData({...fieldData, options_en: e.target.value});
+                    if(formErrors.field_options_en) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.field_options_en;
+                       setFormErrors(newErrors);
+                    }
+                  }} 
+                  placeholder="Option 1, Option 2, Option 3" 
+                />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>الخيارات (بالعربي) - مفصولة بفاصلة</label>
-                <input className={localStyles.inputField} value={fieldData.options_ar} onChange={(e) => setFieldData({...fieldData, options_ar: e.target.value})} placeholder="خيار 1، خيار 2، خيار 3" />
+                <label className={localStyles.fieldLabel}>Options (Arabic) - comma separated</label>
+                <input 
+                  className={`${localStyles.inputField} ${formErrors.field_options_ar ? dashboardStyles.invalidInput : ''}`} 
+                  value={fieldData.options_ar} 
+                  onChange={(e) => {
+                    setFieldData({...fieldData, options_ar: e.target.value});
+                    if(formErrors.field_options_ar) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.field_options_ar;
+                       setFormErrors(newErrors);
+                    }
+                  }} 
+                  placeholder="Option 1, Option 2, Option 3" 
+                />
               </div>
             </>
           )}

@@ -12,6 +12,18 @@
   align-items: center;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #f1f5f9;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .saveChangesHeaderBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .mainLayout {
@@ -19,6 +31,30 @@
   grid-template-columns: 280px 1fr;
   gap: 2rem;
   align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .mainLayout {
+    grid-template-columns: 1fr;
+  }
+  .categorySidebar {
+    position: static;
+  }
+  .categoryList {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    padding-bottom: 0.5rem;
+  }
+  .categoryBtnWrapper {
+    min-width: 180px;
+    flex-shrink: 0;
+  }
+  .addCategoryBtn {
+    min-width: 180px;
+    flex-shrink: 0;
+    border-right: 1px solid #e2e8f0;
+  }
 }
 
 .categorySidebar {
@@ -199,6 +235,12 @@
   gap: 1.5rem;
 }
 
+@media (max-width: 640px) {
+  .projectsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Enforcing Fixed Height for Cards */
 .projectCard {
   background: white;
@@ -338,6 +380,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .formSection {

@@ -132,6 +132,28 @@
   box-shadow: 0 0 0 4px rgba(220, 20, 60, 0.1);
 }
 
+.inputError {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-left: 0.25rem;
+}
+
+[dir="rtl"] .errorMessage {
+  padding-left: 0;
+  padding-right: 0.25rem;
+}
+
+
 .select {
   appearance: none;
   cursor: pointer;

@@ -12,6 +12,18 @@
   align-items: center;
   padding-bottom: 1.5rem;
   border-bottom: 2px solid #f1f5f9;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .addVacancyBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Redesigned Button for Dashboad Style */
@@ -46,6 +58,16 @@
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 2rem;
   padding-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .vacanciesGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .vacancyCard {
+    padding: 1.5rem;
+  }
 }
 
 .vacancyCard {

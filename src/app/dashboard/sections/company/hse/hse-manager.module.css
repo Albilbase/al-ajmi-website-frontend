@@ -4,6 +4,14 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2.5rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .saveButton {
@@ -33,12 +41,19 @@
 
 .cardHeader {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  align-items: center;
   margin-bottom: 2rem;
   border-bottom: 1px solid #f1f5f9;
   padding-bottom: 1rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .cardTitle {
@@ -53,6 +68,13 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .inputGroup {
@@ -104,6 +126,12 @@
   position: relative;
   border: 2px dashed #cbd5e1;
   max-width: 800px;
+}
+
+@media (max-width: 768px) {
+  .mediaPreview {
+    aspect-ratio: 16/9;
+  }
 }
 
 .mediaPreview img {
@@ -173,6 +201,13 @@
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px dashed #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .listItem {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
 }
 
 .removeBtn {

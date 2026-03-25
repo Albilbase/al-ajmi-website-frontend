@@ -14,16 +14,7 @@ const fadeInUp = {
 };
 
 // Define the stagger container animation variants
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
+// Removed unused staggerContainer to avoid async render bugs
 const MediaPage = () => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
@@ -87,14 +78,8 @@ const MediaPage = () => {
       </div>
 
       <div className={styles.container}>
-        <motion.div 
-          className={styles.grid}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-        >
-          {items.map((item) => {
+        <div className={styles.grid}>
+          {items.map((item, index) => {
             const itemTitle = isRTL ? item.title_ar : item.title_en;
             const itemImage = item.images?.[0] 
               ? getImageUrl(item.images[0]) 
@@ -109,6 +94,10 @@ const MediaPage = () => {
                 <motion.div 
                   className={styles.card}
                   variants={fadeInUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
                 >
                   <div className={styles.imageWrapper}>
                     <Image 
@@ -128,7 +117,7 @@ const MediaPage = () => {
               </Link>
             );
           })}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

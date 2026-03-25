@@ -24,6 +24,7 @@ import localStyles from './projects-manager.module.css';
 import useCMSStore from '@/store/useCMSStore';
 
 import Modal from '../../_components/Modal/Modal';
+import ImageUpload from '../../_components/ImageUpload/ImageUpload';
 import { confirmDelete } from '@/lib/sweetalert';
 
 
@@ -33,6 +34,7 @@ export default function ProjectsManager() {
   const [loading, setLoading] = useState(true);
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -47,7 +49,6 @@ export default function ProjectsManager() {
   const [projectFile, setProjectFile] = useState(null);
   const [currentCategory, setCurrentCategory] = useState({ id: null, title_en: "", title_ar: "" });
 
-  const fileInputRef = useRef(null);
 
   const getImageUrl = (path) => {
     if (!path) return "";
@@ -97,7 +98,7 @@ export default function ProjectsManager() {
           }
         }
       } catch (error) {
-        toast.error("حدث خطأ أثناء تحميل البيانات");
+        toast.error("Error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -125,10 +126,17 @@ export default function ProjectsManager() {
   };
 
   const saveCategory = async () => {
-    if (!currentCategory.title_en || !currentCategory.title_ar) {
-      toast.warning("يرجى إدخال اسم المجموعة بالعربية والإنجليزية");
+    const errors = {};
+    if (!currentCategory.title_en) errors.cat_title_en = true;
+    if (!currentCategory.title_ar) errors.cat_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in both English and Arabic category names");
       return;
     }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'projects');
@@ -140,23 +148,23 @@ export default function ProjectsManager() {
     try {
       if (currentCategory.id) {
         await updateSectionAPI(currentCategory.id, formData);
-        toast.success("تم تحديث المجموعة");
+        toast.success("Category updated successfully");
       } else {
         const response = await createSectionAPI(formData);
         if (!activeCategoryId) setActiveCategoryId(response.data.id);
-        toast.success("تمت إضافة المجموعة");
+        toast.success("Category added successfully");
       }
       setIsCategoryModalOpen(false);
       await refreshSections();
     } catch (error) {
-      toast.error("فشل الحفظ");
+      toast.error("An error occurred while saving the project");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const deleteCategory = async (id) => {
-    const result = await confirmDelete('حذف المجموعة', 'هل أنت متأكد من حذف هذه المجموعة؟ سيتم حذف جميع المشاريع التابعة لها أيضاً.');
+    const result = await confirmDelete('Delete Category', 'Are you sure you want to delete this category? All related projects will also be deleted.');
     if (result.isConfirmed) {
       try {
 
@@ -166,11 +174,11 @@ export default function ProjectsManager() {
         for (const p of subProjects) {
           await deleteSectionAPI(p.id);
         }
-        toast.success("تم الحذف");
+        toast.success("Category deleted successfully");
         if (activeCategoryId === id) setActiveCategoryId(null);
         await refreshSections();
       } catch (error) {
-        toast.error("فشل الحذف");
+        toast.error("Failed to delete category");
       }
     }
   };
@@ -178,7 +186,7 @@ export default function ProjectsManager() {
   // --- Project Handlers ---
   const handleAddNew = () => {
     if (!activeCategoryId) {
-      toast.warning("يرجى اختيار مجموعة أولاً");
+      toast.warning("Please select a category first");
       return;
     }
     setCurrentProject({
@@ -198,10 +206,28 @@ export default function ProjectsManager() {
   };
 
   const saveProject = async () => {
-    if (!currentProject.en.title || !currentProject.ar.title) {
-       toast.warning("يرجى إدخال عنوان المشروع");
-       return;
+    const errors = {};
+    if (!currentProject.en.title) errors.proj_title_en = true;
+    if (!currentProject.ar.title) errors.proj_title_ar = true;
+    if (!currentProject.en.owner) errors.proj_owner_en = true;
+    if (!currentProject.ar.owner) errors.proj_owner_ar = true;
+    if (!currentProject.en.location) errors.proj_location_en = true;
+    if (!currentProject.ar.location) errors.proj_location_ar = true;
+    if (!currentProject.en.duration) errors.proj_duration_en = true;
+    if (!currentProject.ar.duration) errors.proj_duration_ar = true;
+    if (!currentProject.en.status) errors.proj_status_en = true;
+    if (!currentProject.ar.status) errors.proj_status_ar = true;
+    if (!currentProject.en.value) errors.proj_value_en = true;
+    if (!currentProject.ar.value) errors.proj_value_ar = true;
+    if (!currentProject.id && !projectFile) errors.proj_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required fields");
+      return;
     }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'projects');
@@ -238,27 +264,26 @@ export default function ProjectsManager() {
       } else {
         await createSectionAPI(formData);
       }
-      toast.success("تم حفظ المشروع بنجاح");
+      toast.success("Project saved successfully");
       setIsProjectModalOpen(false);
       await refreshSections();
     } catch (error) {
-      toast.error("حدث خطأ أثناء الحفظ");
+      toast.error("An error occurred while saving the project");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (projectId) => {
-    const result = await confirmDelete('حذف المشروع', 'هل أنت متأكد من حذف هذا المشروع؟');
+    const result = await confirmDelete('Delete Project', 'Are you sure you want to delete this project?');
     if (result.isConfirmed) {
       try {
-
         await deleteSectionAPI(projectId);
         setProjects(prev => prev.filter(p => p.id !== projectId));
-        toast.success("تم الحذف");
+        toast.success("Project deleted successfully");
         await refreshSections();
       } catch (error) {
-        toast.error("فشل الحذف");
+        toast.error("An error occurred while deleting the project");
       }
     }
   };
@@ -268,26 +293,27 @@ export default function ProjectsManager() {
       ...prev,
       [lang]: { ...prev[lang], [field]: value }
     }));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProjectFile(file);
-      setCurrentProject(prev => ({...prev, image: URL.createObjectURL(file)}));
+    const errorKey = `proj_${field}_${lang}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
     }
   };
+
 
   const removeProjectImage = async () => {
     if (!currentProject.image) return;
 
     // Local file preview removal
-    if (projectFile || currentProject.image.startsWith('blob:')) {
        setCurrentProject(prev => ({ ...prev, image: "", rawImage: null }));
        setProjectFile(null);
-       if (fileInputRef.current) fileInputRef.current.value = '';
+       if(formErrors.proj_image) {
+          const newErrors = { ...formErrors };
+          delete newErrors.proj_image;
+          setFormErrors(newErrors);
+       }
        return;
-    }
 
     // Server image removal
     if (currentProject.id && currentProject.rawImage) {
@@ -307,18 +333,15 @@ export default function ProjectsManager() {
           ));
 
           await refreshSections();
-          toast.success("تم الحذف");
+          toast.success("Image deleted successfully");
         } catch (error) {
           console.error(error);
-          toast.error("فشل الحذف");
+          toast.error("Failed to delete image");
         }
       }
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
 
   const activeCategory = categories.find(cat => cat.id === activeCategoryId);
   const filteredProjects = projects.filter(p => String(p.categoryId) === String(activeCategoryId));
@@ -450,43 +473,25 @@ export default function ProjectsManager() {
           <>
              <div className={localStyles.formSection}>
                 <label className={localStyles.sectionLabel}>Project Image</label>
-                
-                <div 
-                   className={localStyles.dropZone}
-                   style={{ position: 'relative' }}
-                >
-                   {/* Hidden file input controlled via ref */}
-                   <input 
-                     type="file" 
-                     hidden 
-                     ref={fileInputRef} 
-                     onChange={handleImageUpload} 
-                     accept="image/*"
-                   />
-                   {currentProject.image ? (
-                     <div style={{ position: 'relative' }}>
-                       <img src={currentProject.image} alt="Preview" className={localStyles.previewImage} />
-                       <button 
-                          onClick={(e) => { e.stopPropagation(); removeProjectImage(); }}
-                          className={localStyles.deleteImageBtn}
-                          style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                          title="Remove Image"
-                          type="button" 
-                       >
-                         <X size={14} />
-                       </button>
-                       <p onClick={triggerFileInput} style={{fontSize: '0.85rem', marginTop: '1rem', cursor: 'pointer', color: '#DC143C'}}>Click to replace image</p>
-                     </div>
-                   ) : (
-                     <div onClick={triggerFileInput}>
-                       <UploadCloud size={48} strokeWidth={1} />
-                       <div>
-                         <p style={{fontWeight: 600, color: '#1e293b'}}>Click to upload</p>
-                         <p style={{fontSize: '0.85rem'}}>SVG, PNG, JPG or GIF</p>
-                       </div>
-                     </div>
-                   )}
-                </div>
+                <ImageUpload 
+                  value={currentProject.image}
+                  mode="standard"
+                  height="200px"
+                  onChange={(file) => {
+                    setProjectFile(file);
+                    setCurrentProject(prev => ({
+                      ...prev,
+                      image: URL.createObjectURL(file)
+                    }));
+                    if(formErrors.proj_image) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.proj_image;
+                       setFormErrors(newErrors);
+                    }
+                  }}
+                  onDelete={removeProjectImage}
+                />
+                {formErrors.proj_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-201px', height: '201px', pointerEvents: 'none' }}></div>}
              </div>
 
             <div className={localStyles.formGrid}>
@@ -495,15 +500,15 @@ export default function ProjectsManager() {
                 <label className={localStyles.sectionLabel}>English Details</label>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Title</label>
-                  <input className={localStyles.inputField} value={currentProject.en.title} onChange={(e) => updateField('en', 'title', e.target.value)} />
+                  <input className={`${localStyles.inputField} ${formErrors.proj_title_en ? dashboardStyles.invalidInput : ''}`} value={currentProject.en.title} onChange={(e) => updateField('en', 'title', e.target.value)} />
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Owner</label>
-                  <input className={localStyles.inputField} value={currentProject.en.owner} onChange={(e) => updateField('en', 'owner', e.target.value)} />
+                  <input className={`${localStyles.inputField} ${formErrors.proj_owner_en ? dashboardStyles.invalidInput : ''}`} value={currentProject.en.owner} onChange={(e) => updateField('en', 'owner', e.target.value)} />
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Status</label>
-                  <select className={localStyles.inputField} value={currentProject.en.status} onChange={(e) => updateField('en', 'status', e.target.value)}>
+                  <select className={`${localStyles.inputField} ${formErrors.proj_status_en ? dashboardStyles.invalidInput : ''}`} value={currentProject.en.status} onChange={(e) => updateField('en', 'status', e.target.value)}>
                      <option value="">Select...</option>
                      <option value="Completed">Completed</option>
                      <option value="Under Construction">Under Construction</option>
@@ -512,33 +517,33 @@ export default function ProjectsManager() {
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Value</label>
-                  <input className={localStyles.inputField} value={currentProject.en.value} onChange={(e) => updateField('en', 'value', e.target.value)} />
+                  <input className={`${localStyles.inputField} ${formErrors.proj_value_en ? dashboardStyles.invalidInput : ''}`} value={currentProject.en.value} onChange={(e) => updateField('en', 'value', e.target.value)} />
                 </div>
               </div>
 
               {/* Arabic */}
               <div className={localStyles.formSection} dir="rtl">
-                <label className={localStyles.sectionLabel}>التفاصيل بالعربية</label>
+                <label className={localStyles.sectionLabel}>Arabic Details</label>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>العنوان</label>
-                  <input className={localStyles.inputField} value={currentProject.ar.title} onChange={(e) => updateField('ar', 'title', e.target.value)} />
+                  <label className={localStyles.fieldLabel}>Title</label>
+                  <input className={`${localStyles.inputField} ${formErrors.proj_title_ar ? dashboardStyles.invalidInput : ''}`} value={currentProject.ar.title} onChange={(e) => updateField('ar', 'title', e.target.value)} />
                 </div>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>المالك</label>
-                  <input className={localStyles.inputField} value={currentProject.ar.owner} onChange={(e) => updateField('ar', 'owner', e.target.value)} />
+                  <label className={localStyles.fieldLabel}>Owner</label>
+                  <input className={`${localStyles.inputField} ${formErrors.proj_owner_ar ? dashboardStyles.invalidInput : ''}`} value={currentProject.ar.owner} onChange={(e) => updateField('ar', 'owner', e.target.value)} />
                 </div>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>الحالة</label>
-                  <select className={localStyles.inputField} value={currentProject.ar.status} onChange={(e) => updateField('ar', 'status', e.target.value)}>
-                     <option value="">اختر...</option>
+                  <label className={localStyles.fieldLabel}>Status</label>
+                  <select className={`${localStyles.inputField} ${formErrors.proj_status_ar ? dashboardStyles.invalidInput : ''}`} value={currentProject.ar.status} onChange={(e) => updateField('ar', 'status', e.target.value)}>
+                     <option value="">Select...</option>
                      <option value="مكتمل">مكتمل</option>
                      <option value="قيد الإنشاء">قيد الإنشاء</option>
                      <option value="قيد التنفيذ">قيد التنفيذ</option>
                   </select>
                 </div>
                  <div className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>القيمة</label>
-                  <input className={localStyles.inputField} value={currentProject.ar.value} onChange={(e) => updateField('ar', 'value', e.target.value)} />
+                  <label className={localStyles.fieldLabel}>Value</label>
+                  <input className={`${localStyles.inputField} ${formErrors.proj_value_ar ? dashboardStyles.invalidInput : ''}`} value={currentProject.ar.value} onChange={(e) => updateField('ar', 'value', e.target.value)} />
                 </div>
               </div>
             </div>
@@ -564,18 +569,32 @@ export default function ProjectsManager() {
           <div className={localStyles.inputGroup}>
             <label className={localStyles.fieldLabel}>Category Name (EN)</label>
             <input 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.cat_title_en ? dashboardStyles.invalidInput : ''}`}
               value={currentCategory.title_en} 
-              onChange={(e) => setCurrentCategory({...currentCategory, title_en: e.target.value})} 
+              onChange={(e) => {
+                setCurrentCategory({...currentCategory, title_en: e.target.value});
+                if(formErrors.cat_title_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.cat_title_en;
+                   setFormErrors(newErrors);
+                }
+              }} 
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>اسم المجموعة (AR)</label>
+            <label className={localStyles.fieldLabel}>Category Name (AR)</label>
             <input 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.cat_title_ar ? dashboardStyles.invalidInput : ''}`} 
               style={{ textAlign: 'right' }}
               value={currentCategory.title_ar} 
-              onChange={(e) => setCurrentCategory({...currentCategory, title_ar: e.target.value})} 
+              onChange={(e) => {
+                setCurrentCategory({...currentCategory, title_ar: e.target.value});
+                if(formErrors.cat_title_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.cat_title_ar;
+                   setFormErrors(newErrors);
+                }
+              }} 
             />
           </div>
         </div>

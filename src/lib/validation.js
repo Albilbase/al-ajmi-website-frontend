@@ -1,0 +1,44 @@
+import { toast } from 'react-toastify';
+
+/**
+ * Validates an image file based on type and size.
+ * @param {File} file - The file to validate.
+ * @param {string} mode - 'hero', 'standard', or 'small'.
+ * @param {boolean} isRTL - Language direction.
+ * @returns {boolean} - Returns true if valid, false otherwise.
+ */
+export const validateImage = (file, mode = 'standard', isRTL = false) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+  
+  // High quality for banners (5MB), Optimized for cards (1MB), Tiny for icons (500KB)
+  const maxSizes = {
+    hero: 5 * 1024 * 1024,
+    slider: 5 * 1024 * 1024,
+    standard: 1 * 1024 * 1024, 
+    small: 500 * 1024
+  };
+
+  if (!file) return false;
+
+  // 1. Format Check
+  if (!allowedTypes.includes(file.type)) {
+    const errorMsg = isRTL 
+      ? "عذراً، نوع الملف غير مدعوم. يرجى اختيار صورة بصيغة (JPG, PNG, WebP)" 
+      : "Unsupported file type. Please select an image (JPG, PNG, WebP)";
+    toast.error(errorMsg);
+    return false;
+  }
+
+  // 2. Size Check
+  const limit = maxSizes[mode] || maxSizes.standard;
+  if (file.size > limit) {
+    const sizeInMB = (limit / (1024 * 1024)).toFixed(0);
+    const errorMsg = isRTL 
+      ? `حجم الصورة كبير جداً لهذا القسم. الحد الأقصى المسموح هو ${sizeInMB}MB` 
+      : `Image is too large for this section. Maximum allowed is ${sizeInMB}MB`;
+    toast.error(errorMsg);
+    return false;
+  }
+
+  return true;
+};

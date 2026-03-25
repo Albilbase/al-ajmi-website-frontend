@@ -14,6 +14,12 @@
   padding: 1.5rem;
 }
 
+@media (max-width: 640px) {
+  .modalOverlay {
+    padding: 0.75rem;
+  }
+}
+
 .modal {
   background: white;
   width: 100%;
@@ -24,6 +30,13 @@
   flex-direction: column;
 }
 
+@media (max-width: 640px) {
+  .modal {
+    border-radius: 16px;
+    max-height: 95vh !important;
+  }
+}
+
 .modalHeader {
   padding: 1.5rem 2rem;
   background: #f8fafc;
@@ -32,6 +45,12 @@
   align-items: center;
   border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .modalHeader {
+    padding: 1rem 1.25rem;
+  }
 }
 
 .modalTitle {
@@ -65,6 +84,12 @@
   flex-grow: 1;
 }
 
+@media (max-width: 640px) {
+  .modalBody {
+    padding: 1.25rem;
+  }
+}
+
 .modalFooter {
   padding: 1.25rem 2rem;
   background: #f8fafc;
@@ -73,6 +98,16 @@
   gap: 1rem;
   border-top: 1px solid #f1f5f9;
   flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .modalFooter {
+    padding: 1rem 1.25rem;
+    flex-direction: column-reverse;
+  }
+  .modalFooter button {
+    width: 100%;
+  }
 }
 
 .cancelBtn {

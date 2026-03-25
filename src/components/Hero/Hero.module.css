@@ -26,6 +26,7 @@
     width: 110%; /* Slightly larger for parallax */
     height: 140%; /* Taller to handle the fixed scroll movement */
     z-index: 1;
+    pointer-events: none; /* Background shouldn't intercept clicks */
 }
 
 .vignette {
@@ -41,6 +42,7 @@
         rgba(0, 4, 10, 0.8) 100%
     );
     z-index: 2;
+    pointer-events: none; /* Critical: prevent this overlay from blocking clicks */
 }
 
 .slideContainer {
@@ -285,6 +287,7 @@
     font-weight: 900;
     letter-spacing: 10px;
     white-space: nowrap;
+    pointer-events: none;
 }
 
 .bottomDecor {

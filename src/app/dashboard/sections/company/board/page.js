@@ -19,6 +19,7 @@ import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './board-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { confirmDelete } from '@/lib/sweetalert';
 
 
@@ -26,6 +27,7 @@ import { confirmDelete } from '@/lib/sweetalert';
 export default function BoardManager() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   const [content, setContent] = useState({
     hero: {
@@ -56,6 +58,13 @@ export default function BoardManager() {
     position_ar: ""
   });
 
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `http://192.168.15.95:5000${cleanPath}`;
+  };
+
   // Fetch all board data on mount
   useEffect(() => {
     const fetchAllData = async () => {
@@ -76,7 +85,7 @@ export default function BoardManager() {
                 title_ar: hero.title_ar || "",
                 subtitle_en: hero.description_en || "",
                 subtitle_ar: hero.description_ar || "",
-                bgImage: hero.images?.[0] ? `http://192.168.15.95:5000${hero.images[0]}` : null,
+                bgImage: getImageUrl(hero.images?.[0]),
                 rawImage: hero.images?.[0] || null
               }
             }));
@@ -93,7 +102,7 @@ export default function BoardManager() {
                 name_ar: m.title_ar,
                 position_en: m.description_en,
                 position_ar: m.description_ar,
-                image: m.images?.[0] ? `http://192.168.15.95:5000${m.images[0]}` : null,
+                image: getImageUrl(m.images?.[0]),
                 rawImage: m.images?.[0] || null
               }))
             }));
@@ -101,7 +110,7 @@ export default function BoardManager() {
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        toast.error("حدث خطأ أثناء تحميل البيانات");
+        toast.error("An error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -117,19 +126,23 @@ export default function BoardManager() {
         [field]: value
       }
     }));
+    const errorKey = `${section}_${field}`;
+    if (formErrors[errorKey]) {
+      const newErrors = { ...formErrors };
+      delete newErrors[errorKey];
+      setFormErrors(newErrors);
+    }
   };
 
   const handleMemberUpdate = (index, field, value) => {
     const newMembers = [...content.members];
     newMembers[index] = { ...newMembers[index], [field]: value };
     setContent(prev => ({ ...prev, members: newMembers }));
-  };
-
-  const handleHeroImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setHeroImageFile(file);
-      setHeroImagePreview(URL.createObjectURL(file));
+    const errorKey = `member_${index}_${field}`;
+    if (formErrors[errorKey]) {
+      const newErrors = { ...formErrors };
+      delete newErrors[errorKey];
+      setFormErrors(newErrors);
     }
   };
 
@@ -137,13 +150,11 @@ export default function BoardManager() {
     if (heroImageFile) {
        setHeroImageFile(null);
        setHeroImagePreview(null);
-       const input = document.getElementById('heroImageInput');
-       if (input) input.value = '';
        return;
     }
 
     if (content.hero.id && content.hero.rawImage) {
-       const result = await confirmDelete('حذف الصورة', 'حذف الصورة نهائياً من السيرفر؟');
+       const result = await confirmDelete('Delete Image', 'Are you sure you want to delete the hero image permanently?');
        if (result.isConfirmed) {
 
           try {
@@ -152,10 +163,10 @@ export default function BoardManager() {
                 ...prev,
                 hero: { ...prev.hero, bgImage: null, rawImage: null }
              }));
-             toast.success("تم حذف الصورة");
+             toast.success("Image deleted successfully");
           } catch (e) {
              console.error(e);
-             toast.error("فشل حذف الصورة");
+             toast.error("Failed to delete image");
           }
        }
     }
@@ -182,7 +193,7 @@ export default function BoardManager() {
 
     // Server image removal
     if (member.id && member.rawImage) {
-        const result = await confirmDelete('حذف صورة العضو', 'هل أنت متأكد من حذف صورة العضو نهائياً؟');
+        const result = await confirmDelete('Delete Image', 'Are you sure you want to delete the member image permanently?');
         if (result.isConfirmed) {
            try {
 
@@ -191,16 +202,29 @@ export default function BoardManager() {
               updatedMembers[index].image = null;
               updatedMembers[index].rawImage = null;
               setContent(prev => ({ ...prev, members: updatedMembers }));
-              toast.success("تم حذف الصورة");
+              toast.success("Image deleted successfully");
            } catch (error) {
               console.error(error);
-              toast.error("فشل حذف الصورة");
+              toast.error("Failed to delete image");
            }
         }
     }
   };
 
   const handleSaveHero = async () => {
+    if (!content.hero.title_en) errors.hero_title_en = true;
+    if (!content.hero.title_ar) errors.hero_title_ar = true;
+    if (!content.hero.subtitle_en) errors.hero_subtitle_en = true;
+    if (!content.hero.subtitle_ar) errors.hero_subtitle_ar = true;
+    if (!content.hero.bgImage && !heroImageFile) errors.hero_bgImage = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all hero fields and upload an image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'board');
@@ -229,27 +253,36 @@ export default function BoardManager() {
            hero: {
              ...prev.hero,
              id: response.data.id,
-             bgImage: response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : content.hero.bgImage,
+             bgImage: getImageUrl(response.data.images?.[0]),
              rawImage: response.data.images?.[0] || content.hero.rawImage
            }
-        }));
+         }));
       }
-      toast.success("تم حفظ البانر بنجاح");
+      toast.success("Hero banner saved successfully");
       setHeroImageFile(null);
       setHeroImagePreview(null);
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البانر");
+      toast.error("An error occurred while saving the hero banner");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleAddMember = async () => {
-    if (!newMember.name_en || !newMember.name_ar) {
-      toast.error("Please fill in both English and Arabic names");
+    const errors = {};
+    if (!newMember.name_en) errors.new_name_en = true;
+    if (!newMember.name_ar) errors.new_name_ar = true;
+    if (!newMember.position_en) errors.new_position_en = true;
+    if (!newMember.position_ar) errors.new_position_ar = true;
+    if (!newMemberFile) errors.new_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all member fields and upload a photo");
       return;
     }
-    
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'board');
@@ -272,26 +305,40 @@ export default function BoardManager() {
         name_ar: newMember.name_ar,
         position_en: newMember.position_en,
         position_ar: newMember.position_ar,
-        image: response.data.images?.[0] ? `http://192.168.15.95:5000${response.data.images[0]}` : "/images/placeholder.jpg"
+        image: getImageUrl(response.data.images?.[0]) || "/images/placeholder.jpg"
       };
       
       setContent(prev => ({ ...prev, members: [...prev.members, addedMember] }));
-      toast.success("تمت إضافة العضو بنجاح");
+      toast.success("Member added successfully");
       setIsModalOpen(false);
       setNewMember({ name_en: "", name_ar: "", position_en: "", position_ar: "" });
       setNewMemberFile(null);
       setNewMemberPreview(null);
     } catch (error) {
-      toast.error("حدث خطأ أثناء إضافة العضو");
+      toast.error("An error occurred while adding the member");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const saveMember = async (index) => {
+    const errors = {};
     const member = content.members[index];
     if (!member.id) return;
 
+    if (!member.name_en) errors[`member_${index}_name_en`] = true;
+    if (!member.name_ar) errors[`member_${index}_name_ar`] = true;
+    if (!member.position_en) errors[`member_${index}_position_en`] = true;
+    if (!member.position_ar) errors[`member_${index}_position_ar`] = true;
+    if (!member.image && !member.newFile) errors[`member_${index}_image`] = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all fields (name, position, and photo)");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'board');
@@ -311,13 +358,13 @@ export default function BoardManager() {
 
     try {
       await updateSectionAPI(member.id, formData);
-      toast.success("تم تحديث بيانات العضو بنجاح");
+      toast.success("Member updated successfully");
       // Remove the temporary file from state
       const updatedMembers = [...content.members];
       delete updatedMembers[index].newFile;
       setContent(prev => ({ ...prev, members: updatedMembers }));
     } catch (error) {
-      toast.error("حدث خطأ أثناء تحديث العضو");
+      toast.error("An error occurred while updating member");
     } finally {
       setIsSubmitting(false);
     }
@@ -325,26 +372,26 @@ export default function BoardManager() {
 
   const removeMember = async (id, index) => {
     if (!id) return;
-    const result = await confirmDelete('حذف العضو', 'هل أنت متأكد من حذف هذا العضو بالكامل؟');
+    const result = await confirmDelete('Delete Member', 'Are you sure you want to delete this board member?');
     if (result.isConfirmed) {
       try {
 
         await deleteSectionAPI(id);
         setContent(prev => ({ ...prev, members: prev.members.filter(m => m.id !== id) }));
-        toast.success("تم طرح العضو بنجاح");
+        toast.success("Member removed successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting");
       }
     }
   };
 
-  const handleFileUpload = (e, memberIndex = -1) => {
-    const file = e.target.files[0];
+  const handleMemberFileUpload = (file, memberIndex = -1) => {
     if (file) {
       const url = URL.createObjectURL(file);
       if (memberIndex === -1) {
         setNewMemberFile(file);
         setNewMemberPreview(url);
+        if(formErrors.new_image) setFormErrors({...formErrors, new_image: false});
       } else {
         const updatedMembers = [...content.members];
         updatedMembers[memberIndex] = { 
@@ -353,6 +400,11 @@ export default function BoardManager() {
           newFile: file 
         };
         setContent(prev => ({ ...prev, members: updatedMembers }));
+        if(formErrors[`member_${memberIndex}_image`]) {
+           const newErrors = { ...formErrors };
+           delete newErrors[`member_${memberIndex}_image`];
+           setFormErrors(newErrors);
+        }
       }
     }
   };
@@ -392,57 +444,55 @@ export default function BoardManager() {
                 <input 
                   value={content.hero.title_en} 
                   onChange={(e) => handleUpdate('hero', 'title_en', e.target.value)} 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.hero_title_en ? dashboardStyles.invalidInput : ''}`} 
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>عنوان الصفحة (AR)</label>
+                <label className={localStyles.fieldLabel}>Page Title (AR)</label>
                 <input 
                   value={content.hero.title_ar} 
                   onChange={(e) => handleUpdate('hero', 'title_ar', e.target.value)} 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.hero_title_ar ? dashboardStyles.invalidInput : ''}`} 
                 />
               </div>
            </div>
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Subtitle (EN)</label>
-                <input 
-                  value={content.hero.subtitle_en} 
-                  onChange={(e) => handleUpdate('hero', 'subtitle_en', e.target.value)} 
-                  className={localStyles.inputField} 
-                />
+                 <input 
+                   value={content.hero.subtitle_en} 
+                   onChange={(e) => handleUpdate('hero', 'subtitle_en', e.target.value)} 
+                   className={`${localStyles.inputField} ${formErrors.hero_subtitle_en ? dashboardStyles.invalidInput : ''}`} 
+                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الفرعي (AR)</label>
-                <input 
-                  value={content.hero.subtitle_ar} 
-                  onChange={(e) => handleUpdate('hero', 'subtitle_ar', e.target.value)} 
-                  className={localStyles.inputField} 
-                />
+                <label className={localStyles.fieldLabel}>Subtitle (AR)</label>
+                 <input 
+                   value={content.hero.subtitle_ar} 
+                   onChange={(e) => handleUpdate('hero', 'subtitle_ar', e.target.value)} 
+                   className={`${localStyles.inputField} ${formErrors.hero_subtitle_ar ? dashboardStyles.invalidInput : ''}`} 
+                 />
               </div>
            </div>
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Banner Image</label>
-              <div className={localStyles.bannerPreview}>
-                <img src={heroImagePreview || content.hero.bgImage || "/images/placeholder.png"} alt="Banner" />
-                <div className={localStyles.mediaOverlay}>
-                   <label style={{ cursor: 'pointer' }}>
-                      <input id="heroImageInput" type="file" hidden onChange={handleHeroImageChange} accept="image/*" />
-                      <div className={localStyles.changeMediaBtn}><ImageIcon size={18} /> Change</div>
-                   </label>
-                   <button 
-                      onClick={removeHeroImage}
-                      className={localStyles.deleteBtn}
-                      style={{ height: '36px', width: '36px', padding: 0, background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2', marginLeft: '0.5rem' }}
-                      type="button"
-                      title="Remove Image"
-                   >
-                     <Trash2 size={18} />
-                   </button>
-                </div>
-              </div>
-           </div>
+              <ImageUpload 
+                value={heroImagePreview || content.hero.bgImage}
+                mode="hero"
+                height="180px"
+                 onChange={(file) => {
+                   setHeroImageFile(file);
+                   setHeroImagePreview(URL.createObjectURL(file));
+                   if(formErrors.hero_bgImage) {
+                      const newErrors = { ...formErrors };
+                      delete newErrors.hero_bgImage;
+                      setFormErrors(newErrors);
+                   }
+                 }}
+                 onDelete={removeHeroImage}
+               />
+               {formErrors.hero_bgImage && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-181px', height: '181px', pointerEvents: 'none' }}></div>}
+            </div>
         </div>
 
         {/* Members Management */}
@@ -465,30 +515,14 @@ export default function BoardManager() {
                 <div key={member.id} className={localStyles.memberCard}>
                   <div className={localStyles.memberHeader}>
                      <div className={localStyles.memberImage}>
-                        <img src={member.image || "/images/placeholder.jpg"} alt={member.name_en} />
-                        <label className={localStyles.imageUploadOverlay}>
-                          <input type="file" hidden onChange={(e) => handleFileUpload(e, idx)} accept="image/*" />
-                          <ImageIcon size={20} color="white" />
-                        </label>
-                        {(member.image || member.newFile) && (
-                           <button 
-                             onClick={(e) => { e.preventDefault(); removeMemberImage(idx); }}
-                             style={{ 
-                               position: 'absolute', 
-                               top: '5px', 
-                               right: '5px', 
-                               background: 'white', 
-                               borderRadius: '50%', 
-                               border: 'none', 
-                               padding: '4px',
-                               cursor: 'pointer',
-                               zIndex: 10
-                             }}
-                            title="Remove Image"
-                           >
-                             <Trash2 size={14} color="#DC143C" />
-                           </button>
-                        )}
+                         <ImageUpload 
+                           value={member.image}
+                           mode="small"
+                           height="120px"
+                           onChange={(file) => handleMemberFileUpload(file, idx)}
+                           onDelete={() => removeMemberImage(idx)}
+                         />
+                         {formErrors[`member_${idx}_image`] && <div style={{ border: '2px solid #DC143C', borderRadius: '8px', marginTop: '-121px', height: '121px', pointerEvents: 'none' }}></div>}
                      </div>
                      <div className={localStyles.memberActions}>
                         <div className={localStyles.crownIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: '#fff1f2', borderRadius: '50%' }}>
@@ -496,15 +530,15 @@ export default function BoardManager() {
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button 
-                            onClick={() => saveMember(idx)}
-                            className={`${localStyles.actionBtn}`}
-                            style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
+                             onClick={() => saveMember(idx)}
+                             className={`${localStyles.actionBtn}`}
+                             style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
                           >
                             <Save size={18} color="#22c55e" />
                           </button>
                           <button 
-                            onClick={() => removeMember(member.id, idx)}
-                            className={`${localStyles.actionBtn} ${localStyles.deleteBtn}`}
+                             onClick={() => removeMember(member.id, idx)}
+                             className={`${localStyles.actionBtn} ${localStyles.deleteBtn}`}
                           >
                             <Trash2 size={18} />
                           </button>
@@ -517,34 +551,34 @@ export default function BoardManager() {
                     <input 
                       value={member.name_en}
                       onChange={(e) => handleMemberUpdate(idx, 'name_en', e.target.value)}
-                      className={localStyles.inputField}
+                      className={`${localStyles.inputField} ${formErrors[`member_${idx}_name_en`] ? dashboardStyles.invalidInput : ''}`}
                     />
                   </div>
                   <div className={localStyles.inputGroup} dir="rtl">
-                    <label className={localStyles.fieldLabel} style={{ fontSize: '0.75rem' }}>الاسم (AR)</label>
+                    <label className={localStyles.fieldLabel} style={{ fontSize: '0.75rem' }}>Name (AR)</label>
                     <input 
                       value={member.name_ar}
                       onChange={(e) => handleMemberUpdate(idx, 'name_ar', e.target.value)}
-                      className={localStyles.inputField}
+                      className={`${localStyles.inputField} ${formErrors[`member_${idx}_name_ar`] ? dashboardStyles.invalidInput : ''}`}
                     />
                   </div>
                   
                   <div className={localStyles.formGrid}>
                     <div className={localStyles.inputGroup}>
                        <label className={localStyles.fieldLabel} style={{ fontSize: '0.75rem' }}>Position (EN)</label>
-                       <input 
-                         value={member.position_en}
-                         onChange={(e) => handleMemberUpdate(idx, 'position_en', e.target.value)}
-                         className={localStyles.inputField}
-                       />
+                        <input 
+                          value={member.position_en}
+                          onChange={(e) => handleMemberUpdate(idx, 'position_en', e.target.value)}
+                          className={`${localStyles.inputField} ${formErrors[`member_${idx}_position_en`] ? dashboardStyles.invalidInput : ''}`}
+                        />
                     </div>
                     <div className={localStyles.inputGroup} dir="rtl">
-                       <label className={localStyles.fieldLabel} style={{ fontSize: '0.75rem' }}>المنصب (AR)</label>
-                       <input 
-                         value={member.position_ar}
-                         onChange={(e) => handleMemberUpdate(idx, 'position_ar', e.target.value)}
-                         className={localStyles.inputField}
-                       />
+                       <label className={localStyles.fieldLabel} style={{ fontSize: '0.75rem' }}>Position (AR)</label>
+                        <input 
+                          value={member.position_ar}
+                          onChange={(e) => handleMemberUpdate(idx, 'position_ar', e.target.value)}
+                          className={`${localStyles.inputField} ${formErrors[`member_${idx}_position_ar`] ? dashboardStyles.invalidInput : ''}`}
+                        />
                     </div>
                   </div>
                 </div>
@@ -567,34 +601,29 @@ export default function BoardManager() {
           </>
         }
       >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
-           {newMemberPreview ? (
-              <img src={newMemberPreview} className={localStyles.modalPreview} alt="Preview" />
-           ) : (
-              <div className={localStyles.modalPreview} style={{ background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <Users size={40} color="#cbd5e1" />
-              </div>
-           )}
-           <label className={localStyles.addBtnSmall} style={{ background: '#f1f5f9', color: '#1e293b' }}>
-              <input type="file" hidden onChange={(e) => handleFileUpload(e)} accept="image/*" />
-              <Upload size={16} /> Choose Photo
-           </label>
-        </div>
+            <ImageUpload 
+               value={newMemberPreview}
+               mode="small"
+               height="150px"
+               onChange={(file) => handleMemberFileUpload(file)}
+               onDelete={() => { setNewMemberFile(null); setNewMemberPreview(null); }}
+            />
+            {formErrors.new_image && <div style={{ border: '2px solid #DC143C', borderRadius: '8px', marginTop: '-151px', height: '151px', pointerEvents: 'none', marginBottom: '1rem' }}></div>}
 
         <div className={localStyles.formGrid}>
           <div className={localStyles.inputGroup}>
             <label className={localStyles.fieldLabel}>Name (EN)</label>
             <input 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.new_name_en ? dashboardStyles.invalidInput : ''}`} 
               placeholder="e.g. John Doe"
               value={newMember.name_en} 
               onChange={(e) => setNewMember({...newMember, name_en: e.target.value})} 
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>(AR) الاسم</label>
+            <label className={localStyles.fieldLabel}>الاسم (AR)</label>
             <input 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.new_name_ar ? dashboardStyles.invalidInput : ''}`} 
               placeholder="مثال: جون دو"
               value={newMember.name_ar} 
               onChange={(e) => setNewMember({...newMember, name_ar: e.target.value})} 
@@ -606,16 +635,16 @@ export default function BoardManager() {
           <div className={localStyles.inputGroup}>
             <label className={localStyles.fieldLabel}>Position (EN)</label>
             <input 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.new_position_en ? dashboardStyles.invalidInput : ''}`} 
               placeholder="e.g. CEO"
               value={newMember.position_en} 
               onChange={(e) => setNewMember({...newMember, position_en: e.target.value})} 
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>(AR) المنصب</label>
+            <label className={localStyles.fieldLabel}>المنصب (AR)</label>
             <input 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.new_position_ar ? dashboardStyles.invalidInput : ''}`} 
               placeholder="مثال: الرئيس التنفيذي"
               value={newMember.position_ar} 
               onChange={(e) => setNewMember({...newMember, position_ar: e.target.value})} 

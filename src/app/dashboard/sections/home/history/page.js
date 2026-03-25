@@ -14,6 +14,7 @@ import {
 import { motion } from 'framer-motion';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './history-manager.module.css';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
@@ -23,6 +24,7 @@ import { confirmDelete } from '@/lib/sweetalert';
 export default function HistoryManager() {
   const [loading, setLoading] = useState(false);
   const [newImages, setNewImages] = useState([]); // Store File objects
+  const [formErrors, setFormErrors] = useState({});
   
   // Start - CMS Store Integration
   const sections = useCMSStore((state) => state.sections);
@@ -76,12 +78,6 @@ export default function HistoryManager() {
   // deletedImages state removed as we do immediate deletion
 
   /* Logic Handlers */
-  const handleImageSelect = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const files = Array.from(e.target.files);
-      setNewImages(prev => [...prev, ...files]);
-    }
-  };
 
   const removeNewImage = (index) => {
     setNewImages(prev => prev.filter((_, i) => i !== index));
@@ -90,7 +86,7 @@ export default function HistoryManager() {
   const handleRemoveServerImage = async (index, imageUrl) => {
     if (!content.id) return;
 
-    const result = await confirmDelete('حذف الصورة', 'حذف هذه الصورة نهائياً من السيرفر؟');
+    const result = await confirmDelete('Delete Image', 'Are you sure you want to delete this image permanently?');
     if (result.isConfirmed) {
 
       try {
@@ -101,9 +97,9 @@ export default function HistoryManager() {
         
         // Refresh store to sync UI
         await refreshSections();
-        toast.success("تم حذف الصورة بنجاح");
+        toast.success("Image deleted successfully");
       } catch (error) {
-        toast.error("فشل حذف الصورة");
+        toast.error("Failed to delete image");
         console.error(error);
       }
     }
@@ -113,13 +109,13 @@ export default function HistoryManager() {
 
   const handleDeleteSection = async () => {
     if (!content.id) return;
-    const result = await confirmDelete('حذف القسم', 'هل أنت متأكد من رغبتك في حذف هذا القسم بالكامل؟');
+    const result = await confirmDelete('Delete Section', 'Are you sure you want to delete this section entirely?');
     if (result.isConfirmed) {
 
       setLoading(true);
       try {
         await deleteSectionAPI(content.id);
-        toast.success("تم حذف القسم بنجاح");
+        toast.success("Section deleted successfully");
         
         // Refresh store
         await refreshSections();
@@ -142,7 +138,7 @@ export default function HistoryManager() {
         });
         setNewImages([]);
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting");
         console.error(error);
       } finally {
         setLoading(false);
@@ -151,6 +147,27 @@ export default function HistoryManager() {
   };
 
   const handleSave = async () => {
+    const errors = {};
+    if (!content.title_en) errors.title_en = true;
+    if (!content.title_ar) errors.title_ar = true;
+    if (!content.desc_en) errors.desc_en = true;
+    if (!content.desc_ar) errors.desc_ar = true;
+    if (!content.subtitle_en) errors.subtitle_en = true;
+    if (!content.subtitle_ar) errors.subtitle_ar = true;
+    if (!content.badge_number) errors.badge_number = true;
+    if (!content.badge_text_en) errors.badge_text_en = true;
+    if (!content.badge_text_ar) errors.badge_text_ar = true;
+    if (!content.button_text_en) errors.button_text_en = true;
+    if (!content.button_text_ar) errors.button_text_ar = true;
+    if (content.images.length === 0 && newImages.length === 0) errors.images = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all fields and upload at least one image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -175,7 +192,7 @@ export default function HistoryManager() {
       formData.append('details', JSON.stringify(details));
 
       // Append new images
-     
+      
         formData.append('update_img_type', 'group');
         newImages.forEach(file => {
           formData.append('images', file);
@@ -205,6 +222,11 @@ export default function HistoryManager() {
 
   const handleChange = (field, value) => {
     setContent(prev => ({ ...prev, [field]: value }));
+    if(formErrors[field]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[field];
+       setFormErrors(newErrors);
+    }
   };
 
   return (
@@ -265,20 +287,20 @@ export default function HistoryManager() {
                    type="text" 
                    value={content.subtitle_en}
                    onChange={(e) => handleChange('subtitle_en', e.target.value)}
-                   className={localStyles.inputField}
+                   className={`${localStyles.inputField} ${formErrors.subtitle_en ? dashboardStyles.invalidInput : ''}`}
                    placeholder="e.g. EST. 1980"
                  />
                </div>
-               <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>العنوان الفرعي (AR)</label>
-                 <input 
-                   type="text" 
-                   value={content.subtitle_ar}
-                   onChange={(e) => handleChange('subtitle_ar', e.target.value)}
-                   className={localStyles.inputField}
-                   placeholder="مثال: منذ 1980"
-                 />
-               </div>
+                <div dir="rtl" className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Subtitle (AR)</label>
+                  <input 
+                    type="text" 
+                    value={content.subtitle_ar}
+                    onChange={(e) => handleChange('subtitle_ar', e.target.value)}
+                    className={`${localStyles.inputField} ${formErrors.subtitle_ar ? dashboardStyles.invalidInput : ''}`}
+                    placeholder="e.g. Since 1980"
+                  />
+                </div>
 
                {/* Titles */}
                <div className={localStyles.inputGroup}>
@@ -287,20 +309,20 @@ export default function HistoryManager() {
                    type="text" 
                    value={content.title_en}
                    onChange={(e) => handleChange('title_en', e.target.value)}
-                   className={localStyles.inputField}
+                   className={`${localStyles.inputField} ${formErrors.title_en ? dashboardStyles.invalidInput : ''}`}
                    style={{ fontWeight: 'bold' }}
                  />
                </div>
-               <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
-                 <input 
-                   type="text" 
-                   value={content.title_ar}
-                   onChange={(e) => handleChange('title_ar', e.target.value)}
-                   className={localStyles.inputField}
-                   style={{ fontWeight: 'bold' }}
-                 />
-               </div>
+                <div dir="rtl" className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Main Title (AR)</label>
+                  <input 
+                    type="text" 
+                    value={content.title_ar}
+                    onChange={(e) => handleChange('title_ar', e.target.value)}
+                    className={`${localStyles.inputField} ${formErrors.title_ar ? dashboardStyles.invalidInput : ''}`}
+                    style={{ fontWeight: 'bold' }}
+                  />
+                </div>
             </div>
 
             {/* Descriptions */}
@@ -310,16 +332,16 @@ export default function HistoryManager() {
                  rows={4}
                  value={content.desc_en}
                  onChange={(e) => handleChange('desc_en', e.target.value)}
-                 className={localStyles.textareaField}
+                 className={`${localStyles.textareaField} ${formErrors.desc_en ? dashboardStyles.invalidInput : ''}`}
                />
             </div>
             <div dir="rtl" className={localStyles.inputGroup} style={{ marginTop: '1rem' }}>
-               <label className={localStyles.fieldLabel}>الوصف (AR)</label>
+               <label className={localStyles.fieldLabel}>Description (AR)</label>
                <textarea 
                  rows={4}
                  value={content.desc_ar}
                  onChange={(e) => handleChange('desc_ar', e.target.value)}
-                 className={localStyles.textareaField}
+                 className={`${localStyles.textareaField} ${formErrors.desc_ar ? dashboardStyles.invalidInput : ''}`}
                />
             </div>
           </div>
@@ -339,51 +361,51 @@ export default function HistoryManager() {
                    value={content.badge_number}
                    onChange={(e) => handleChange('badge_number', e.target.value)}
                    placeholder="45+"
-                   className={localStyles.inputField}
+                   className={`${localStyles.inputField} ${formErrors.badge_number ? dashboardStyles.invalidInput : ''}`}
                  />
                </div>
-               <div className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>Badge Number (EN)</label>
-                 <input 
-                   type="text" 
-                   value={content.badge_text_en}
-                   onChange={(e) => handleChange('badge_text_en', e.target.value)}
-                   className={localStyles.inputField}
-                   placeholder="Years of Excellence"
-                 />
-               </div>
-               <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>نص الشارة (AR)</label>
-                 <input 
-                   type="text" 
-                   value={content.badge_text_ar}
-                   onChange={(e) => handleChange('badge_text_ar', e.target.value)}
-                   className={localStyles.inputField}
-                   placeholder="سنوات من الخبرة"
-                 />
-               </div>
+                <div className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Badge Text (EN)</label>
+                  <input 
+                    type="text" 
+                    value={content.badge_text_en}
+                    onChange={(e) => handleChange('badge_text_en', e.target.value)}
+                    className={`${localStyles.inputField} ${formErrors.badge_text_en ? dashboardStyles.invalidInput : ''}`}
+                    placeholder="Years of Excellence"
+                  />
+                </div>
+                <div dir="rtl" className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Badge Text (AR)</label>
+                  <input 
+                    type="text" 
+                    value={content.badge_text_ar}
+                    onChange={(e) => handleChange('badge_text_ar', e.target.value)}
+                    className={`${localStyles.inputField} ${formErrors.badge_text_ar ? dashboardStyles.invalidInput : ''}`}
+                    placeholder="e.g. Years of Excellence"
+                  />
+                </div>
             </div>
 
             <div className={localStyles.formGrid} style={{ marginTop: '1.5rem', borderTop: '1px solid #eee', paddingTop: '1.5rem' }}>
-               <div className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>Button Text (EN)</label>
-                 <div className={localStyles.buttonInputWrapper}>
-                   <input 
-                     type="text" 
-                     value={content.button_text_en}
-                     onChange={(e) => handleChange('button_text_en', e.target.value)}
-                     className={`${localStyles.inputField} ${localStyles.buttonInput}`}
-                   />
-                   <ArrowRight size={16} className={localStyles.buttonIcon} />
-                 </div>
-               </div>
+                <div className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Button Text (EN)</label>
+                  <div className={localStyles.buttonInputWrapper}>
+                    <input 
+                      type="text" 
+                      value={content.button_text_en}
+                      onChange={(e) => handleChange('button_text_en', e.target.value)}
+                      className={`${localStyles.inputField} ${localStyles.buttonInput} ${formErrors.button_text_en ? dashboardStyles.invalidInput : ''}`}
+                    />
+                    <ArrowRight size={16} className={localStyles.buttonIcon} />
+                  </div>
+                </div>
                <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>نص الزر (AR)</label>
+                  <label className={localStyles.fieldLabel}>Button Text (AR)</label>
                   <input 
                     type="text" 
                     value={content.button_text_ar}
                     onChange={(e) => handleChange('button_text_ar', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.button_text_ar ? dashboardStyles.invalidInput : ''}`}
                   />
                </div>
             </div>
@@ -425,12 +447,22 @@ export default function HistoryManager() {
                  </div>
                ))}
 
-               {/* Add Button */}
-               <label className={localStyles.uploadPlaceholder} style={{ cursor: 'pointer' }}>
-                  <Plus size={24} color="#94a3b8" />
-                  <span>Add Image</span>
-                  <input type="file" multiple accept="image/*" onChange={handleImageSelect} style={{ display: 'none' }} />
-               </label>
+               {/* Add Image using ImageUpload */}
+               <div className={localStyles.uploadPlaceholderWrapper} style={{ width: '100%', maxWidth: '200px' }}>
+                  <ImageUpload 
+                    mode="standard"
+                    height="120px"
+                    onChange={(file) => {
+                      setNewImages(prev => [...prev, file]);
+                      if(formErrors.images) {
+                         const newErrors = { ...formErrors };
+                         delete newErrors.images;
+                         setFormErrors(newErrors);
+                      }
+                    }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', marginTop: '0.5rem' }}>Add More</p>
+               </div>
             </div>
             
              <div className={localStyles.tipBox}>

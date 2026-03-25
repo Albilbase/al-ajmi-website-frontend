@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './awards-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { toast } from 'react-toastify';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
@@ -27,6 +28,7 @@ export default function AwardsManager() {
   const [awards, setAwards] = useState([]);
   const [activeItem, setActiveItem] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -97,7 +99,7 @@ export default function AwardsManager() {
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        toast.error('فشل تحميل البيانات');
+        toast.error('Failed to load data');
       } finally {
         setLoading(false);
       }
@@ -106,8 +108,16 @@ export default function AwardsManager() {
   }, [sections]);
 
   const handleAddAward = async () => {
-    if (!newAward.title_en || !newAward.title_ar) {
-      toast.error("Please fill in both English and Arabic titles");
+    const errors = {};
+    if (!newAward.title_en) errors.new_title_en = true;
+    if (!newAward.title_ar) errors.new_title_ar = true;
+    if (!newAward.category_en) errors.new_category_en = true;
+    if (!newAward.category_ar) errors.new_category_ar = true;
+    if (!newAward.imageFile) errors.new_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -129,7 +139,8 @@ export default function AwardsManager() {
       await createSectionAPI(formData);
       await refreshSections();
       
-      toast.success('تمت إضافة الجائزة بنجاح');
+      toast.success('Award added successfully');
+      setFormErrors({});
       setIsModalOpen(false);
       
       setNewAward({
@@ -143,7 +154,7 @@ export default function AwardsManager() {
       });
       // Optionally setActiveItem
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء إضافة الجائزة');
+      toast.error(error.response?.data?.message || 'Error occurred while adding the award');
     } finally {
       setIsSubmitting(false);
     }
@@ -152,9 +163,24 @@ export default function AwardsManager() {
   const handleSaveChanges = async () => {
     const currentAward = awards[activeItem];
     if (!currentAward || !currentAward.id) {
-      toast.error("لا يمكن تحديث جائزة غير محفوظة.");
+      toast.error("Cannot update an unsaved award.");
       return;
     }
+
+    const errors = {};
+    if (!currentAward.title_en) errors.title_en = true;
+    if (!currentAward.title_ar) errors.title_ar = true;
+    if (!currentAward.category_en) errors.category_en = true;
+    if (!currentAward.category_ar) errors.category_ar = true;
+    if (!currentAward.src && !editorFile) errors.image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setFormErrors({});
 
     setIsSubmitting(true);
     try {
@@ -173,13 +199,13 @@ export default function AwardsManager() {
 
       await updateSectionAPI(currentAward.id, formData);
       await refreshSections();
-      toast.success('تم تحديث الجائزة بنجاح');
+      toast.success('Award updated successfully');
       
       setEditorFile(null);
       setEditorPreview(null);
     } catch (error) {
       console.error("Update Error:", error.response?.data || error);
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء التحديث');
+      toast.error(error.response?.data?.message || 'An error occurred while updating');
     } finally {
       setIsSubmitting(false);
     }
@@ -188,17 +214,17 @@ export default function AwardsManager() {
   const removeAward = async (id) => {
     if (!id) return;
 
-    const result = await confirmDelete('حذف الجائزة', 'هل أنت متأكد من رغبتك في حذف هذه الجائزة؟');
+    const result = await confirmDelete('Delete Award', 'Are you sure you want to delete this award?');
     if (result.isConfirmed) {
       try {
 
         await deleteSectionAPI(id);
         await refreshSections();
         setActiveItem(0);
-        toast.success('تم حذف الجائزة بنجاح');
+        toast.success('Award deleted successfully');
       } catch (error) {
         console.error(error);
-        toast.error('حدث خطأ أثناء الحذف');
+        toast.error('An error occurred while deleting');
       }
     }
   };
@@ -207,55 +233,40 @@ export default function AwardsManager() {
     const updatedAwards = [...awards];
     updatedAwards[activeItem][field] = value;
     setAwards(updatedAwards);
-  };
-
-  const handleNewAwardImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setNewAward({
-        ...newAward,
-        imageFile: file,
-        imagePreview: URL.createObjectURL(file)
-      });
+    
+    if(formErrors[field]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[field];
+       setFormErrors(newErrors);
     }
   };
 
-  const handleEditorImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setEditorFile(file);
-      setEditorPreview(URL.createObjectURL(file));
-      
-      const updatedAwards = [...awards];
-      updatedAwards[activeItem].src = URL.createObjectURL(file);
-      setAwards(updatedAwards);
-    }
-  };
 
   const updateSectionHeader = (field, value) => {
     setSectionHeader(prev => ({ ...prev, [field]: value }));
+    const errorKey = `header_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
   };
 
   const removeImage = async () => {
     const currentAward = awards[activeItem];
     
     // Local preview removal
-    if (editorFile || (currentAward?.src && currentAward.src.startsWith('blob:'))) {
        setEditorFile(null);
        setEditorPreview(null);
        
        const updatedAwards = [...awards];
        updatedAwards[activeItem].src = null;
        setAwards(updatedAwards);
-       
-       const fileInput = document.getElementById('awardImageInput');
-       if (fileInput) fileInput.value = '';
        return;
-    }
     
     // Server image removal
     if (currentAward.id && currentAward.src) {
-      const result = await confirmDelete('حذف الصورة', 'حذف صورة الجائزة نهائياً من السيرفر؟');
+      const result = await confirmDelete('Delete Image', 'Are you sure you want to delete this award image permanently?');
       if (result.isConfirmed) {
 
          try {
@@ -267,16 +278,29 @@ export default function AwardsManager() {
             updatedAwards[activeItem].src = null;
             updatedAwards[activeItem].rawImage = null;
             setAwards(updatedAwards);
-            toast.success("تم حذف الصورة");
+            toast.success("Image deleted successfully");
          } catch (e) {
             console.error(e);
-            toast.error("فشل حذف الصورة");
+            toast.error("Failed to delete image");
          }
       }
     }
   };
 
   const handleSaveSectionHeader = async () => {
+    const errors = {};
+    if (!sectionHeader.title_en) errors.header_title_en = true;
+    if (!sectionHeader.title_ar) errors.header_title_ar = true;
+    if (!sectionHeader.subtitle_en) errors.header_subtitle_en = true;
+    if (!sectionHeader.subtitle_ar) errors.header_subtitle_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all section header fields");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -296,9 +320,9 @@ export default function AwardsManager() {
       }
 
       await refreshSections();
-      toast.success('تم حفظ عنوان القسم بنجاح');
+      toast.success('Section header saved successfully');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ عنوان القسم');
+      toast.error(error.response?.data?.message || 'An error occurred while saving section header');
     } finally {
       setIsSubmitting(false);
     }
@@ -306,18 +330,18 @@ export default function AwardsManager() {
 
   const handleDeleteSectionHeader = async () => {
     if (!sectionHeader.id) {
-      toast.error('لا يوجد عنوان قسم لحذفه');
+      toast.error('No section header to delete');
       return;
     }
 
-    const result = await confirmDelete('حذف العنوان', 'هل أنت متأكد من رغبتك في حذف عنوان القسم؟');
+    const result = await confirmDelete('Delete Header', 'Are you sure you want to delete the section header?');
     if (result.isConfirmed) {
       setLoading(true);
       try {
 
         await deleteSectionAPI(sectionHeader.id);
         await refreshSections();
-        toast.success('تم حذف عنوان القسم بنجاح');
+        toast.success('Section header removed successfully');
         setSectionHeader({
           id: null,
           title_en: "",
@@ -326,7 +350,7 @@ export default function AwardsManager() {
           subtitle_ar: ""
         });
       } catch (error) {
-        toast.error('حدث خطأ أثناء حذف عنوان القسم');
+        toast.error('An error occurred while deleting');
         console.error(error);
       } finally {
         setLoading(false);
@@ -430,17 +454,17 @@ export default function AwardsManager() {
                     type="text" 
                     value={awards[activeItem].title_en}
                     onChange={(e) => updateActiveAward('title_en', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.title_en ? dashboardStyles.invalidInput : ''}`}
                     style={{ fontWeight: '700' }}
                   />
                 </div>
                 <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>عنوان الجائزة (AR)</label>
+                  <label className={localStyles.fieldLabel}>Award Title (AR)</label>
                   <input 
                     type="text" 
                     value={awards[activeItem].title_ar}
                     onChange={(e) => updateActiveAward('title_ar', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.title_ar ? dashboardStyles.invalidInput : ''}`}
                     style={{ fontWeight: '700' }}
                   />
                 </div>
@@ -454,16 +478,16 @@ export default function AwardsManager() {
                     type="text" 
                     value={awards[activeItem].category_en}
                     onChange={(e) => updateActiveAward('category_en', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.category_en ? dashboardStyles.invalidInput : ''}`}
                   />
                 </div>
                 <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>التصنيف (AR)</label>
+                  <label className={localStyles.fieldLabel}>Category (AR)</label>
                   <input 
                     type="text" 
                     value={awards[activeItem].category_ar}
                     onChange={(e) => updateActiveAward('category_ar', e.target.value)}
-                    className={localStyles.inputField}
+                    className={`${localStyles.inputField} ${formErrors.category_ar ? dashboardStyles.invalidInput : ''}`}
                   />
                 </div>
               </div>
@@ -471,48 +495,22 @@ export default function AwardsManager() {
               {/* Media Section */}
               <div className={localStyles.mediaSection}>
                 <label className={localStyles.fieldLabel}>Award Image/Certificate</label>
-                <div className={localStyles.mediaGrid}>
-                  <div className={localStyles.mediaPreview}>
-                    {awards[activeItem].src ? (
-                      <img src={awards[activeItem].src} alt="" />
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f1f5f9' }}>
-                        <ImageIcon size={48} color="#94a3b8" />
-                      </div>
-                    )}
-                    <div className={localStyles.mediaOverlay} style={{ opacity: 1 }}>
-                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <label className={localStyles.changeMediaBtn} style={{ cursor: 'pointer' }}>
-                            <ImageIcon size={20} /> Change Image
-                            <input 
-                              id="awardImageInput"
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleEditorImageChange}
-                              style={{ display: 'none' }}
-                            />
-                          </label>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); removeImage(); }}
-                            className={localStyles.deleteBtn}
-                            style={{ height: '42px', padding: '0 1rem', background: 'white', color: '#DC143C', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #fee2e2' }}
-                            type="button"
-                            title="Remove Image"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                       </div>
-                    </div>
-                  </div>
-                  <div className={localStyles.mediaInfoBox}>
-                    <p className={localStyles.mediaInfoText}>
-                      <strong>Current Image:</strong> <br/>
-                      {awards[activeItem].src || 'No image uploaded'} <br/><br/>
-                      Ensure high quality scan for certificates. <br/>
-                      Preferred format: <strong>PNG/JPG</strong>
-                    </p>
-                  </div>
-                </div>
+                <ImageUpload 
+                  value={awards[activeItem].src}
+                  mode="standard"
+                  height="220px"
+                  onChange={(file) => {
+                    setEditorFile(file);
+                    setEditorPreview(URL.createObjectURL(file));
+                    
+                    const updatedAwards = [...awards];
+                    updatedAwards[activeItem].src = URL.createObjectURL(file);
+                    setAwards(updatedAwards);
+                    if(formErrors.image) setFormErrors({...formErrors, image: false});
+                  }}
+                  onDelete={removeImage}
+                />
+                {formErrors.image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-220px', height: '220px', pointerEvents: 'none' }}></div>}
               </div>
             </div>
           ) : (
@@ -536,16 +534,16 @@ export default function AwardsManager() {
                   type="text" 
                   value={sectionHeader.title_en}
                   onChange={(e) => updateSectionHeader('title_en', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.header_title_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الرئيسي للقسم (AR)</label>
+                <label className={localStyles.fieldLabel}>Section Title (AR)</label>
                 <input 
                   type="text" 
                   value={sectionHeader.title_ar}
                   onChange={(e) => updateSectionHeader('title_ar', e.target.value)}
-                  className={localStyles.inputField}
+                  className={`${localStyles.inputField} ${formErrors.header_title_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
             </div>
@@ -556,16 +554,16 @@ export default function AwardsManager() {
                   rows="2"
                   value={sectionHeader.subtitle_en}
                   onChange={(e) => updateSectionHeader('subtitle_en', e.target.value)}
-                  className={localStyles.textareaField}
+                  className={`${localStyles.textareaField} ${formErrors.header_subtitle_en ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>العنوان الفرعي للقسم (AR)</label>
+                <label className={localStyles.fieldLabel}>Section Subtitle (AR)</label>
                 <textarea 
                   rows="2"
                   value={sectionHeader.subtitle_ar}
                   onChange={(e) => updateSectionHeader('subtitle_ar', e.target.value)}
-                  className={localStyles.textareaField}
+                  className={`${localStyles.textareaField} ${formErrors.header_subtitle_ar ? dashboardStyles.invalidInput : ''}`}
                 />
               </div>
             </div>
@@ -623,18 +621,32 @@ export default function AwardsManager() {
               type="text" 
               placeholder="e.g. Quality Excellence 2024"
               value={newAward.title_en}
-              onChange={(e) => setNewAward({...newAward, title_en: e.target.value})}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewAward({...newAward, title_en: e.target.value});
+                if(formErrors.new_title_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_title_en;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_title_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>عنوان الجائزة (AR)</label>
+            <label className={localStyles.fieldLabel}>Award Title (AR)</label>
             <input 
               type="text" 
-              placeholder="مثال: تميز الجودة 2024"
+              placeholder="e.g. Quality Excellence 2024"
               value={newAward.title_ar}
-              onChange={(e) => setNewAward({...newAward, title_ar: e.target.value})}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewAward({...newAward, title_ar: e.target.value});
+                if(formErrors.new_title_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_title_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_title_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>
@@ -645,66 +657,58 @@ export default function AwardsManager() {
               type="text" 
               placeholder="e.g. Certification"
               value={newAward.category_en}
-              onChange={(e) => setNewAward({...newAward, category_en: e.target.value})}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewAward({...newAward, category_en: e.target.value});
+                if(formErrors.new_category_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_category_en;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_category_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>التصنيف (AR)</label>
+            <label className={localStyles.fieldLabel}>Category (AR)</label>
             <input 
               type="text" 
-              placeholder="مثال: شهادة معتمدة"
+              placeholder="e.g. Certified Certificate"
               value={newAward.category_ar}
-              onChange={(e) => setNewAward({...newAward, category_ar: e.target.value})}
-              className={localStyles.inputField}
+              onChange={(e) => {
+                setNewAward({...newAward, category_ar: e.target.value});
+                if(formErrors.new_category_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_category_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_category_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>
         <div className={localStyles.inputGroup}>
           <label className={localStyles.fieldLabel}>Award Image</label>
-          {newAward.imagePreview ? (
-            <div style={{ position: 'relative' }}>
-              <img 
-                src={newAward.imagePreview} 
-                alt="Preview" 
-                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px' }}
-              />
-              <button
-                onClick={() => setNewAward({...newAward, imageFile: null, imagePreview: null})}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  background: 'white',
-                  border: 'none',
-                  borderRadius: '50%',
-                  padding: '8px',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}
-              >
-                <X size={16} color="#ef4444" />
-              </button>
-            </div>
-          ) : (
-            <label style={{ 
-              padding: '2rem', 
-              border: '2px dashed #e2e8f0', 
-              borderRadius: '12px', 
-              textAlign: 'center', 
-              cursor: 'pointer',
-              display: 'block'
-            }}>
-              <ImageIcon size={32} color="#64748b" style={{ marginBottom: '0.5rem' }} />
-              <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Click to upload award image</p>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleNewAwardImageChange}
-                style={{ display: 'none' }}
-              />
-            </label>
-          )}
+          <ImageUpload 
+            value={newAward.imagePreview}
+            mode="standard"
+            height="200px"
+            onChange={(file) => {
+              setNewAward({
+                ...newAward,
+                imageFile: file,
+                imagePreview: URL.createObjectURL(file)
+              });
+              if(formErrors.new_image) setFormErrors({...formErrors, new_image: false});
+            }}
+            onDelete={() => {
+              setNewAward({
+                ...newAward,
+                imageFile: null,
+                imagePreview: null
+              });
+            }}
+          />
+          {formErrors.new_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-200px', height: '200px', pointerEvents: 'none' }}></div>}
         </div>
       </Modal>
     </motion.div>

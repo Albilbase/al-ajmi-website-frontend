@@ -41,7 +41,7 @@ const NewsTicker = () => {
 
         const newsData = tickerSections
             .filter((i) => i.type === 'news_ticker' && i.is_active)
-            .sort((a, b) => (a.id || 0) - (b.id || 0)); // lowest ID first
+            .sort((a, b) => (b.id || 0) - (a.id || 0)); // highest ID (latest) first
 
         setItems(newsData.map((i) => (isAr ? i.title_ar : i.title_en)));
     }, [sections, isAr, t]);
@@ -92,7 +92,6 @@ const NewsTicker = () => {
 
     if (!items.length) return null;
 
-    // ✅ هنا الحل الحقيقي
     const displayItems = isAr ? [...items].reverse() : items;
     const tickerItems = [...displayItems, ...displayItems];
 

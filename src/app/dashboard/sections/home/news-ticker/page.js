@@ -23,8 +23,9 @@ import { createSectionAPI, updateSectionAPI, getAllSectionsAPI, deleteSectionAPI
 export default function NewsTickerManager() {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newsItems, setNewsItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [newsItems, setNewsItems] = useState([]);
   
   // Ticker Label state
   const [tickerLabel, setTickerLabel] = useState({
@@ -69,7 +70,7 @@ export default function NewsTickerManager() {
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        toast.error('فشل تحميل البيانات');
+        toast.error('Failed to load data');
       } finally {
         setLoading(false);
       }
@@ -78,10 +79,17 @@ export default function NewsTickerManager() {
   }, []);
 
   const handleAddItem = async () => {
-    if (!newItem.text_en || !newItem.text_ar) {
+    const errors = {};
+    if (!newItem.text_en) errors.new_text_en = true;
+    if (!newItem.text_ar) errors.new_text_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       toast.error("Please fill in both English and Arabic messages");
       return;
     }
+
+    setFormErrors({});
 
     setIsSubmitting(true);
     try {
@@ -101,8 +109,9 @@ export default function NewsTickerManager() {
         text_ar: newItem.text_ar
       };
       
+      
       setNewsItems(prev => [...prev, addedItem].sort((a, b) => (a.id || 0) - (b.id || 0)));
-      toast.success(response.message || 'تمت إضافة الخبر بنجاح');
+      toast.success(response.message || 'News item added successfully');
       setIsModalOpen(false);
       
       setNewItem({
@@ -110,7 +119,7 @@ export default function NewsTickerManager() {
         text_ar: ""
       });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء إضافة الخبر');
+      toast.error(error.response?.data?.message || 'Error occurred while adding news item');
     } finally {
       setIsSubmitting(false);
     }
@@ -118,7 +127,7 @@ export default function NewsTickerManager() {
 
   const handleSaveItem = async (id, text_en, text_ar) => {
     if (!id) {
-      toast.error("لا يمكن تحديث خبر غير محفوظ.");
+      toast.error("Cannot update an unsaved news item.");
       return;
     }
 
@@ -131,27 +140,27 @@ export default function NewsTickerManager() {
       formData.append('is_active', 'true');
 
       const response = await updateSectionAPI(id, formData);
-      // toast.success(response.message || 'تم تحديث الخبر بنجاح');
+      // toast.success(response.message || 'News item updated successfully');
     } catch (error) {
       console.error("Update Error:", error.response?.data || error);
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء التحديث');
+      toast.error(error.response?.data?.message || 'Error occurred while updating');
     }
   };
 
   const removeItem = async (id) => {
     if (!id) return;
 
-    const result = await confirmDelete('حذف الخبر', 'هل أنت متأكد من رغبتك في حذف هذا الخبر؟');
+    const result = await confirmDelete('Delete News Item', 'Are you sure you want to delete this news item?');
     if (result.isConfirmed) {
 
       try {
         await deleteSectionAPI(id);
         const updatedItems = newsItems.filter(item => item.id !== id);
         setNewsItems(updatedItems);
-        toast.success('تم حذف الخبر بنجاح');
+        toast.success('News item deleted successfully');
       } catch (error) {
         console.error(error);
-        toast.error('حدث خطأ أثناء الحذف');
+        toast.error('An error occurred while deleting');
       }
     }
   };
@@ -161,6 +170,12 @@ export default function NewsTickerManager() {
       item.id === id ? { ...item, [`text_${lang}`]: value } : item
     );
     setNewsItems(updatedItems);
+    
+    if(formErrors[`edit_${id}_${lang}`]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[`edit_${id}_${lang}`];
+       setFormErrors(newErrors);
+    }
   };
 
   const updateLabel = (lang, value) => {
@@ -168,9 +183,26 @@ export default function NewsTickerManager() {
       ...prev,
       [`label_${lang}`]: value
     }));
+    
+    if(formErrors[`label_${lang}`]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[`label_${lang}`];
+       setFormErrors(newErrors);
+    }
   };
 
   const handleSaveLabel = async () => {
+    const errors = {};
+    if (!tickerLabel.label_en) errors.label_en = true;
+    if (!tickerLabel.label_ar) errors.label_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in both English and Arabic ticker labels");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -187,7 +219,7 @@ export default function NewsTickerManager() {
         response = await createSectionAPI(formData);
       }
 
-      // toast.success(response.message || 'تم حفظ عنوان التيكر بنجاح');
+      // toast.success(response.message || 'Ticker label saved successfully');
       
       if (response.data) {
         setTickerLabel({
@@ -197,7 +229,7 @@ export default function NewsTickerManager() {
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ عنوان التيكر');
+      toast.error(error.response?.data?.message || 'Error occurred while saving ticker label');
     } finally {
       setIsSubmitting(false);
     }
@@ -212,13 +244,21 @@ export default function NewsTickerManager() {
       // Save all news items
       for (const item of newsItems) {
         if (item.id) {
-          await handleSaveItem(item.id, item.text_en, item.text_ar);
+           if (!item.text_en || !item.text_ar) {
+             const errors = { ...formErrors };
+             if (!item.text_en) errors[`edit_${item.id}_en`] = true;
+             if (!item.text_ar) errors[`edit_${item.id}_ar`] = true;
+             setFormErrors(errors);
+             toast.error('All news items must have both English and Arabic messages');
+             return;
+           }
+           await handleSaveItem(item.id, item.text_en, item.text_ar);
         }
       }
       
-      toast.success('تم حفظ جميع التغييرات بنجاح');
+      toast.success('All changes saved successfully');
     } catch (error) {
-      toast.error('حدث خطأ أثناء حفظ التغييرات');
+      toast.error('Error occurred while saving changes');
     } finally {
       setIsSubmitting(false);
     }
@@ -264,15 +304,15 @@ export default function NewsTickerManager() {
                 <div className={localStyles.inputGroup}>
                    <label className={localStyles.fieldLabel}>Label (EN)</label>
                    <input 
-                     className={localStyles.inputField} 
+                     className={`${localStyles.inputField} ${formErrors.label_en ? dashboardStyles.invalidInput : ''}`} 
                      value={tickerLabel.label_en} 
                      onChange={(e) => updateLabel('en', e.target.value)}
                    />
                 </div>
                 <div dir="rtl" className={localStyles.inputGroup}>
-                   <label className={localStyles.fieldLabel}>العنوان (AR)</label>
+                   <label className={localStyles.fieldLabel}>Label (AR)</label>
                    <input 
-                     className={localStyles.inputField} 
+                     className={`${localStyles.inputField} ${formErrors.label_ar ? dashboardStyles.invalidInput : ''}`} 
                      value={tickerLabel.label_ar} 
                      onChange={(e) => updateLabel('ar', e.target.value)}
                    />
@@ -305,7 +345,7 @@ export default function NewsTickerManager() {
                          <div className={localStyles.formGrid}>
                             <div className={localStyles.inputGroup}>
                                <input 
-                                 className={localStyles.inputField} 
+                                 className={`${localStyles.inputField} ${formErrors[`edit_${item.id}_en`] ? dashboardStyles.invalidInput : ''}`} 
                                  value={item.text_en} 
                                  placeholder="Message in English"
                                  onChange={(e) => updateItem(item.id, 'en', e.target.value)}
@@ -313,9 +353,9 @@ export default function NewsTickerManager() {
                             </div>
                             <div dir="rtl" className={localStyles.inputGroup}>
                                <input 
-                                 className={localStyles.inputField} 
+                                 className={`${localStyles.inputField} ${formErrors[`edit_${item.id}_ar`] ? dashboardStyles.invalidInput : ''}`} 
                                  value={item.text_ar} 
-                                 placeholder="الرسالة بالعربية"
+                                 placeholder="Message in Arabic"
                                  onChange={(e) => updateItem(item.id, 'ar', e.target.value)}
                                />
                             </div>
@@ -413,21 +453,35 @@ export default function NewsTickerManager() {
           <div className={localStyles.inputGroup}>
             <label className={localStyles.fieldLabel}>News Message (English)</label>
             <textarea 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.new_text_en ? dashboardStyles.invalidInput : ''}`} 
               style={{ height: '100px', resize: 'none' }}
               placeholder="e.g. Alajmi Company expansion in Riyadh..." 
               value={newItem.text_en} 
-              onChange={(e) => setNewItem({...newItem, text_en: e.target.value})} 
+              onChange={(e) => {
+                setNewItem({...newItem, text_en: e.target.value});
+                if(formErrors.new_text_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_text_en;
+                   setFormErrors(newErrors);
+                }
+              }} 
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>رسالة الخبر (بالعربية)</label>
+            <label className={localStyles.fieldLabel}>News Message (Arabic)</label>
             <textarea 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.new_text_ar ? dashboardStyles.invalidInput : ''}`} 
               style={{ height: '100px', resize: 'none' }}
-              placeholder="مثال: توسع شركة العجمي في الرياض..." 
+              placeholder="e.g. Alajmi Company expansion in Riyadh..." 
               value={newItem.text_ar} 
-              onChange={(e) => setNewItem({...newItem, text_ar: e.target.value})} 
+              onChange={(e) => {
+                setNewItem({...newItem, text_ar: e.target.value});
+                if(formErrors.new_text_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_text_ar;
+                   setFormErrors(newErrors);
+                }
+              }} 
             />
           </div>
         </div>

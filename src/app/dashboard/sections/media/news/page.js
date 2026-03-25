@@ -21,6 +21,8 @@ import {
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './newspaper-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
+import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
+import { validateImage } from '@/lib/validation';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 
@@ -43,6 +45,7 @@ export default function NewspaperManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
 
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -87,7 +90,7 @@ export default function NewspaperManager() {
           });
         }
       } catch (error) {
-        toast.error("حدث خطأ أثناء تحميل البيانات");
+        toast.error("An error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -96,18 +99,19 @@ export default function NewspaperManager() {
   }, [sections]);
 
 
-  const handleBannerUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setData(prev => ({
-        ...prev,
-        banner: { ...prev.banner, image: url, file: file, rawImage: null }
-      }));
-    }
-  };
 
   const handleSaveAll = async () => {
+    const errors = {};
+    if (!data.banner.title_en) errors.banner_title_en = true;
+    if (!data.banner.title_ar) errors.banner_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all banner fields");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       // 1. Save Banner
@@ -144,9 +148,9 @@ export default function NewspaperManager() {
       await Promise.all(itemUpdatePromises);
       
       await refreshSections();
-      toast.success("تم حفظ جميع التغييرات بنجاح");
+      toast.success("Changes saved successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء الحفظ");
+      toast.error("An error occurred while saving");
     } finally {
       setIsSubmitting(false);
     }
@@ -158,23 +162,36 @@ export default function NewspaperManager() {
        setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", file: null } }));
        return;
     }
-    const result = await confirmDelete('حذف البانر', 'هل أنت متأكد من حذف البانر؟');
+    const result = await confirmDelete('Delete Banner', 'Are you sure you want to delete the banner image?');
     if (result.isConfirmed) {
 
       try {
         await deleteImageAPI(data.banner.id, data.banner.rawImage);
         setData(prev => ({ ...prev, banner: { ...prev.banner, image: "", rawImage: null } }));
         await refreshSections();
-        toast.success("تم حذف الصورة بنجاح");
+        toast.success("Image deleted successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting");
       }
     }
   };
 
   const handleAddItem = async () => {
-    if (newItem.title_en && newItem.title_ar && newItem.files.length > 0) {
-      setIsSubmitting(true);
+    const errors = {};
+    if (!newItem.title_en) errors.new_title_en = true;
+    if (!newItem.title_ar) errors.new_title_ar = true;
+    if (!newItem.description_en) errors.new_description_en = true;
+    if (!newItem.description_ar) errors.new_description_ar = true;
+    if (newItem.files.length === 0) errors.new_item_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all news fields and upload at least one photo");
+      return;
+    }
+
+    setFormErrors({});
+    setIsSubmitting(true);
       const formData = new FormData();
       formData.append('section_key', 'newspaper');
       formData.append('type', 'item');
@@ -203,29 +220,33 @@ export default function NewspaperManager() {
           srcs: [], 
           files: [] 
         });
-        toast.success("تمت إضافة الخبر بنجاح");
+        toast.success("News added successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الإضافة");
+        toast.error("An error occurred while adding news");
       } finally {
         setIsSubmitting(false);
+      }
+  };
+
+  const handleFileUpload = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      const validFiles = files.filter(file => validateImage(file, 'standard'));
+      
+      if (validFiles.length > 0) {
+        const newSrcs = validFiles.map(file => URL.createObjectURL(file));
+        setNewItem(prev => ({ 
+          ...prev, 
+          files: [...prev.files, ...validFiles], 
+          srcs: [...prev.srcs, ...newSrcs] 
+        }));
+        if(formErrors.new_item_image) setFormErrors({...formErrors, new_item_image: false});
       }
     }
   };
 
-  const handleFileUpload = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length > 0) {
-      const newSrcs = selectedFiles.map(file => URL.createObjectURL(file));
-      setNewItem(prev => ({ 
-        ...prev, 
-        files: [...prev.files, ...selectedFiles], 
-        srcs: [...prev.srcs, ...newSrcs] 
-      }));
-    }
-  };
-
   const handleRemoveItemImage = async (itemId, imagePath) => {
-    const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف هذه الصورة؟');
+    const result = await confirmDelete('Delete Photo', 'Are you sure you want to delete this photo?');
     if (result.isConfirmed) {
       try {
         await deleteImageAPI(itemId, imagePath);
@@ -240,9 +261,9 @@ export default function NewspaperManager() {
           }));
         }
         
-        toast.success("تم حذف الصورة بنجاح");
+        toast.success("Photo deleted successfully");
       } catch (error) {
-        toast.error("فشل حذف الصورة");
+        toast.error("Failed to delete photo");
       }
     }
   };
@@ -257,19 +278,36 @@ export default function NewspaperManager() {
   };
 
   const handleEditFileUpload = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length > 0) {
-      const newSrcs = selectedFiles.map(file => URL.createObjectURL(file));
-      setEditingItem(prev => ({ 
-        ...prev, 
-        newFiles: [...prev.newFiles, ...selectedFiles], 
-        newSrcs: [...prev.newSrcs, ...newSrcs] 
-      }));
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      const validFiles = files.filter(file => validateImage(file, 'standard'));
+      
+      if (validFiles.length > 0) {
+        const newSrcs = validFiles.map(file => URL.createObjectURL(file));
+        setEditingItem(prev => ({ 
+          ...prev, 
+          newFiles: [...prev.newFiles, ...validFiles], 
+          newSrcs: [...prev.newSrcs, ...newSrcs] 
+        }));
+      }
     }
   };
 
   const handleUpdateItem = async () => {
-    if (!editingItem) return;
+    const errors = {};
+    if (!editingItem.title_en) errors.edit_title_en = true;
+    if (!editingItem.title_ar) errors.edit_title_ar = true;
+    if (!editingItem.description_en) errors.edit_description_en = true;
+    if (!editingItem.description_ar) errors.edit_description_ar = true;
+    if (editingItem.images.length === 0 && editingItem.newFiles.length === 0) errors.edit_item_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all news fields and ensure at least one photo exists");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('section_key', 'newspaper');
@@ -290,9 +328,9 @@ export default function NewspaperManager() {
       await refreshSections();
       setIsEditModalOpen(false);
       setEditingItem(null);
-      toast.success("تم تحديث العنصر بنجاح");
+      toast.success("News updated successfully");
     } catch (error) {
-      toast.error("حدث خطأ أثناء التحديث");
+      toast.error("An error occurred while updating");
     } finally {
       setIsSubmitting(false);
     }
@@ -325,39 +363,34 @@ export default function NewspaperManager() {
                 <h3 className={localStyles.sectionTitle}>Hero Banner</h3>
               </div>
             </div>
-            <div className={localStyles.imageWrapper} style={{ aspectRatio: '16/9', borderRadius: '12px', marginBottom: '1.5rem', position: 'relative' }}>
-              <img src={data.banner.image || "/images/placeholder.png"} alt="Banner" onClick={() => document.getElementById('bannerInput').click()} />
-              {data.banner.image && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); removeBannerImage(); }}
-                  style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(220,20,60,0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  <X size={16} />
-                </button>
-              )}
-              <div className={localStyles.imageOverlay} onClick={() => document.getElementById('bannerInput').click()}>
-                <label style={{ cursor: 'pointer' }}>
-                  <input id="bannerInput" type="file" hidden onChange={handleBannerUpload} accept="image/*" />
-                  <div className={dashboardStyles.secondaryBtn} style={{ background: 'white' }}>
-                    <Upload size={16} /> Change Image
-                  </div>
-                </label>
-              </div>
-            </div>
+            <ImageUpload 
+              value={data.banner.image}
+              mode="hero"
+              height="180px"
+              onChange={(file) => {
+                const url = URL.createObjectURL(file);
+                setData(prev => ({
+                  ...prev,
+                  banner: { ...prev.banner, image: url, file: file, rawImage: null }
+                }));
+                if(formErrors.banner_image) setFormErrors({...formErrors, banner_image: false});
+              }}
+              onDelete={removeBannerImage}
+            />
             <div className={localStyles.inputGroup} style={{ marginBottom: '1rem' }}>
               <label className={localStyles.fieldLabel}>Main Title (EN)</label>
               <input 
-                className={localStyles.inputField} 
+                className={`${localStyles.inputField} ${formErrors.banner_title_en ? dashboardStyles.invalidInput : ''}`} 
                 value={data.banner.title_en} 
-                onChange={(e) => setData(prev => ({ ...prev, banner: { ...prev.banner, title_en: e.target.value } }))} 
+                onChange={(e) => {setData(prev => ({ ...prev, banner: { ...prev.banner, title_en: e.target.value } })); if(formErrors.banner_title_en) setFormErrors({...formErrors, banner_title_en: false});}} 
               />
             </div>
             <div dir="rtl" className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
               <input 
-                className={localStyles.inputField} 
+                className={`${localStyles.inputField} ${formErrors.banner_title_ar ? dashboardStyles.invalidInput : ''}`} 
                 value={data.banner.title_ar} 
-                onChange={(e) => setData(prev => ({ ...prev, banner: { ...prev.banner, title_ar: e.target.value } }))} 
+                onChange={(e) => {setData(prev => ({ ...prev, banner: { ...prev.banner, title_ar: e.target.value } })); if(formErrors.banner_title_ar) setFormErrors({...formErrors, banner_title_ar: false});}} 
               />
             </div>
           </div>
@@ -434,14 +467,14 @@ export default function NewspaperManager() {
                       </button>
                       <button 
                         onClick={async () => {
-                          const result = await confirmDelete('حذف المقال', 'هل أنت متأكد من حذف هذا المقال بالكامل؟');
+                          const result = await confirmDelete('Delete News', 'Are you sure you want to delete this news article completely?');
                           if (result.isConfirmed) {
                             try {
                               await deleteSectionAPI(item.id);
                               setData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }));
                               await refreshSections();
-                              toast.success("تم حذف المقال");
-                            } catch (error) { toast.error("خطأ في الحذف"); }
+                              toast.success("News article deleted successfully");
+                            } catch (error) { toast.error("An error occurred while deleting"); }
                           }
                         }}
                         style={{ 
@@ -482,7 +515,7 @@ export default function NewspaperManager() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
            <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Newspaper Photos (Multiple)</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div className={formErrors.new_item_image ? dashboardStyles.invalidInput : ''} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem', marginBottom: '1rem', border: formErrors.new_item_image ? '2px solid #DC143C' : 'none', borderRadius: '12px', padding: formErrors.new_item_image ? '10px' : '0' }}>
                 {newItem.srcs.map((src, index) => (
                   <div key={index} style={{ position: 'relative', aspectRatio: '1/1' }}>
                     <img src={src} className={localStyles.previewThumb} alt={`Preview ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
@@ -511,11 +544,11 @@ export default function NewspaperManager() {
            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Title (EN)</label>
-                <input className={localStyles.inputField} value={newItem.title_en} onChange={(e) => setNewItem({...newItem, title_en: e.target.value})} placeholder="Enter English Title" />
+                <input className={`${localStyles.inputField} ${formErrors.new_title_en ? dashboardStyles.invalidInput : ''}`} value={newItem.title_en} onChange={(e) => {setNewItem({...newItem, title_en: e.target.value}); if(formErrors.new_title_en) setFormErrors({...formErrors, new_title_en: false});}} placeholder="Enter English Title" />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                <input className={localStyles.inputField} value={newItem.title_ar} onChange={(e) => setNewItem({...newItem, title_ar: e.target.value})} placeholder="أدخل العنوان بالعربية" />
+                <input className={`${localStyles.inputField} ${formErrors.new_title_ar ? dashboardStyles.invalidInput : ''}`} value={newItem.title_ar} onChange={(e) => {setNewItem({...newItem, title_ar: e.target.value}); if(formErrors.new_title_ar) setFormErrors({...formErrors, new_title_ar: false});}} placeholder="أدخل العنوان بالعربية" />
               </div>
            </div>
 
@@ -523,10 +556,10 @@ export default function NewspaperManager() {
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Description (EN)</label>
                 <textarea 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.new_description_en ? dashboardStyles.invalidInput : ''}`} 
                   rows={4} 
                   value={newItem.description_en} 
-                  onChange={(e) => setNewItem({...newItem, description_en: e.target.value})} 
+                  onChange={(e) => {setNewItem({...newItem, description_en: e.target.value}); if(formErrors.new_description_en) setFormErrors({...formErrors, new_description_en: false});}} 
                   placeholder="Enter English Description"
                   style={{ resize: 'vertical' }}
                 />
@@ -534,10 +567,10 @@ export default function NewspaperManager() {
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>الوصف (AR)</label>
                 <textarea 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.new_description_ar ? dashboardStyles.invalidInput : ''}`} 
                   rows={4} 
                   value={newItem.description_ar} 
-                  onChange={(e) => setNewItem({...newItem, description_ar: e.target.value})} 
+                  onChange={(e) => {setNewItem({...newItem, description_ar: e.target.value}); if(formErrors.new_description_ar) setFormErrors({...formErrors, new_description_ar: false});}} 
                   placeholder="أدخل الوصف بالعربية"
                   style={{ resize: 'vertical' }}
                 />
@@ -566,7 +599,7 @@ export default function NewspaperManager() {
             {/* Existing Images */}
             <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Current Newspaper Photos (Click to remove)</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div className={formErrors.edit_item_image ? dashboardStyles.invalidInput : ''} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem', marginBottom: '1rem', border: formErrors.edit_item_image ? '2px solid #DC143C' : 'none', borderRadius: '12px', padding: formErrors.edit_item_image ? '10px' : '0' }}>
                 {editingItem.images.map((img, index) => (
                   <div key={`existing-${index}`} style={{ position: 'relative', aspectRatio: '1/1', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
                     <img src={img} alt="Existing" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -613,11 +646,11 @@ export default function NewspaperManager() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Title (EN)</label>
-                <input className={localStyles.inputField} value={editingItem.title_en} onChange={(e) => setEditingItem({...editingItem, title_en: e.target.value})} />
+                <input className={`${localStyles.inputField} ${formErrors.edit_title_en ? dashboardStyles.invalidInput : ''}`} value={editingItem.title_en} onChange={(e) => {setEditingItem({...editingItem, title_en: e.target.value}); if(formErrors.edit_title_en) setFormErrors({...formErrors, edit_title_en: false});}} />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>العنوان (AR)</label>
-                <input className={localStyles.inputField} value={editingItem.title_ar} onChange={(e) => setEditingItem({...editingItem, title_ar: e.target.value})} />
+                <input className={`${localStyles.inputField} ${formErrors.edit_title_ar ? dashboardStyles.invalidInput : ''}`} value={editingItem.title_ar} onChange={(e) => {setEditingItem({...editingItem, title_ar: e.target.value}); if(formErrors.edit_title_ar) setFormErrors({...formErrors, edit_title_ar: false});}} />
               </div>
             </div>
 
@@ -625,20 +658,20 @@ export default function NewspaperManager() {
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Description (EN)</label>
                 <textarea 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.edit_description_en ? dashboardStyles.invalidInput : ''}`} 
                   rows={4} 
                   value={editingItem.description_en} 
-                  onChange={(e) => setEditingItem({...editingItem, description_en: e.target.value})} 
+                  onChange={(e) => {setEditingItem({...editingItem, description_en: e.target.value}); if(formErrors.edit_description_en) setFormErrors({...formErrors, edit_description_en: false});}} 
                   style={{ resize: 'vertical' }}
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>الوصف (AR)</label>
                 <textarea 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.edit_description_ar ? dashboardStyles.invalidInput : ''}`} 
                   rows={4} 
                   value={editingItem.description_ar} 
-                  onChange={(e) => setEditingItem({...editingItem, description_ar: e.target.value})} 
+                  onChange={(e) => {setEditingItem({...editingItem, description_ar: e.target.value}); if(formErrors.edit_description_ar) setFormErrors({...formErrors, edit_description_ar: false});}} 
                   style={{ resize: 'vertical' }}
                 />
               </div>

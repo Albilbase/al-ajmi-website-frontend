@@ -1,4 +1,5 @@
 import axios from "axios";
+import { sanitizeData } from "./sanitizer";
 
 const BASE_URL = "http://192.168.15.95:5000";
 
@@ -40,7 +41,8 @@ export const loginAPI = async (credentials) => {
 export const createSectionAPI = async (formData) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.post(`${BASE_URL}/api/cms`, formData, {
+    const sanitizedFormData = sanitizeData(formData);
+    const response = await axios.post(`${BASE_URL}/api/cms`, sanitizedFormData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'authorization': `${token}`
@@ -60,7 +62,8 @@ export const createSectionAPI = async (formData) => {
 export const updateSectionAPI = async (id, formData) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.put(`${BASE_URL}/api/cms/${id}`, formData, {
+    const sanitizedFormData = sanitizeData(formData);
+    const response = await axios.put(`${BASE_URL}/api/cms/${id}`, sanitizedFormData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'authorization': `${token}`
@@ -131,7 +134,8 @@ export const deleteImageAPI = async (id, imageName) => {
  */
 export const submitContactFormAPI = async (formData) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/contact`, formData, {
+    const sanitizedFormData = sanitizeData(formData);
+    const response = await axios.post(`${BASE_URL}/api/contact`, sanitizedFormData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         // No auth header needed as per requirements for public form

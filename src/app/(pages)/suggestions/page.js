@@ -19,6 +19,9 @@ const SuggestionsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
     const suggestionsSections = (sections || []).filter(section => section.section_key === 'suggestions');
     
@@ -47,36 +50,84 @@ const SuggestionsPage = () => {
           console.error("Error parsing form settings:", error);
         }
       }
+
+      // Initialize form data
+      const initialForm = {};
+      fields.forEach(f => {
+        initialForm[f.id] = "";
+      });
+      setFormData(initialForm);
     }
   }, [sections]);
 
+  const handleInputChange = (fieldId, value) => {
+    setFormData(prev => ({ ...prev, [fieldId]: value }));
+    if (errors[fieldId]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldId];
+        return newErrors;
+      });
+    }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    formFields.forEach(field => {
+      const value = formData[field.id]?.toString().trim() || "";
+      const label = isRTL ? field.title_ar : field.title_en;
+
+      if (!value) {
+        newErrors[field.id] = isRTL ? `حقل ${label} مطلوب` : `${label} is required`;
+      } else {
+        const isEmail = field.description_en === 'email' || 
+                        field.title_en?.toLowerCase().includes('email') || 
+                        field.title_ar?.includes('البريد');
+        
+        if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
+        }
+      }
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validate()) {
+      toast.error(isRTL 
+        ? "يرجى التأكد من ملء جميع الحقول المطلوبة بشكل صحيح" 
+        : "Please ensure all required fields are filled correctly");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData();
-      // Set the subject/form name
-      formData.append('name', 'Suggestions & Complaints');
-      formData.append('send_to', recipientEmail);
+      const submitData = new FormData();
+      submitData.append('name', 'Suggestions & Complaints');
+      submitData.append('send_to', recipientEmail);
 
       const dataObj = {};
       formFields.forEach(field => {
-        const element = document.getElementById(`field-${field.id}`);
-        if (element) {
-          // Use English title as key, fallback to ID if empty
-          const key = field.title_en || `field_${field.id}`;
-          dataObj[key] = element.value;
-        }
+        const key = field.title_en || `field_${field.id}`;
+        dataObj[key] = formData[field.id];
       });
       
-      // Append data as stringified JSON
-      formData.append('data', JSON.stringify(dataObj));
+      submitData.append('data', JSON.stringify(dataObj));
 
-      await submitContactFormAPI(formData);
+      await submitContactFormAPI(submitData);
       
       toast.success(isRTL ? "تم إرسال النموذج بنجاح!" : "Form submitted successfully!");
-      e.target.reset();
+      
+      // Reset form
+      const resetForm = {};
+      formFields.forEach(f => { resetForm[f.id] = ""; });
+      setFormData(resetForm);
+      setErrors({});
     } catch (error) {
       console.error(error);
       toast.error(isRTL ? "حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى." : "Error submitting form. Please try again.");
@@ -146,6 +197,7 @@ const SuggestionsPage = () => {
                   width = field.description_ar || "full";
                 }
 
+                const hasError = !!errors[field.id];
                 const groupClass = `${styles.formGroup} ${width === 'full' ? styles.fullWidth : ''}`;
 
                 return (
@@ -155,20 +207,43 @@ const SuggestionsPage = () => {
                         {field.description_en === 'textarea' ? (
                           <textarea 
                              id={`field-${field.id}`}
-                             className={styles.textarea} 
-                             required 
+                             className={`${styles.textarea} ${hasError ? styles.inputError : ''}`} 
+                             value={formData[field.id] || ""}
+                             onChange={(e) => handleInputChange(field.id, e.target.value)}
                              placeholder=" "
-                            //  name={isRTL ? field.title_ar : field.title_en} ممكن ابعت الاسم الكي هو التايتل للباك ايند بعدين 
                           />
-                        ) : (
-                          <input 
-                            type={field.description_en || "text"} 
-                            id={`field-${field.id}`}
-                            className={styles.input} 
-                            required 
-                            placeholder=" "
-                          />
-                        )}
+                        ) : (() => {
+                          const isEmail = field.description_en === 'email' || 
+                                          field.title_en?.toLowerCase().includes('email') || 
+                                          field.title_en?.toLowerCase().includes('mail') || 
+                                          field.title_ar?.includes('البريد') || 
+                                          field.title_ar?.includes('ايميل') ||
+                                          field.title_ar?.includes('عنوان');
+
+                          const isTel = field.description_en === 'tel' || 
+                                        field.title_en?.toLowerCase().includes('phone') || 
+                                        field.title_en?.toLowerCase().includes('tel') || 
+                                        field.title_en?.toLowerCase().includes('mobile') ||
+                                        field.title_ar?.includes('هاتف') || 
+                                        field.title_ar?.includes('جوال') || 
+                                        field.title_ar?.includes('تلفون');
+                          
+                          return (
+                            <input 
+                              type={isEmail ? "email" : (isTel ? "tel" : (field.description_en || "text"))} 
+                              id={`field-${field.id}`}
+                              className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
+                              value={formData[field.id] || ""}
+                              onChange={(e) => handleInputChange(field.id, e.target.value)}
+                              placeholder=" "
+                              onInput={(e) => {
+                                if (isTel) {
+                                  e.target.value = e.target.value.replace(/[^0-9+]/g, '');
+                                }
+                              }}
+                            />
+                          );
+                        })()}
                         <label htmlFor={`field-${field.id}`} className={styles.label}>
                           {isRTL ? field.title_ar : field.title_en}
                         </label>
@@ -177,19 +252,19 @@ const SuggestionsPage = () => {
                       <div className={styles.inputWrapper}>
                         <select 
                           id={`field-${field.id}`} 
-                          className={styles.select} 
-                          required 
-                          defaultValue=""
+                          className={`${styles.select} ${hasError ? styles.inputError : ''}`} 
+                          value={formData[field.id] || ""}
+                          onChange={(e) => handleInputChange(field.id, e.target.value)}
                         >
                           <option value="" disabled></option>
                           {(isRTL ? (field.description_ar?.split('|')[0] || "") : field.description_en || "").split(';').map((opt, idx) => {
-                            const optionValue = opt.trim();
-                            if (!optionValue) return null;
-                            return (
-                              <option key={idx} value={optionValue}>
-                                {optionValue}
-                              </option>
-                            );
+                             const optionValue = opt.trim();
+                             if (!optionValue) return null;
+                             return (
+                               <option key={idx} value={optionValue}>
+                                 {optionValue}
+                               </option>
+                             );
                           })}
                         </select>
                         <label htmlFor={`field-${field.id}`} className={styles.label}>
@@ -197,6 +272,11 @@ const SuggestionsPage = () => {
                         </label>
                         <ChevronDown size={16} style={{position: 'absolute', [isRTL ? 'left' : 'right']: '1rem', top:'50%', transform:'translateY(-50%)', pointerEvents:'none', opacity:0.5}}/>
                       </div>
+                    )}
+                    {hasError && (
+                      <span className={styles.errorMessage}>
+                        <Info size={14} /> {errors[field.id]}
+                      </span>
                     )}
                   </div>
                 );

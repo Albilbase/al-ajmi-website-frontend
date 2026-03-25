@@ -4,6 +4,7 @@
     background-color: #f9f9f9;
     overflow: hidden;
     z-index: 1;
+    isolation: isolate;
 }
 
 .container {
@@ -88,24 +89,14 @@
 }
 
 /* Swiper Navigation Arrows */
-.navButtons {
+.navBtn {
     position: absolute;
     top: 50%;
-    left: 0;
-    right: 0;
     transform: translateY(-50%);
-    display: flex;
-    justify-content: space-between;
-    padding: 0 1.5rem;
     z-index: 10;
-    pointer-events: none; /* Allows swiping on the container */
-}
-
-.navBtn {
     width: 45px;
     height: 45px;
     background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     display: flex;
@@ -114,8 +105,15 @@
     color: #fff;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: auto; /* Re-enable for the button specifically */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.historyPrevBtn {
+    left: 1.5rem;
+}
+
+.historyNextBtn {
+    right: 1.5rem;
 }
 
 .navBtn:hover {

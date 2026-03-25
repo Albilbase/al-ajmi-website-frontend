@@ -26,7 +26,9 @@ import {
   Truck,
   UserPlus,
   MessageSquare,
-  FileText
+  FileText,
+  Menu,
+  X as CloseIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './dashboard.module.css';
@@ -42,6 +44,7 @@ export default function DashboardLayout({ children }) {
     media: false
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async (e) => {
     if (e) e.preventDefault();
@@ -72,6 +75,8 @@ export default function DashboardLayout({ children }) {
       setOpenDropdowns(prev => ({ ...prev, [key]: !prev[key] }));
     }
   };
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const menuItems = {
     general: [
@@ -112,8 +117,24 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className={styles.dashboardContainer} dir="ltr">
+      {/* Mobile Backdrop */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeMobileMenu}
+            className={styles.mobileBackdrop}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
-      <aside className={styles.sidebar} style={{ width: isSidebarOpen ? '280px' : '90px' }}>
+      <aside 
+        className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpenMobile : ''}`} 
+        style={{ width: isSidebarOpen ? '280px' : '90px' }}
+      >
         <div className={styles.sidebarLogo}>
           <div style={{ position: 'relative', width: isSidebarOpen ? '160px' : '50px', height: '60px' }}>
             <Image src="/logo.png" alt="Alajmi Logo" fill style={{ objectFit: 'contain' }} priority />
@@ -125,7 +146,12 @@ export default function DashboardLayout({ children }) {
           <div className={styles.navGroup}>
             {isSidebarOpen && <div className={styles.navLabel}>System</div>}
             {menuItems.general.map((link) => (
-              <Link key={link.path} href={link.path} className={`${styles.navLink} ${isActive(link.path) ? styles.navLinkActive : ''}`}>
+              <Link 
+                key={link.path} 
+                href={link.path} 
+                className={`${styles.navLink} ${isActive(link.path) ? styles.navLinkActive : ''}`}
+                onClick={closeMobileMenu}
+              >
                 <link.icon size={20} />
                 {isSidebarOpen && <span>{link.name}</span>}
               </Link>
@@ -146,7 +172,12 @@ export default function DashboardLayout({ children }) {
                 {isSidebarOpen && openDropdowns.home && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={styles.dropdownContent}>
                     {menuItems.homeContent.map((link) => (
-                      <Link key={link.path} href={link.path} className={`${styles.dropdownLink} ${isActive(link.path) ? styles.dropdownLinkActive : ''}`}>
+                      <Link 
+                        key={link.path} 
+                        href={link.path} 
+                        className={`${styles.dropdownLink} ${isActive(link.path) ? styles.dropdownLinkActive : ''}`}
+                        onClick={closeMobileMenu}
+                      >
                         {link.name}
                       </Link>
                     ))}
@@ -170,7 +201,12 @@ export default function DashboardLayout({ children }) {
                 {isSidebarOpen && openDropdowns.company && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={styles.dropdownContent}>
                     {menuItems.company.map((link) => (
-                      <Link key={link.path} href={link.path} className={`${styles.dropdownLink} ${isActive(link.path) ? styles.dropdownLinkActive : ''}`}>
+                      <Link 
+                        key={link.path} 
+                        href={link.path} 
+                        className={`${styles.dropdownLink} ${isActive(link.path) ? styles.dropdownLinkActive : ''}`}
+                        onClick={closeMobileMenu}
+                      >
                         {link.name}
                       </Link>
                     ))}
@@ -194,7 +230,12 @@ export default function DashboardLayout({ children }) {
                 {isSidebarOpen && openDropdowns.media && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={styles.dropdownContent}>
                     {menuItems.media.map((link) => (
-                      <Link key={link.path} href={link.path} className={`${styles.dropdownLink} ${isActive(link.path) ? styles.dropdownLinkActive : ''}`}>
+                      <Link 
+                        key={link.path} 
+                        href={link.path} 
+                        className={`${styles.dropdownLink} ${isActive(link.path) ? styles.dropdownLinkActive : ''}`}
+                        onClick={closeMobileMenu}
+                      >
                         {link.name}
                       </Link>
                     ))}
@@ -208,7 +249,12 @@ export default function DashboardLayout({ children }) {
           <div className={styles.navGroup}>
             {isSidebarOpen && <div className={styles.navLabel}>Direct Management</div>}
             {menuItems.pages.map((link) => (
-              <Link key={link.path} href={link.path} className={`${styles.navLink} ${isActive(link.path) ? styles.navLinkActive : ''}`}>
+              <Link 
+                key={link.path} 
+                href={link.path} 
+                className={`${styles.navLink} ${isActive(link.path) ? styles.navLinkActive : ''}`}
+                onClick={closeMobileMenu}
+              >
                 <link.icon size={20} />
                 {isSidebarOpen && <span>{link.name}</span>}
               </Link>
@@ -228,7 +274,13 @@ export default function DashboardLayout({ children }) {
       <main className={styles.mainContent} style={{ marginLeft: isSidebarOpen ? '280px' : '90px' }}>
         <header className={styles.navbar}>
           <div className={styles.navbarLeft}>
-            <button onClick={toggleSidebar} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', cursor: 'pointer', padding: '0.6rem', borderRadius: '10px', display: 'flex', alignItems: 'center', color: '#1e293b' }}>
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)} 
+              className={styles.mobileMenuBtn}
+            >
+              <Menu size={24} />
+            </button>
+            <button onClick={toggleSidebar} className={styles.desktopSidebarToggle}>
               {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
             </button>
             <h1 className={styles.navbarTitle}>

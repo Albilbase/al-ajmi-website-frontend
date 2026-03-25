@@ -1,13 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, EffectFade, Navigation, Pagination, Parallax } from 'swiper/modules';  // swiper modules ( options )
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';  // animation library
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';  // icons library
+import { Autoplay, EffectFade, Navigation, Pagination, Parallax } from 'swiper/modules';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-
-// Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/navigation';
@@ -19,7 +17,6 @@ import styles from './Hero.module.css';
 const Hero = ({ homeData }) => {
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
-    // State for dynamic slides
     const [apiSlides, setApiSlides] = useState([]);
 
     useEffect(() => {
@@ -33,21 +30,17 @@ const Hero = ({ homeData }) => {
 
     const slidesData = t('hero.slides', { returnObjects: true });
     
-    // Use API slides if available, otherwise fallback to translation/static
     const activeSlides = apiSlides.length > 0 ? apiSlides : (Array.isArray(slidesData) ? slidesData : [
         { title: "Alajmi Company", description: "Loading...", cta: "Loading..." }
     ]);
 
-    // Helper to get image URL
     const getSlideImage = (slide, index) => {
         if (apiSlides.length > 0) {
-            // API Image
             if (slide.images && slide.images.length > 0) {
                 return `http://192.168.15.95:5000${slide.images[0]}`;
             }
             return "/images/placeholder.png";
         }
-        // Static Image Fallback
         const staticImages = [
             "/images/hero/WhatsApp Image 2026-01-08 at 12.03.08 PM (1).jpeg",
             "/images/hero/WhatsApp Image 2025-12-07 at 9.54.28 AM.jpeg",
@@ -55,27 +48,24 @@ const Hero = ({ homeData }) => {
         ];
         return staticImages[index % staticImages.length];
     };
-    // scrollY for parallax effect 
+
     const { scrollY } = useScroll();
     const bgY = useTransform(scrollY, [0, 800], [0, 300]);
 
     return (
         <section className={styles.hero} dir={isAr ? 'rtl' : 'ltr'}>
-            {/* Swiper slider  */}
             <Swiper
-            //options for swiper slider ( settings )
                 modules={[Autoplay, EffectFade, Navigation, Pagination, Parallax]}
                 effect="fade"
                 parallax={true}
                 speed={1200}
                 dir={isAr ? 'rtl' : 'ltr'}
-                key={isAr ? 'rtl' : 'ltr'} // Force re-mount on direct change to fix Swiper RTL layout issues
+                key={isAr ? 'rtl' : 'ltr'}
                 autoplay={{
                     delay: 3000,
                     disableOnInteraction: false,
                 }}
                 loop={true}
-                grabCursor={true}
                 navigation={{
                     nextEl: `.${styles.nextBtn}`,
                     prevEl: `.${styles.prevBtn}`,
@@ -92,7 +82,6 @@ const Hero = ({ homeData }) => {
                 }}
                 className={styles.mainSwiper}
             >
-                {/* slides data mapping  */}
                 {activeSlides.map((slide, index) => (
                     <SwiperSlide key={slide.id || index}>
                         {({ isActive }) => (
@@ -108,11 +97,8 @@ const Hero = ({ homeData }) => {
                                         fill
                                         style={{ objectFit: 'cover' }}
                                         priority={index === 0}
-                                        fetchPriority={index === 0 ? "high" : "auto"}
-                                        loading={index === 0 ? "eager" : "lazy"}
-                                        quality={index === 0 ? 85 : 75}
                                         sizes="100vw"
-                                        unoptimized={apiSlides.length > 0} // Add unoptimized for external API images if not configured in next.config
+                                        unoptimized={apiSlides.length > 0}
                                     />
                                 </motion.div>
                                 <div className={styles.vignette} />
@@ -131,7 +117,7 @@ const Hero = ({ homeData }) => {
                                                 >
                                                     <motion.div 
                                                         variants={{
-                                                            hidden: { opacity: 0, x: isAr ? 30 : -30 }, // Fixed direction
+                                                            hidden: { opacity: 0, x: isAr ? 30 : -30 },
                                                             visible: { opacity: 1, x: 0 }
                                                         }}
                                                         className={styles.topBadge}
@@ -196,7 +182,6 @@ const Hero = ({ homeData }) => {
                     </SwiperSlide>
                 ))}
 
-                {/* Side Navigation */}
                 <button className={`${styles.sideNav} ${styles.prevBtn}`}>
                     <ChevronLeft size={32} />
                 </button>
@@ -204,18 +189,15 @@ const Hero = ({ homeData }) => {
                     <ChevronRight size={32} />
                 </button>
 
-                {/* Bottom Pagination */}
                 <div className={styles.paginationLayer}>
                     <div className={styles.paginationWrapper}></div>
                 </div>
 
-                {/* Year Label */}
                 <div className={styles.yearLabel}>
                     <span>EST. 1980</span>
                 </div>
             </Swiper>
 
-            {/* Bottom Decor */}
             <div className={styles.bottomDecor}>
                 <div className={styles.scrollInfo}>
                     <span className={styles.scrollText}>{isAr ? 'اسحب للأسفل' : 'SCROLL DOWN'}</span>

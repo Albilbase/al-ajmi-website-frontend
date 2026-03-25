@@ -1,0 +1,90 @@
+
+.overviewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.welcomeBanner {
+  background: linear-gradient(135deg, #000000 0%, #1e293b 100%);
+  padding: 3rem;
+  border-radius: 1.5rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.bannerContent {
+  position: relative;
+  z-index: 1;
+}
+
+.bannerTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.bannerText {
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 700px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.decorCircle {
+  position: absolute;
+  top: -10%;
+  right: -5%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(220, 20, 60, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.emptyArea {
+  padding: 4rem;
+  border: 2px dashed #e2e8f0;
+  border-radius: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.emptyTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .welcomeBanner {
+    padding: 2rem 1.5rem;
+  }
+  
+  .bannerTitle {
+    font-size: 1.75rem;
+  }
+  
+  .bannerText {
+    font-size: 1rem;
+  }
+  
+  .emptyArea {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bannerTitle {
+    font-size: 1.5rem;
+  }
+  
+  .decorCircle {
+    width: 150px;
+    height: 150px;
+  }
+}

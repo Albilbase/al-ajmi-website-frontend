@@ -36,6 +36,7 @@ export default function JobsManager() {
   const [formFields, setFormFields] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   
   // Vacancy State
   const [currentVacancy, setCurrentVacancy] = useState(null);
@@ -89,7 +90,7 @@ export default function JobsManager() {
         }
       } catch (error) {
         console.error("Failed to fetch reports:", error);
-        toast.error("فشل تحميل الطلبات");
+        toast.error("Failed to load application reports");
       } finally {
         setReportsLoading(false);
       }
@@ -150,7 +151,7 @@ export default function JobsManager() {
         }
       } catch (error) {
         console.error("Failed to fetch jobs data:", error);
-        toast.error("حدث خطأ أثناء تحميل البيانات");
+        toast.error("Error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -173,11 +174,25 @@ export default function JobsManager() {
   };
 
   const handleSaveVacancy = async () => {
-    if (!currentVacancy.en.title || !currentVacancy.ar.title) {
-      toast.error("يرجى إدخال العنوان باللغتين");
+    const errors = {};
+    if (!currentVacancy.en.title) errors.vac_title_en = true;
+    if (!currentVacancy.ar.title) errors.vac_title_ar = true;
+    if (!currentVacancy.en.description) errors.vac_desc_en = true;
+    if (!currentVacancy.ar.description) errors.vac_desc_ar = true;
+    if (!currentVacancy.en.employeesCount) errors.vac_count_en = true;
+    if (!currentVacancy.ar.employeesCount) errors.vac_count_ar = true;
+    if (!currentVacancy.en.experience) errors.vac_exp_en = true;
+    if (!currentVacancy.ar.experience) errors.vac_exp_ar = true;
+    if (!currentVacancy.en.qualification) errors.vac_qual_en = true;
+    if (!currentVacancy.ar.qualification) errors.vac_qual_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required fields");
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -205,32 +220,32 @@ export default function JobsManager() {
 
       if (currentVacancy.id) {
         await updateSectionAPI(currentVacancy.id, formData);
-        toast.success("تم تحديث الوظيفة");
+        toast.success("Vacancy updated successfully");
       } else {
         await createSectionAPI(formData);
-        toast.success("تم إضافة الوظيفة بنجاح");
+        toast.success("Vacancy added successfully");
       }
       await refreshSections();
       setIsVacancyModalOpen(false);
     } catch (error) {
       console.error("Save error:", error);
-      toast.error("حدث خطأ أثناء الحفظ");
+      toast.error("An error occurred while saving the vacancy");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteVacancy = async (id) => {
-    const result = await confirmDelete('حذف الوظيفة', 'هل أنت متأكد من حذف هذه الوظيفة؟');
+    const result = await confirmDelete('Delete Vacancy', 'Are you sure you want to delete this vacancy?');
     if (result.isConfirmed) {
       try {
 
         await deleteSectionAPI(id);
         await refreshSections();
         setVacancies(prev => prev.filter(v => v.id !== id));
-        toast.success("تم حذف الوظيفة");
+        toast.success("Vacancy deleted successfully");
       } catch (error) {
-        toast.error("حدث خطأ أثناء الحذف");
+        toast.error("An error occurred while deleting the vacancy");
       }
     }
   };
@@ -282,11 +297,21 @@ export default function JobsManager() {
   };
 
   const handleSaveField = async () => {
-    if (!fieldData.title_en || !fieldData.title_ar) {
-      toast.error("يرجى إدخال العناوين باللغتين");
+    const errors = {};
+    if (!fieldData.title_en) errors.field_title_en = true;
+    if (!fieldData.title_ar) errors.field_title_ar = true;
+    if (fieldData.type === 'dropdown') {
+      if (!fieldData.options_en) errors.field_options_en = true;
+      if (!fieldData.options_ar) errors.field_options_ar = true;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all required fields");
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -307,41 +332,46 @@ export default function JobsManager() {
 
       if (editingField) {
         await updateSectionAPI(editingField.id, formData);
-        toast.success("تم تحديث الحقل");
+        toast.success("Field updated successfully");
       } else {
         await createSectionAPI(formData);
-        toast.success("تم إضافة الحقل");
+        toast.success("Field added successfully");
       }
       await refreshSections();
       setIsFieldModalOpen(false);
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ الحقل");
+      toast.error("An error occurred while saving the field");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteField = async (id) => {
-    const result = await confirmDelete('حذف الحقل', 'هل أنت متأكد من حذف هذا الحقل؟');
+    const result = await confirmDelete('Delete Field', 'Are you sure you want to delete this form field?');
     if (result.isConfirmed) {
       try {
 
         await deleteSectionAPI(id);
         await refreshSections();
         setFormFields(prev => prev.filter(f => f.id !== id));
-        toast.success("تم حذف الحقل");
+        toast.success("Field deleted successfully");
       } catch (error) {
-        toast.error("فشل حذف الحقل");
+        toast.error("An error occurred while deleting the field");
       }
     }
   };
 
   const handleSaveEmailSettings = async () => {
-    if (!emailSettings.receive_email) {
-      toast.error("يرجى إدخال البريد الإلكتروني");
+    const errors = {};
+    if (!emailSettings.receive_email) errors.email_settings = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please enter a valid email address");
       return;
     }
 
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -352,16 +382,16 @@ export default function JobsManager() {
 
       if (emailSettings.id) {
         await updateSectionAPI(emailSettings.id, formData);
-        toast.success("تم تحديث إعدادات الإيميل بنجاح");
+        toast.success("Email settings updated successfully");
       } else {
         const response = await createSectionAPI(formData);
         setEmailSettings(prev => ({ ...prev, id: response.data.id }));
-        toast.success("تم إنشاء إعدادات الإيميل بنجاح");
+        toast.success("Email settings saved successfully");
       }
       await refreshSections();
     } catch (error) {
       console.error("Email Settings Save Error:", error);
-      toast.error("حدث خطأ أثناء حفظ إعدادات الإيميل");
+      toast.error("An error occurred while saving email settings");
     } finally {
       setIsSubmitting(false);
     }
@@ -592,12 +622,20 @@ export default function JobsManager() {
                       width: '100%', 
                       padding: '0.75rem 1rem', 
                       borderRadius: '12px', 
-                      border: '1px solid #e2e8f0',
+                      border: formErrors.email_settings ? '2px solid #DC143C' : '1px solid #e2e8f0',
                       outline: 'none',
                       fontSize: '0.95rem'
                     }} 
+                    className={formErrors.email_settings ? dashboardStyles.invalidInput : ''}
                     value={emailSettings.receive_email}
-                    onChange={(e) => setEmailSettings(prev => ({ ...prev, receive_email: e.target.value }))}
+                    onChange={(e) => {
+                      setEmailSettings(prev => ({ ...prev, receive_email: e.target.value }));
+                      if(formErrors.email_settings) {
+                        const newErrors = { ...formErrors };
+                        delete newErrors.email_settings;
+                        setFormErrors(newErrors);
+                      }
+                    }}
                     placeholder="hr@alajmicompany.com"
                   />
                 </div>
@@ -721,50 +759,50 @@ export default function JobsManager() {
               <h4 style={{ marginBottom: '1.5rem', color: '#DC143C', fontWeight: 800 }}>English Details</h4>
               <div className={localStyles.formGroup}>
                 <label className={localStyles.label}>Job Title (EN)</label>
-                <input className={localStyles.input} value={currentVacancy?.en?.title || ""} onChange={(e) => updateField('en', 'title', e.target.value)} />
+                <input className={`${localStyles.input} ${formErrors.vac_title_en ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.en?.title || ""} onChange={(e) => updateField('en', 'title', e.target.value)} />
               </div>
               <div className={localStyles.formGroup}>
                 <label className={localStyles.label}>Description (EN)</label>
-                <textarea className={localStyles.textarea} value={currentVacancy?.en?.description || ""} onChange={(e) => updateField('en', 'description', e.target.value)} rows={4} />
+                <textarea className={`${localStyles.textarea} ${formErrors.vac_desc_en ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.en?.description || ""} onChange={(e) => updateField('en', 'description', e.target.value)} rows={4} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className={localStyles.formGroup}>
                   <label className={localStyles.label}>Positions</label>
-                  <input className={localStyles.input} value={currentVacancy?.en?.employeesCount || ""} onChange={(e) => updateField('en', 'employeesCount', e.target.value)} />
+                  <input className={`${localStyles.input} ${formErrors.vac_count_en ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.en?.employeesCount || ""} onChange={(e) => updateField('en', 'employeesCount', e.target.value)} />
                 </div>
                 <div className={localStyles.formGroup}>
                   <label className={localStyles.label}>Experience</label>
-                  <input className={localStyles.input} value={currentVacancy?.en?.experience || ""} onChange={(e) => updateField('en', 'experience', e.target.value)} />
+                  <input className={`${localStyles.input} ${formErrors.vac_exp_en ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.en?.experience || ""} onChange={(e) => updateField('en', 'experience', e.target.value)} />
                 </div>
               </div>
               <div className={localStyles.formGroup}>
                 <label className={localStyles.label}>Qualification</label>
-                <textarea className={localStyles.textarea} value={currentVacancy?.en?.qualification || ""} onChange={(e) => updateField('en', 'qualification', e.target.value)} rows={3} />
+                <textarea className={`${localStyles.textarea} ${formErrors.vac_qual_en ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.en?.qualification || ""} onChange={(e) => updateField('en', 'qualification', e.target.value)} rows={3} />
               </div>
           </div>
           <div dir="rtl">
-              <h4 style={{ marginBottom: '1.5rem', color: '#DC143C', fontWeight: 800 }}>التفاصيل بالعربية</h4>
+              <h4 style={{ marginBottom: '1.5rem', color: '#DC143C', fontWeight: 800 }}>Arabic Details</h4>
               <div className={localStyles.formGroup}>
-                <label className={localStyles.label}>مسمى الوظيفة</label>
-                <input className={localStyles.input} value={currentVacancy?.ar?.title || ""} onChange={(e) => updateField('ar', 'title', e.target.value)} />
+                <label className={localStyles.label}>Job Title (AR)</label>
+                <input className={`${localStyles.input} ${formErrors.vac_title_ar ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.ar?.title || ""} onChange={(e) => updateField('ar', 'title', e.target.value)} />
               </div>
               <div className={localStyles.formGroup}>
-                <label className={localStyles.label}>الوصف</label>
-                <textarea className={localStyles.textarea} value={currentVacancy?.ar?.description || ""} onChange={(e) => updateField('ar', 'description', e.target.value)} rows={4} />
+                <label className={localStyles.label}>Description (AR)</label>
+                <textarea className={`${localStyles.textarea} ${formErrors.vac_desc_ar ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.ar?.description || ""} onChange={(e) => updateField('ar', 'description', e.target.value)} rows={4} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className={localStyles.formGroup}>
-                  <label className={localStyles.label}>عدد الشواغر</label>
-                  <input className={localStyles.input} value={currentVacancy?.ar?.employeesCount || ""} onChange={(e) => updateField('ar', 'employeesCount', e.target.value)} />
+                  <label className={localStyles.label}>Positions (AR)</label>
+                  <input className={`${localStyles.input} ${formErrors.vac_count_ar ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.ar?.employeesCount || ""} onChange={(e) => updateField('ar', 'employeesCount', e.target.value)} />
                 </div>
                 <div className={localStyles.formGroup}>
-                  <label className={localStyles.label}>الخبرة</label>
-                  <input className={localStyles.input} value={currentVacancy?.ar?.experience || ""} onChange={(e) => updateField('ar', 'experience', e.target.value)} />
+                  <label className={localStyles.label}>Experience (AR)</label>
+                  <input className={`${localStyles.input} ${formErrors.vac_exp_ar ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.ar?.experience || ""} onChange={(e) => updateField('ar', 'experience', e.target.value)} />
                 </div>
               </div>
               <div className={localStyles.formGroup}>
-                <label className={localStyles.label}>المؤهلات</label>
-                <textarea className={localStyles.textarea} value={currentVacancy?.ar?.qualification || ""} onChange={(e) => updateField('ar', 'qualification', e.target.value)} rows={3} />
+                <label className={localStyles.label}>Qualification (AR)</label>
+                <textarea className={`${localStyles.textarea} ${formErrors.vac_qual_ar ? dashboardStyles.invalidInput : ''}`} value={currentVacancy?.ar?.qualification || ""} onChange={(e) => updateField('ar', 'qualification', e.target.value)} rows={3} />
               </div>
           </div>
         </div>
@@ -788,11 +826,35 @@ export default function JobsManager() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '1rem 0' }}>
           <div className={localStyles.formGroup}>
             <label className={localStyles.label}>Field Label (EN)</label>
-            <input className={localStyles.input} value={fieldData.title_en} onChange={(e) => setFieldData({...fieldData, title_en: e.target.value})} placeholder="e.g. Full Name" />
+            <input 
+              className={`${localStyles.input} ${formErrors.field_title_en ? dashboardStyles.invalidInput : ''}`} 
+              value={fieldData.title_en} 
+              onChange={(e) => {
+                setFieldData({...fieldData, title_en: e.target.value});
+                if(formErrors.field_title_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.field_title_en;
+                   setFormErrors(newErrors);
+                }
+              }} 
+              placeholder="e.g. Full Name" 
+            />
           </div>
           <div dir="rtl" className={localStyles.formGroup}>
-            <label className={localStyles.label}>عنوان الحقل (AR)</label>
-            <input className={localStyles.input} value={fieldData.title_ar} onChange={(e) => setFieldData({...fieldData, title_ar: e.target.value})} placeholder="مثلاً: الاسم بالكامل" />
+            <label className={localStyles.label}>Field Label (AR)</label>
+            <input 
+              className={`${localStyles.input} ${formErrors.field_title_ar ? dashboardStyles.invalidInput : ''}`} 
+              value={fieldData.title_ar} 
+              onChange={(e) => {
+                setFieldData({...fieldData, title_ar: e.target.value});
+                if(formErrors.field_title_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.field_title_ar;
+                   setFormErrors(newErrors);
+                }
+              }} 
+              placeholder="e.g. Full Name (Arabic)" 
+            />
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -824,7 +886,7 @@ export default function JobsManager() {
               <select className={localStyles.input} value={fieldData.input_type} onChange={(e) => setFieldData({...fieldData, input_type: e.target.value})}>
                 <option value="text">Short Text</option>
                 <option value="textarea">Long Text (Textarea)</option>
-                <option value="tel">Phone / Mobile</option>
+                <option value="tel">Phone / Mobile / Number</option>
                 <option value="email">Email Address</option>
               </select>
             </div>
@@ -834,11 +896,35 @@ export default function JobsManager() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className={localStyles.formGroup}>
                 <label className={localStyles.label}>Options (EN) - Sep by ;</label>
-                <textarea className={localStyles.textarea} value={fieldData.options_en} onChange={(e) => setFieldData({...fieldData, options_en: e.target.value})} placeholder="Option 1; Option 2" />
+                <textarea 
+                  className={`${localStyles.textarea} ${formErrors.field_options_en ? dashboardStyles.invalidInput : ''}`} 
+                  value={fieldData.options_en} 
+                  onChange={(e) => {
+                    setFieldData({...fieldData, options_en: e.target.value});
+                    if(formErrors.field_options_en) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.field_options_en;
+                       setFormErrors(newErrors);
+                    }
+                  }} 
+                  placeholder="Option 1; Option 2" 
+                />
               </div>
               <div dir="rtl" className={localStyles.formGroup}>
-                <label className={localStyles.label}>الخيارات (AR) - فاصل بـ ;</label>
-                <textarea className={localStyles.textarea} value={fieldData.options_ar} onChange={(e) => setFieldData({...fieldData, options_ar: e.target.value})} placeholder="خيار ١; خيار ٢" />
+                <label className={localStyles.label}>Options (AR) - Sep by ;</label>
+                <textarea 
+                  className={`${localStyles.textarea} ${formErrors.field_options_ar ? dashboardStyles.invalidInput : ''}`} 
+                  value={fieldData.options_ar} 
+                  onChange={(e) => {
+                    setFieldData({...fieldData, options_ar: e.target.value});
+                    if(formErrors.field_options_ar) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.field_options_ar;
+                       setFormErrors(newErrors);
+                    }
+                  }} 
+                  placeholder="Option 1; Option 2" 
+                />
               </div>
             </div>
           )}
@@ -852,5 +938,13 @@ export default function JobsManager() {
       ...prev,
       [lang]: { ...prev[lang], [field]: value }
     }));
+    const errorKey = `vac_${field}_${lang}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
+    }
+    // Also handle non-lang specific count/exp/qual if they use just field name
+    const genericKey = `vac_${field}_${lang}`; // Actually I added _lang in handleSaveVacancy
   }
 }

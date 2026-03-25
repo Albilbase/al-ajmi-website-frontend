@@ -4,6 +4,14 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2.5rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .saveButton {
@@ -29,6 +37,24 @@
   display: grid;
   grid-template-columns: 350px 1fr;
   gap: 2rem;
+}
+
+@media (max-width: 1200px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .itemsList {
+    flex-direction: row !important;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .itemCard {
+    min-width: 200px;
+    flex-shrink: 0;
+  }
 }
 
 /* Sidebar List */
@@ -158,6 +184,14 @@
   margin-bottom: 2rem;
   border-bottom: 1px solid #f1f5f9;
   padding-bottom: 1rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .editorHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .deleteBtn {
@@ -177,6 +211,13 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .inputGroup {
@@ -229,6 +270,16 @@
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .mediaGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .mediaPreview {
+    aspect-ratio: 16/9;
+  }
 }
 
 .mediaPreview {

@@ -4,6 +4,15 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2.5rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
 }
 
 .headerActions {
@@ -34,6 +43,25 @@
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 2rem;
+}
+
+@media (max-width: 1200px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+  .slidesSidebar {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .slidesList {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .slideItem {
+    min-width: 200px;
+    flex-shrink: 0;
+  }
 }
 
 /* Slides List Sidebar */
@@ -143,6 +171,14 @@
   margin-bottom: 2rem;
   border-bottom: 1px solid #f1f5f9;
   padding-bottom: 1rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .editorHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .deleteBtn {
@@ -162,6 +198,13 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .inputGroup {

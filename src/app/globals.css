@@ -38,6 +38,13 @@ ul {
 }/* Main content padding for public pages */
 .public-content {
   padding-top: calc(var(--nav-height) + var(--ticker-height));
+  position: relative;
+  z-index: 1; /* Keep content below header context */
+}
+
+/* Ensure Home Page sections don't intercept global header pointers */
+.public-content > section:first-of-type {
+  z-index: 1;
 }
 
 /* Custom Scrollbar */

@@ -9,6 +9,7 @@ import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 import { Calendar, Tag, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import useCMSStore from '@/store/useCMSStore';
+import { sanitizeText } from '@/lib/sanitizer';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -159,7 +160,7 @@ const MediaDetailPage = () => {
                  </h3>
                  <div className={styles.videoGrid}>
                    {currentMedia.details.videoIframes.map((iframeStr, idx) => (
-                     <div key={idx} className={styles.videoWrapper} dangerouslySetInnerHTML={{ __html: iframeStr }} />
+                     <div key={idx} className={styles.videoWrapper} dangerouslySetInnerHTML={{ __html: sanitizeText(iframeStr) }} />
                    ))}
                  </div>
               </div>

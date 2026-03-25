@@ -63,7 +63,7 @@ const CompanyHistory = ({ homeData }) => {
                 {/* Image Slider Side */}
                 <div className={styles.imageWrapper}>
                     <motion.div 
-                        style={{ y, scale: 1.05 }}
+                         style={{ y, scale: 1.05 }}
                         className={styles.imageInner}
                     >
                         <Swiper
@@ -76,13 +76,15 @@ const CompanyHistory = ({ homeData }) => {
                             }}
                             loop={true}
                             navigation={{
-                                nextEl: `.${styles.nextBtn}`,
-                                prevEl: `.${styles.prevBtn}`,
+                                nextEl: `.${styles.historyNextBtn}`,
+                                prevEl: `.${styles.historyPrevBtn}`,
                             }}
                             pagination={{
                                 clickable: true,
                                 dynamicBullets: true,
                             }}
+                            touchStartPreventDefault={false}
+                            simulateTouch={false}
                             className={styles.historySwiper}
                         >
                             {images.map((src, index) => (
@@ -103,15 +105,13 @@ const CompanyHistory = ({ homeData }) => {
                         </Swiper>
                     </motion.div>
 
-                    {/* Navigation Arrows - Moved outside parallax div for stability */}
-                    <div className={styles.navButtons}>
-                        <button className={`${styles.navBtn} ${styles.prevBtn}`}>
-                            <ChevronLeft size={24} />
-                        </button>
-                        <button className={`${styles.navBtn} ${styles.nextBtn}`}>
-                            <ChevronRight size={24} />
-                        </button>
-                    </div>
+                    {/* Navigation Arrows with Unique Classes to prevent global Swiper collisions */}
+                    <button className={`${styles.navBtn} ${styles.historyPrevBtn}`}>
+                        <ChevronLeft size={24} />
+                    </button>
+                    <button className={`${styles.navBtn} ${styles.historyNextBtn}`}>
+                        <ChevronRight size={24} />
+                    </button>
 
                     <div className={styles.imageOverlay} />
                     

@@ -17,8 +17,8 @@ const ContactPage = () => {
   const isRTL = i18n.language === 'ar';
   const sections = useCMSStore((state) => state.sections);
   const storeLoading = useCMSStore((state) => state.isLoading);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState({
     hero: null,
     general: null,
@@ -26,6 +26,9 @@ const ContactPage = () => {
     formFields: [],
     recipientEmail: ""
   });
+
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const contactSections = (sections || []).filter(section => section.section_key === 'contact');
@@ -60,8 +63,66 @@ const ContactPage = () => {
         formFields: fields.sort((a, b) => a.id - b.id),
         recipientEmail
       });
+
+      // Initialize form data
+      const initialForm = {};
+      fields.forEach(f => {
+        initialForm[f.id] = "";
+      });
+      setFormData(initialForm);
     }
   }, [sections]);
+
+  const handleInputChange = (fieldId, value) => {
+    setFormData(prev => ({ ...prev, [fieldId]: value }));
+    // Clear error when user starts typing
+    if (errors[fieldId]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldId];
+        return newErrors;
+      });
+    }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    data.formFields.forEach(field => {
+      const value = formData[field.id]?.toString().trim() || "";
+      const label = isRTL ? field.title_ar : field.title_en;
+
+      // Required check
+      if (!value) {
+        newErrors[field.id] = isRTL ? `حقل ${label} مطلوب` : `${label} is required`;
+      } 
+      else {
+        // Specific checks
+        const isEmail = field.description_en === 'email' || 
+                        field.title_en?.toLowerCase().includes('email') || 
+                        field.title_ar?.includes('البريد');
+        
+        const isTel = field.description_en === 'tel' || 
+                      field.title_en?.toLowerCase().includes('phone') || 
+                      field.title_ar?.includes('هاتف') || 
+                      field.title_ar?.includes('جوال');
+
+        if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
+        }
+        
+        if (isTel && value.length < 8) {
+          newErrors[field.id] = isRTL ? "رقم الهاتف قصير جداً" : "Phone number is too short";
+        }
+
+        if (field.description_en === 'textarea' && value.length < 10) {
+          newErrors[field.id] = isRTL ? "الرسالة قصيرة جداً (أقل من 10 حروف)" : "Message is too short (min 10 chars)";
+        }
+      }
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const getImageUrl = (path) => {
     if (!path) return "/images/contactusbanner.webp";
@@ -72,31 +133,38 @@ const ContactPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validate()) {
+      toast.error(isRTL 
+        ? "يرجى التأكد من ملء جميع الحقول المطلوبة بشكل صحيح" 
+        : "Please ensure all required fields are filled correctly");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData();
-      // Set the subject/form name
-      formData.append('name', 'Contact Us');
-      formData.append('send_to', data.recipientEmail);
+      const submitData = new FormData();
+      submitData.append('name', 'Contact Us');
+      submitData.append('send_to', data.recipientEmail);
 
       const dataObj = {};
       data.formFields.forEach(field => {
-        const element = document.getElementById(`field-${field.id}`);
-        if (element) {
-         
-          const key = field.title_en || `field_${field.id}`;
-          dataObj[key] = element.value;
-        }
+        const key = field.title_en || `field_${field.id}`;
+        dataObj[key] = formData[field.id];
       });
       
-      // Append data as stringified JSON
-      formData.append('data', JSON.stringify(dataObj));
+      submitData.append('data', JSON.stringify(dataObj));
 
-      await submitContactFormAPI(formData);
+      await submitContactFormAPI(submitData);
       
       toast.success(isRTL ? "تم إرسال الرسالة بنجاح!" : "Message sent successfully!");
-      e.target.reset();
+      
+      // Reset form
+      const resetForm = {};
+      data.formFields.forEach(f => { resetForm[f.id] = ""; });
+      setFormData(resetForm);
+      setErrors({});
     } catch (error) {
       console.error(error);
       toast.error(isRTL ? "حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى." : "Error submitting form. Please try again.");
@@ -161,7 +229,8 @@ const ContactPage = () => {
                   } else if (!isDropdown) {
                     width = field.description_ar || "full";
                   }
-
+                  
+                  const hasError = !!errors[field.id];
                   const groupClass = `${styles.formGroup} ${width === 'full' ? styles.fullWidth : ''}`;
 
                   return (
@@ -171,26 +240,50 @@ const ContactPage = () => {
                         field.description_en === 'textarea' ? (
                           <textarea 
                             id={`field-${field.id}`}
-                            className={styles.textarea} 
-                            required 
+                            className={`${styles.textarea} ${hasError ? styles.inputError : ''}`} 
+                            value={formData[field.id] || ""}
+                            onChange={(e) => handleInputChange(field.id, e.target.value)}
                             placeholder={isRTL ? "اكتب هنا..." : "Type here..."} 
                           />
-                        ) : (
-                          <input 
-                            type={field.description_en || "text"} 
-                            id={`field-${field.id}`}
-                            className={styles.input} 
-                            required 
-                            placeholder={isRTL ? "اكتب هنا..." : "Type here..."} 
-                          />
-                        )
-                      ) : (
+                        ) : (() => {
+                          const isEmail = field.description_en === 'email' || 
+                                          field.title_en?.toLowerCase().includes('email') || 
+                                          field.title_en?.toLowerCase().includes('mail') || 
+                                          field.title_ar?.includes('البريد') || 
+                                          field.title_ar?.includes('ايميل') ||
+                                          field.title_ar?.includes('عنوان');
+
+                          const isTel = field.description_en === 'tel' || 
+                                        field.title_en?.toLowerCase().includes('phone') || 
+                                        field.title_en?.toLowerCase().includes('tel') || 
+                                        field.title_en?.toLowerCase().includes('mobile') ||
+                                        field.title_ar?.includes('هاتف') || 
+                                        field.title_ar?.includes('جوال') || 
+                                        field.title_ar?.includes('تلفون');
+                          
+                          return (
+                            <input 
+                              type={isEmail ? "email" : (isTel ? "tel" : (field.description_en || "text"))} 
+                              id={`field-${field.id}`}
+                              className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
+                              value={formData[field.id] || ""}
+                              onChange={(e) => handleInputChange(field.id, e.target.value)}
+                              placeholder={isRTL ? "اكتب هنا..." : "Type here..."} 
+                              onInput={(e) => {
+                                if (isTel) {
+                                  e.target.value = e.target.value.replace(/[^0-9+]/g, '');
+                                }
+                              }}
+                            />
+                          );
+                        })()
+                       ) : (
                         <div style={{ position: 'relative' }}>
                           <select 
                             id={`field-${field.id}`}
-                            className={styles.select} 
-                            required 
-                            defaultValue=""
+                            className={`${styles.select} ${hasError ? styles.inputError : ''}`} 
+                            value={formData[field.id] || ""}
+                            onChange={(e) => handleInputChange(field.id, e.target.value)}
                           >
                             <option value="" disabled>{isRTL ? "اختر..." : "Select..."}</option>
                             {(isRTL ? (field.description_ar?.split('|')[0] || "") : field.description_en || "").split(';').map((opt, idx) => (
@@ -199,6 +292,11 @@ const ContactPage = () => {
                           </select>
                           <ChevronDown size={16} className={styles.selectIcon} />
                         </div>
+                      )}
+                      {hasError && (
+                        <span className={styles.errorMessage}>
+                          <Info size={14} /> {errors[field.id]}
+                        </span>
                       )}
                     </div>
                   );

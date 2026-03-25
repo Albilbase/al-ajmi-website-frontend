@@ -4,6 +4,14 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .saveButton {
@@ -32,6 +40,28 @@
   grid-template-columns: 320px 1fr;
   gap: 2rem;
   align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .itemsList {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    max-height: none !important;
+    padding-bottom: 0.5rem;
+    gap: 0.75rem;
+  }
+  .itemCard {
+    min-width: 200px;
+    flex-shrink: 0;
+    margin-bottom: 0 !important;
+  }
 }
 
 .sidebar {
@@ -135,6 +165,18 @@
   padding: 1.5rem;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .editorHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .deleteCollectionBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .deleteCollectionBtn {
@@ -164,6 +206,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .imageGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
 }
 
 .imageCard {

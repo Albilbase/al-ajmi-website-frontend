@@ -20,6 +20,7 @@ import { toast } from 'react-toastify';
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './suppliers-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
+import ImageUpload from '../../_components/ImageUpload/ImageUpload';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, getReportsAPI } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
@@ -32,6 +33,7 @@ export default function SuppliersManager() {
   // Start - CMS Store Integration
   const sections = useCMSStore((state) => state.sections);
   const refreshSections = useCMSStore((state) => state.refreshSections);
+  const [formErrors, setFormErrors] = useState({});
   // End - CMS Store Integration
 
   const [banner, setBanner] = useState({
@@ -92,7 +94,7 @@ export default function SuppliersManager() {
         }
       } catch (error) {
         console.error("Failed to fetch reports:", error);
-        toast.error("فشل تحميل الطلبات");
+        toast.error("Failed to load registration reports");
       } finally {
         setReportsLoading(false);
       }
@@ -142,7 +144,7 @@ export default function SuppliersManager() {
         }
       } catch (error) {
         console.error("Failed to fetch suppliers content:", error);
-        toast.error("فشل تحميل البيانات");
+        toast.error("Failed to load data");
       } finally {
         setLoading(false);
       }
@@ -152,21 +154,17 @@ export default function SuppliersManager() {
 
   const updateBannerField = (field, value) => {
     setBanner(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleBannerUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setBanner(prev => ({
-        ...prev,
-        imageFile: file,
-        imagePreview: URL.createObjectURL(file)
-      }));
+    const errorKey = `banner_${field}`;
+    if(formErrors[errorKey]) {
+       const newErrors = { ...formErrors };
+       delete newErrors[errorKey];
+       setFormErrors(newErrors);
     }
   };
 
+
   const removeBannerImage = async () => {
-    const result = await confirmDelete('حذف البانر', 'Are you sure you want to remove the banner image?');
+    const result = await confirmDelete('Delete Banner', 'Are you sure you want to remove the banner image?');
     if (result.isConfirmed) {
 
         try {
@@ -181,18 +179,37 @@ export default function SuppliersManager() {
                 }));
                 // Refresh store
                 await refreshSections();
-                toast.success("تم حذف الصورة بنجاح");
+                toast.success("Image deleted successfully");
             } else {
                 setBanner(prev => ({ ...prev, imageFile: null, imagePreview: null }));
             }
+            if(formErrors.banner_image) {
+                const newErrors = { ...formErrors };
+                delete newErrors.banner_image;
+                setFormErrors(newErrors);
+            }
         } catch (error) {
             console.error("Delete Error:", error);
-            toast.error("حدث خطأ أثناء حذف الصورة");
+            toast.error("Error occurred while deleting index image");
         }
     }
   };
 
   const handleSaveBanner = async () => {
+    const errors = {};
+    if (!banner.title_en) errors.banner_title_en = true;
+    if (!banner.title_ar) errors.banner_title_ar = true;
+    if (!banner.subtitle_en) errors.banner_subtitle_en = true;
+    if (!banner.subtitle_ar) errors.banner_subtitle_ar = true;
+    if (!banner.image && !banner.imageFile) errors.banner_image = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in all banner fields and upload an image");
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -211,10 +228,10 @@ export default function SuppliersManager() {
       let response;
       if (banner.id) {
         response = await updateSectionAPI(banner.id, formData);
-        toast.success("تم تحديث البانر بنجاح");
+        toast.success("Banner updated successfully");
       } else {
         response = await createSectionAPI(formData);
-        toast.success("تم إنشاء البانر بنجاح");
+        toast.success("Banner created successfully");
         setBanner(prev => ({ ...prev, id: response.data.id }));
       }
 
@@ -236,7 +253,8 @@ export default function SuppliersManager() {
 
   const handleSaveEmailSettings = async () => {
     if (!emailSettings.receive_email) {
-      toast.error("يرجى إدخال البريد الإلكتروني");
+      toast.error("Please enter a recipient email address");
+      setFormErrors(prev => ({ ...prev, receive_email: true }));
       return;
     }
 
@@ -250,16 +268,16 @@ export default function SuppliersManager() {
 
       if (emailSettings.id) {
         await updateSectionAPI(emailSettings.id, formData);
-        toast.success("تم تحديث إعدادات الإيميل بنجاح");
+        toast.success("Email settings updated successfully");
       } else {
         const response = await createSectionAPI(formData);
         setEmailSettings(prev => ({ ...prev, id: response.data.id }));
-        toast.success("تم إنشاء إعدادات الإيميل بنجاح");
+        toast.success("Email settings created successfully");
       }
       await refreshSections();
     } catch (error) {
       console.error("Email Settings Save Error:", error);
-      toast.error("حدث خطأ أثناء حفظ إعدادات الإيميل");
+      toast.error("Error occurred while saving email settings");
     } finally {
       setIsSubmitting(false);
     }
@@ -312,8 +330,18 @@ export default function SuppliersManager() {
   };
 
   const handleSaveField = async () => {
-    if (!fieldData.title_en || !fieldData.title_ar) {
-      toast.error("يرجى إدخال العناوين بالعربية والإنجليزية");
+    const errors = {};
+    if (!fieldData.title_en) errors.field_title_en = true;
+    if (!fieldData.title_ar) errors.field_title_ar = true;
+
+    if (fieldData.type === 'dropdown') {
+      if (!fieldData.options_en) errors.field_options_en = true;
+      if (!fieldData.options_ar) errors.field_options_ar = true;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("Please fill in both English and Arabic labels");
       return;
     }
 
@@ -340,11 +368,11 @@ export default function SuppliersManager() {
       if (editingField) {
         response = await updateSectionAPI(editingField.id, formData);
         setFormFields(prev => prev.map(f => f.id === editingField.id ? response.data : f));
-        toast.success("تم تحديث الحقل بنجاح");
+        toast.success("Field updated successfully");
       } else {
         response = await createSectionAPI(formData);
         setFormFields(prev => [...prev, response.data]);
-        toast.success("تم إضافة الحقل بنجاح");
+        toast.success("Field added successfully");
       }
       
       // Refresh store
@@ -352,14 +380,14 @@ export default function SuppliersManager() {
       setIsFieldModalOpen(false);
     } catch (error) {
       console.error("Field Save Error:", error);
-      toast.error("حدث خطأ أثناء حفظ الحقل");
+      toast.error("Error occurred while saving field");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteField = async (id) => {
-    const result = await confirmDelete('حذف الحقل', 'هل أنت متأكد من حذف هذا الحقل؟');
+    const result = await confirmDelete('Delete Field', 'Are you sure you want to delete this field?');
     if (result.isConfirmed) {
 
       try {
@@ -367,9 +395,9 @@ export default function SuppliersManager() {
         setFormFields(prev => prev.filter(f => f.id !== id));
         // Refresh store
         await refreshSections();
-        toast.success("تم حذف الحقل");
+        toast.success("Field deleted successfully");
       } catch (error) {
-        toast.error("فشل حذف الحقل");
+        toast.error("Failed to delete field");
       }
     }
   };
@@ -417,44 +445,41 @@ export default function SuppliersManager() {
               <h3 className={localStyles.sectionTitle}>Hero Banner</h3>
             </div>
             
-            <div className={localStyles.bannerPreview}>
-              {(banner.image || banner.imagePreview) ? (
-                <img src={banner.imagePreview || getImageUrl(banner.image)} alt="Banner" />
-              ) : (
-                <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', gap: '0.5rem' }}>
-                    <ImageIcon size={40} />
-                    <span style={{ fontSize: '0.8rem' }}>No image uploaded</span>
-                </div>
-              )}
-              <div className={localStyles.imageOverlay}>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <label style={{ cursor: 'pointer' }}>
-                        <input type="file" hidden onChange={handleBannerUpload} accept="image/*" />
-                        <div className={localStyles.changeBtn}>
-                            <Upload size={16} /> { (banner.image || banner.imagePreview) ? 'Change' : 'Upload Image' }
-                        </div>
-                    </label>
-                    {(banner.image || banner.imagePreview) && (
-                        <div className={localStyles.changeBtn} style={{ background: '#ef4444', color: 'white' }} onClick={removeBannerImage}>
-                            <Trash2 size={16} /> Remove
-                        </div>
-                    )}
-                </div>
-              </div>
+            <div className={localStyles.mediaSection} style={{ marginBottom: '1.5rem' }}>
+              <label className={localStyles.fieldLabel}>Hero Banner Image</label>
+              <ImageUpload 
+                value={banner.image || banner.imagePreview}
+                mode="hero"
+                height="220px"
+                onChange={(file) => {
+                  setBanner(prev => ({
+                    ...prev,
+                    imageFile: file,
+                    imagePreview: URL.createObjectURL(file)
+                  }));
+                  if(formErrors.banner_image) {
+                     const newErrors = { ...formErrors };
+                     delete newErrors.banner_image;
+                     setFormErrors(newErrors);
+                  }
+                }}
+                onDelete={removeBannerImage}
+              />
+              {formErrors.banner_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-221px', height: '221px', pointerEvents: 'none' }}></div>}
             </div>
 
             <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Main Title (EN)</label>
               <input 
-                className={localStyles.inputField} 
+                className={`${localStyles.inputField} ${formErrors.banner_title_en ? dashboardStyles.invalidInput : ''}`} 
                 value={banner.title_en} 
                 onChange={(e) => updateBannerField('title_en', e.target.value)} 
               />
             </div>
             <div dir="rtl" className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>العنوان الرئيسي (AR)</label>
+              <label className={localStyles.fieldLabel}>Main Title (AR)</label>
               <input 
-                className={localStyles.inputField} 
+                className={`${localStyles.inputField} ${formErrors.banner_title_ar ? dashboardStyles.invalidInput : ''}`} 
                 value={banner.title_ar} 
                 onChange={(e) => updateBannerField('title_ar', e.target.value)} 
               />
@@ -462,15 +487,15 @@ export default function SuppliersManager() {
             <div className={localStyles.inputGroup}>
               <label className={localStyles.fieldLabel}>Subtitle (EN)</label>
               <input 
-                className={localStyles.inputField} 
+                className={`${localStyles.inputField} ${formErrors.banner_subtitle_en ? dashboardStyles.invalidInput : ''}`} 
                 value={banner.subtitle_en} 
                 onChange={(e) => updateBannerField('subtitle_en', e.target.value)} 
               />
             </div>
             <div dir="rtl" className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>العنوان الفرعي (AR)</label>
+              <label className={localStyles.fieldLabel}>Subtitle (AR)</label>
               <input 
-                className={localStyles.inputField} 
+                className={`${localStyles.inputField} ${formErrors.banner_subtitle_ar ? dashboardStyles.invalidInput : ''}`} 
                 value={banner.subtitle_ar} 
                 onChange={(e) => updateBannerField('subtitle_ar', e.target.value)} 
               />
@@ -489,9 +514,16 @@ export default function SuppliersManager() {
               <label className={localStyles.fieldLabel}>Recipient Email</label>
               <input 
                 type="email"
-                className={localStyles.inputField} 
+                className={`${localStyles.inputField} ${formErrors.receive_email ? dashboardStyles.invalidInput : ''}`} 
                 value={emailSettings.receive_email}
-                onChange={(e) => setEmailSettings(prev => ({ ...prev, receive_email: e.target.value }))}
+                onChange={(e) => {
+                  setEmailSettings(prev => ({ ...prev, receive_email: e.target.value }));
+                  if(formErrors.receive_email) {
+                    const newErrors = { ...formErrors };
+                    delete newErrors.receive_email;
+                    setFormErrors(newErrors);
+                  }
+                }}
                 placeholder="example@company.com"
               />
             </div>
@@ -684,19 +716,33 @@ export default function SuppliersManager() {
           <div className={localStyles.inputGroup}>
             <label className={localStyles.fieldLabel}>Field Label (English)</label>
             <input 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.field_title_en ? dashboardStyles.invalidInput : ''}`} 
               value={fieldData.title_en} 
-              onChange={(e) => setFieldData({...fieldData, title_en: e.target.value})}
+              onChange={(e) => {
+                setFieldData({...fieldData, title_en: e.target.value});
+                if(formErrors.field_title_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.field_title_en;
+                   setFormErrors(newErrors);
+                }
+              }}
               placeholder="e.g. Full Name"
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>عنوان الحقل (بالعربي)</label>
+            <label className={localStyles.fieldLabel}>Field Label (Arabic)</label>
             <input 
-              className={localStyles.inputField} 
+              className={`${localStyles.inputField} ${formErrors.field_title_ar ? dashboardStyles.invalidInput : ''}`} 
               value={fieldData.title_ar} 
-              onChange={(e) => setFieldData({...fieldData, title_ar: e.target.value})}
-              placeholder="مثلاً: الاسم بالكامل"
+              onChange={(e) => {
+                setFieldData({...fieldData, title_ar: e.target.value});
+                if(formErrors.field_title_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.field_title_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              placeholder="e.g. Full Name (Arabic)"
             />
           </div>
           
@@ -745,7 +791,7 @@ export default function SuppliersManager() {
                   >
                     <option value="text">Short Text</option>
                     <option value="textarea">Long Text (Textarea)</option>
-                    <option value="tel">Phone / Mobile</option>
+                    <option value="tel">Phone / Mobile / Number</option>
                     <option value="email">Email Address</option>
                   </select>
                   <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
@@ -759,21 +805,35 @@ export default function SuppliersManager() {
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Dropdown Options (English) - Sep by ;</label>
                 <textarea 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.field_options_en ? dashboardStyles.invalidInput : ''}`} 
                   style={{ minHeight: '60px', resize: 'vertical' }}
                   value={fieldData.options_en} 
-                  onChange={(e) => setFieldData({...fieldData, options_en: e.target.value})}
+                  onChange={(e) => {
+                    setFieldData({...fieldData, options_en: e.target.value});
+                    if(formErrors.field_options_en) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.field_options_en;
+                       setFormErrors(newErrors);
+                    }
+                  }}
                   placeholder="Option 1; Option 2; Option 3"
                 />
               </div>
               <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>خيارات القائمة المنسدلة (بالعربي) - فاصل بـ ;</label>
+                <label className={localStyles.fieldLabel}>Dropdown Options (Arabic) - Sep by ;</label>
                 <textarea 
-                  className={localStyles.inputField} 
+                  className={`${localStyles.inputField} ${formErrors.field_options_ar ? dashboardStyles.invalidInput : ''}`} 
                   style={{ minHeight: '60px', resize: 'vertical' }}
                   value={fieldData.options_ar} 
-                  onChange={(e) => setFieldData({...fieldData, options_ar: e.target.value})}
-                  placeholder="خيار ١; خيار ٢; خيار ٣"
+                  onChange={(e) => {
+                    setFieldData({...fieldData, options_ar: e.target.value});
+                    if(formErrors.field_options_ar) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.field_options_ar;
+                       setFormErrors(newErrors);
+                    }
+                  }}
+                  placeholder="Option 1; Option 2; Option 3"
                 />
               </div>
             </>
