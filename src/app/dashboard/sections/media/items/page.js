@@ -10,7 +10,8 @@ import {
   Edit2, 
   UploadCloud, 
   X,
-  Save
+  Save,
+  Video
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -26,7 +27,7 @@ import Modal from '../../../_components/Modal/Modal';
 import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
-import { validateImage } from '@/lib/validation';
+import { validateImage, validateVideo } from '@/lib/validation';
 
 
 export default function MediaManager() {
@@ -55,6 +56,21 @@ export default function MediaManager() {
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     return `http://192.168.15.95:5000${cleanPath}`;
+  };
+
+  const isVideo = (url) => {
+    if (!url) return false;
+    // Explicit check for videos added in this session via #video hash
+    if (url.includes('#video')) return true;
+    
+    // Handle blob URLs created during this session (fallback)
+    if (url.startsWith('blob:')) {
+      const isActuallyVideo = url.toLowerCase().includes('video');
+      return isActuallyVideo;
+    }
+    const commonVideoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
+    const pathPart = url.split('?')[0].toLowerCase();
+    return commonVideoExtensions.some(ext => pathPart.endsWith(ext));
   };
 
   // Fetch data on mount
@@ -110,6 +126,8 @@ export default function MediaManager() {
 
   const handleEdit = (item) => {
     setCurrentItem(JSON.parse(JSON.stringify(item)));
+    setMainImageFile(null);
+    setSliderImageFiles([]);
     setIsModalOpen(true);
   };
 
@@ -175,6 +193,7 @@ export default function MediaManager() {
     formData.append('description_en', currentItem.en.description);
     formData.append('description_ar', currentItem.ar.description);
     formData.append('is_active', 'true');
+    formData.append('update_img_type', 'group'); // Allow adding multiple images/videos without overwriting existing ones
     
     const details = {
       date: currentItem.date,
@@ -234,6 +253,8 @@ export default function MediaManager() {
             return { ...prev, items: newItems };
           });
       }
+      setMainImageFile(null);
+      setSliderImageFiles([]);
       setIsModalOpen(false);
     } catch (error) {
       toast.error("An error occurred while saving the item");
@@ -302,12 +323,31 @@ export default function MediaManager() {
       }
     }
   };
+
+  const handleVideoUpload = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (validateVideo(file)) {
+        setSliderImageFiles(prev => [...prev, file]);
+        // Add a #video hash to the blob URL so the UI knows it's a video immediately
+        const videoBlobUrl = URL.createObjectURL(file) + '#video';
+        setCurrentItem(prev => ({
+          ...prev, 
+          sliderImages: [...(prev.sliderImages || []), videoBlobUrl]
+        }));
+      }
+    }
+  };
   const removeSliderImage = async (index, isExisting) => {
+    const imageUrl = currentItem.sliderImages[index];
+    const isActuallyVideo = isVideo(imageUrl);
+    const itemTypeLabel = isActuallyVideo ? 'Video' : 'Photo';
+    const itemTypeLabelLower = isActuallyVideo ? 'video' : 'photo';
+
     if (isExisting) {
       const imageName = currentItem.rawSliderImages[index];
-      const result = await confirmDelete('Delete Photo', 'Are you sure you want to delete this photo?');
+      const result = await confirmDelete(`Delete ${itemTypeLabel}`, `Are you sure you want to delete this ${itemTypeLabelLower}?`);
       if (result.isConfirmed) {
-
         try {
           await deleteImageAPI(currentItem.id, imageName);
           setCurrentItem(prev => {
@@ -327,9 +367,9 @@ export default function MediaManager() {
           });
           
           await refreshSections();
-          toast.success("Photo deleted successfully");
+          toast.success(`${itemTypeLabel} deleted successfully`);
         } catch (error) {
-          toast.error("An error occurred while deleting the photo");
+          toast.error(`An error occurred while deleting the ${itemTypeLabelLower}`);
         }
       }
     } else {
@@ -636,20 +676,32 @@ export default function MediaManager() {
               </div>
 
               {/* Slider Gallery Management */}
-              <div className={localStyles.sliderManagement} style={{ marginTop: 0, paddingTop: 0, border: 'none' }}>
-                <label className={localStyles.label}>Gallery / Slider Images</label>
+               <div className={localStyles.sliderManagement} style={{ marginTop: 0, paddingTop: 0, border: 'none' }}>
+                <label className={localStyles.label}>Gallery / Slider (Photos & Uploaded Videos)</label>
                 <div className={localStyles.sliderGrid} style={{ marginTop: '0.2rem' }}>
-                  {currentItem.sliderImages?.map((img, idx) => (
-                    <div key={idx} className={localStyles.sliderItem}>
-                      <img src={img} className={localStyles.sliderImg} alt={`Slider ${idx}`} />
-                      <button className={localStyles.removeSliderImg} onClick={() => removeSliderImage(idx, idx < (currentItem.rawSliderImages?.length || 0))}>
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
-                  <div className={localStyles.addSliderBtn} onClick={() => sliderImagesInputRef.current?.click()}>
-                    <Plus size={24} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>Add More</span>
+                  {currentItem.sliderImages?.map((img, idx) => {
+                    const videoMode = isVideo(img);
+                    return (
+                      <div key={idx} className={localStyles.sliderItem}>
+                         {videoMode ? (
+                           <div className={localStyles.sliderImg} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1e293b', border: '2px solid #6366f1' }}>
+                             <Video size={32} color="#6366f1" />
+                             <span style={{ marginTop: '8px', fontSize: '12px', color: 'white', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Video Added</span>
+                           </div>
+                         ) : (
+                           <img src={img} className={localStyles.sliderImg} alt={`Gallery Image ${idx + 1}`} />
+                         )}
+                        <button className={localStyles.removeSliderImg} onClick={() => removeSliderImage(idx, idx < (currentItem.rawSliderImages?.length || 0))}>
+                          <X size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Photo Add Button */}
+                  <div className={localStyles.addSliderBtn} onClick={() => sliderImagesInputRef.current?.click()} title="Upload Photo">
+                    <Plus size={20} />
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700 }}>Upload Photo</span>
                     <input 
                       type="file" 
                       hidden 
@@ -657,6 +709,19 @@ export default function MediaManager() {
                       ref={sliderImagesInputRef} 
                       onChange={handleSliderImagesUpload} 
                       accept="image/*" 
+                    />
+                  </div>
+
+                  {/* Video Add Button */}
+                  <div className={localStyles.addSliderBtn} onClick={() => document.getElementById('directVideoInput').click()} title="Upload Video" style={{ borderColor: '#6366f1', color: '#6366f1' }}>
+                    <Video size={20} />
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700 }}>Upload Video</span>
+                    <input 
+                      id="directVideoInput"
+                      type="file" 
+                      hidden 
+                      onChange={handleVideoUpload} 
+                      accept="video/*" 
                     />
                   </div>
                 </div>

@@ -63,6 +63,13 @@ const MediaDetailPage = () => {
     }
   };
 
+  const isVideo = (url) => {
+    if (!url) return false;
+    const cleanUrl = url.split('?')[0].toLowerCase();
+    const videoExts = ['.mp4', '.webm', '.ogg', '.mov'];
+    return videoExts.some(ext => cleanUrl.endsWith(ext));
+  };
+
   if (storeLoading && (sections || []).length === 0) {
     return (
       <div className={styles.loadingContainer}>
@@ -82,7 +89,10 @@ const MediaDetailPage = () => {
     );
   }
 
-  const sliderImages = currentMedia.images || [];
+  const mediaImages = currentMedia.images || [];
+  const imagesOnly = mediaImages.filter(img => !isVideo(img));
+  const uploadedVideos = mediaImages.filter(img => isVideo(img));
+
   const bannerImage = banner?.images?.[0] 
     ? getImageUrl(banner.images[0]) 
     : "/images/mediacenterbanner.jpg";
@@ -153,14 +163,26 @@ const MediaDetailPage = () => {
             </div>
 
             {/* Videos Section */}
-            {currentMedia.details?.videoIframes && currentMedia.details.videoIframes.length > 0 && (
+            {(uploadedVideos.length > 0 || (currentMedia.details?.videoIframes && currentMedia.details.videoIframes.length > 0)) && (
               <div className={styles.videosSection}>
                  <h3 className={styles.videoSectionTitle}>
                    {isRTL ? 'الفيديوهات' : 'Videos'}
                  </h3>
                  <div className={styles.videoGrid}>
-                   {currentMedia.details.videoIframes.map((iframeStr, idx) => (
-                     <div key={idx} className={styles.videoWrapper} dangerouslySetInnerHTML={{ __html: sanitizeText(iframeStr) }} />
+                   {/* Uploaded Videos */}
+                   {uploadedVideos.map((videoUrl, idx) => (
+                     <div key={`upload-${idx}`} className={styles.videoWrapper}>
+                       <video 
+                         src={getImageUrl(videoUrl)} 
+                         controls 
+                         width="100%" 
+                         style={{ height: '100%', objectFit: 'cover' }}
+                       />
+                     </div>
+                   ))}
+                   {/* iFrame Videos */}
+                   {currentMedia.details?.videoIframes?.map((iframeStr, idx) => (
+                     <div key={`iframe-${idx}`} className={styles.videoWrapper} dangerouslySetInnerHTML={{ __html: sanitizeText(iframeStr) }} />
                    ))}
                  </div>
               </div>
@@ -195,13 +217,13 @@ const MediaDetailPage = () => {
                 autoplay={{
                   delay: 4000,
                   disableOnInteraction: false,
-                }}
-                loop={sliderImages.length > 1}
+                 }}
+                loop={imagesOnly.length > 1}
                 className={styles.swiper}
                 dir={isRTL ? 'rtl' : 'ltr'}
                 key={isRTL ? 'rtl' : 'ltr'}
               >
-                {sliderImages.map((img, index) => (
+                {imagesOnly.map((img, index) => (
                   <SwiperSlide key={index}>
                     <div className={styles.slideImageWrapper}>
                       <Image
@@ -220,7 +242,7 @@ const MediaDetailPage = () => {
               </Swiper>
 
               {/* Custom Navigation */}
-              {sliderImages.length > 1 && (
+              {imagesOnly.length > 1 && (
                 <>
                   <button className={`${styles.swiperButton} ${styles.swiperPrev}`}>
                     {isRTL ? <ArrowRight size={24} /> : <ArrowLeft size={24} />}
@@ -232,7 +254,7 @@ const MediaDetailPage = () => {
               )}
 
               {/* Custom Pagination */}
-              {sliderImages.length > 1 && <div className={styles.swiperPagination}></div>}
+              {imagesOnly.length > 1 && <div className={styles.swiperPagination}></div>}
             </div>
           </motion.div>
         </div>
