@@ -17,6 +17,19 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const expired = sessionStorage.getItem('session_expired');
+      if (expired === 'true') {
+        const message = i18n?.language === 'ar' 
+          ? 'انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى' 
+          : 'Session expired. Please log in again.';
+        toast.info(message);
+        sessionStorage.removeItem('session_expired');
+      }
+    }
+  }, [i18n?.language]);
   
   const handleSubmit = async (e) => {
     e.preventDefault();

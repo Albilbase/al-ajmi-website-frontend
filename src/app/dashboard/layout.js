@@ -28,7 +28,8 @@ import {
   MessageSquare,
   FileText,
   Menu,
-  X as CloseIcon
+  X as CloseIcon,
+  Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './dashboard.module.css';
@@ -45,23 +46,95 @@ export default function DashboardLayout({ children }) {
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
 
   const handleLogout = async (e) => {
     if (e) e.preventDefault();
     const result = await confirmAction('تسجيل الخروج', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج');
     if (result.isConfirmed) {
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       router.push('/login');
     }
   };
 
 
-  // Check for authentication
+  // Check for authentication and set expiry timer
   React.useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    let logoutTimer;
+    let intervalId;
+    
+    // Function to handle logout and notification
+    const logoutUser = () => {
+      sessionStorage.removeItem('token');
+      sessionStorage.setItem('session_expired', 'true');
       router.push('/login');
+    };
+
+    // Helper to decode JWT
+    const decodeToken = (token) => {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      } catch (e) {
+        return null;
+      }
+    };
+
+    // Format seconds into MM:SS
+    const formatTime = (ms) => {
+      const totalSeconds = Math.floor(ms / 1000);
+      if (totalSeconds <= 0) return "00:00";
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      logoutUser();
+    } else {
+      const decoded = decodeToken(token);
+      if (decoded && decoded.exp) {
+        const calculateRemaining = () => {
+           const currentTime = Date.now();
+           const expiryTime = decoded.exp * 1000;
+           return expiryTime - currentTime;
+        };
+
+        const initialRemaining = calculateRemaining();
+        if (initialRemaining <= 0) {
+          logoutUser();
+        } else {
+          setTimeLeft(formatTime(initialRemaining));
+          
+          // Set timer to log out when token expires
+          logoutTimer = setTimeout(() => {
+            logoutUser();
+          }, initialRemaining);
+
+          // Update the UI countdown every second
+          intervalId = setInterval(() => {
+            const rem = calculateRemaining();
+            if (rem <= 0) {
+              clearInterval(intervalId);
+              logoutUser();
+            } else {
+              setTimeLeft(formatTime(rem));
+            }
+          }, 1000);
+        }
+      }
     }
+
+    // Cleanup timers on unmount
+    return () => {
+      if (logoutTimer) clearTimeout(logoutTimer);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [router]);
 
   const isActive = (path) => pathname === path;
@@ -289,6 +362,30 @@ export default function DashboardLayout({ children }) {
           </div>
 
           <div className={styles.navbarRight}>
+            {timeLeft && (
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.6rem', 
+                  background: '#fef2f2', 
+                  border: '1px solid #fee2e2',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  color: '#dc2626',
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  marginRight: '1rem',
+                  boxShadow: '0 2px 4px rgba(220, 20, 60, 0.05)',
+                  whiteSpace: 'nowrap'
+                }}
+                title="Remaining session time"
+              >
+                <Clock size={14} strokeWidth={2.5} />
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>Expires In:</span>
+                <span style={{ fontSize: '0.9rem', fontFamily: 'monospace', minWidth: '45px', textAlign: 'center' }}>{timeLeft}</span>
+              </div>
+            )}
             <div className={styles.navbarAction}><Search size={18} /></div>
             <div className={styles.navbarAction}><Bell size={18} /></div>
             <div className={styles.userProfile}>

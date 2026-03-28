@@ -7,9 +7,10 @@ const handleApiError = (error) => {
   const msg = error.response?.data?.message || error.message || "";
   if (msg.includes("Invalid authentication token") || error.response?.status === 401) {
     console.warn("Session expired or invalid token. Logging out...");
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     // Optional: Redirect to login if window is available
     if (typeof window !== 'undefined') {
+      sessionStorage.setItem('session_expired', 'true');
       window.location.href = '/login';
     }
   }
@@ -24,7 +25,7 @@ export const loginAPI = async (credentials) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/auth/`, credentials);
     const token = response.data.token || response.data.accessToken;
-    if (token) localStorage.setItem('token', token);
+    if (token) sessionStorage.setItem('token', token);
     return response.data;
   } catch (error) {
     // Login error usually doesn't need global handler (user might just have wrong password)
@@ -40,7 +41,7 @@ export const loginAPI = async (credentials) => {
  */
 export const createSectionAPI = async (formData) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const sanitizedFormData = sanitizeData(formData);
     const response = await axios.post(`${BASE_URL}/api/cms`, sanitizedFormData, {
       headers: {
@@ -61,7 +62,7 @@ export const createSectionAPI = async (formData) => {
  */
 export const updateSectionAPI = async (id, formData) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const sanitizedFormData = sanitizeData(formData);
     const response = await axios.put(`${BASE_URL}/api/cms/${id}`, sanitizedFormData, {
       headers: {
@@ -81,7 +82,7 @@ export const updateSectionAPI = async (id, formData) => {
  */
 export const deleteSectionAPI = async (id) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const response = await axios.delete(`${BASE_URL}/api/cms/${id}`, {
       headers: {
         'authorization': `${token}`
@@ -98,7 +99,7 @@ export const deleteSectionAPI = async (id) => {
  */
 export const getAllSectionsAPI = async () => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const response = await axios.get(`${BASE_URL}/api/cms`, {
       headers: { 'authorization': `${token}` },
     });
@@ -115,7 +116,7 @@ export const getAllSectionsAPI = async () => {
  */
 export const deleteImageAPI = async (id, imageName) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     // Using simple concatenation as it matches the requested format
     const response = await axios.delete(`${BASE_URL}/api/cms/image/${id}?image=${imageName}`, {
       headers: {
@@ -153,7 +154,7 @@ export const submitContactFormAPI = async (formData) => {
  */
 export const getReportsAPI = async () => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const response = await axios.get(`${BASE_URL}/api/reports`, {
       headers: { 'authorization': `${token}` },
     });
