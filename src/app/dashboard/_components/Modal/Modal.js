@@ -1,7 +1,7 @@
-
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import styles from './Modal.module.css';
@@ -28,6 +28,13 @@ const Modal = ({
   maxHeight = "90vh",
   showCloseButton = true
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   // Close on ESC key
   useEffect(() => {
     const handleEsc = (event) => {
@@ -44,7 +51,9 @@ const Modal = ({
     };
   }, [isOpen, onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -82,7 +91,8 @@ const Modal = ({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

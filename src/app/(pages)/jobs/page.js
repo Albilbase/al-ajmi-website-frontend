@@ -160,6 +160,10 @@ const JobsPage = () => {
                         field.title_en?.toLowerCase().includes('phone') || 
                         field.title_ar?.includes('هاتف');
 
+        const isEmail = field.description_en === 'email' || 
+                        field.title_en?.toLowerCase().includes('email') || 
+                        field.title_ar?.includes('البريد');
+
         if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
         }
