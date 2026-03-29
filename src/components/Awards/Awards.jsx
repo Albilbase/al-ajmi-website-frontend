@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -106,6 +107,11 @@ const Awards = ({ homeData }) => {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const [selectedAward, setSelectedAward] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [apiData, setApiData] = useState({
     header: null,
@@ -203,47 +209,51 @@ const Awards = ({ homeData }) => {
         </div>
       </div>
 
-      <AnimatePresence>
-        {selectedAward && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={styles.modal}
-            onClick={() => setSelectedAward(null)}
-          >
+      {mounted && createPortal(
+        <AnimatePresence>
+          {selectedAward && (
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className={styles.modalContent}
-              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={styles.modal}
+              onClick={() => setSelectedAward(null)}
             >
-              <button className={styles.closeButton} onClick={() => setSelectedAward(null)}>
-                <X size={32} />
-              </button>
-              <div className={styles.modalImageContainer}>
-                <Image 
-                  src={selectedAward.src} 
-                  alt={isAr ? (selectedAward.title_ar || selectedAward.title) : (selectedAward.title_en || selectedAward.title)}
-                  fill
-                  className={styles.modalImage}
-                  priority
-                  unoptimized={apiData.awards.length > 0}
-                />
-              </div>
-              <div className={styles.modalInfo}>
-                <span className={styles.modalCategory}>
-                  {isAr ? (selectedAward.subtitle_ar || selectedAward.category) : (selectedAward.subtitle_en || selectedAward.category)}
-                </span>
-                <h3 className={styles.modalTitle}>
-                  {isAr ? (selectedAward.title_ar || selectedAward.title) : (selectedAward.title_en || selectedAward.title)}
-                </h3>
-              </div>
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className={styles.modalContent}
+                onClick={e => e.stopPropagation()}
+              >
+                <button className={styles.closeButton} onClick={() => setSelectedAward(null)}>
+                  <X size={32} />
+                </button>
+                <div className={styles.modalImageContainer}>
+                  <Image 
+                    src={selectedAward.src} 
+                    alt={isAr ? (selectedAward.title_ar || selectedAward.title) : (selectedAward.title_en || selectedAward.title)}
+                    fill
+                    className={styles.modalImage}
+                    priority
+                    quality={100}
+                    unoptimized={true}
+                  />
+                </div>
+                <div className={styles.modalInfo}>
+                  <span className={styles.modalCategory}>
+                    {isAr ? (selectedAward.subtitle_ar || selectedAward.category) : (selectedAward.subtitle_en || selectedAward.category)}
+                  </span>
+                  <h3 className={styles.modalTitle}>
+                    {isAr ? (selectedAward.title_ar || selectedAward.title) : (selectedAward.title_en || selectedAward.title)}
+                  </h3>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </section>
   );
 };

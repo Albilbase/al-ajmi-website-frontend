@@ -76,3 +76,18 @@ export const validateVideo = (file, isRTL = false) => {
     return true;
   };
 
+
+/**
+ * Validates a Saudi phone number (10 digits local or international 00966/+966)
+ * @param {string} value - The phone number string
+ * @returns {boolean} - True if valid
+ */
+export const validatePhone = (value) => {
+  if (!value) return false;
+  const clean = value.replace(/[^0-9+]/g, '');
+  // Matches: 
+  // 1. Local: 0XXXXXXXXX (10 digits)
+  // 2. International: 00966XXXXXXXXX (14 digits)
+  // 3. International: +966XXXXXXXXX (13 digits)
+  return /^(0[0-9]{9}|00966[0-9]{9}|\+966[0-9]{9})$/.test(clean);
+};

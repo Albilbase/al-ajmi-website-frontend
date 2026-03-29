@@ -218,16 +218,19 @@
 
 /* Services Grid */
 .servicesGrid {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
-  max-height: 750px;
+  max-height: 720px; /* Precise height for 5 items including internal padding and gaps */
   overflow-y: auto;
   padding: 20px;
-  margin: -20px; /* Offset the padding to maintain visual boundaries while allowing overflow */
+  margin: -20px;
   margin-top: -20px;
   width: calc(100% + 40px);
   scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: 20px; /* Matches the top padding of the container for snapping */
   
   /* Stylish thin scrollbar */
   scrollbar-width: thin;
@@ -256,6 +259,8 @@
   cursor: pointer;
   transform-style: preserve-3d;
   transition: all 0.3s ease;
+  scroll-snap-align: start; /* Snap to top of card */
+  scroll-margin-top: 20px;   /* Margin for snap alignment */
 }
 
 .cardInner {

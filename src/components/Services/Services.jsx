@@ -69,7 +69,7 @@ export default function Services({ homeData }) {
         if (activeElement) {
             // Scroll ONLY the container, NOT the whole page
             container.scrollTo({
-                top: activeElement.offsetTop - container.offsetTop - 20, // 20px padding offset
+                top: activeElement.offsetTop - 20, // Simplified: offsetTop is relative to grid since grid is relative
                 behavior: 'smooth'
             });
         }
@@ -170,7 +170,7 @@ export default function Services({ homeData }) {
           </div>
 
           {/* Service Navigation Grid */}
-          <div className={styles.servicesGrid} ref={gridRef}>
+          <div className={styles.servicesGrid} ref={gridRef} style={{ position: 'relative' }}>
             {displayServices.map((service, index) => (
               <motion.div
                 key={service.id || index}

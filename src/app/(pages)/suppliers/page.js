@@ -8,6 +8,7 @@ import styles from './suppliers.module.css';
 
 import { submitContactFormAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
+import { validatePhone } from '@/lib/validation';
 
 const SuppliersPage = () => {
   const { t, i18n } = useTranslation();
@@ -53,10 +54,24 @@ const SuppliersPage = () => {
         }
       }
 
-      // Initialize form data
+      // Initialize form data with 00966 for phone fields
       const initialForm = {};
       fields.forEach(f => {
-        initialForm[f.id] = "";
+        const titleEn = f.title_en?.toLowerCase() || "";
+        const titleAr = f.title_ar || "";
+        const isTel = (f.description_en === 'tel' || 
+                      titleEn.includes('phone') || 
+                      titleEn.includes('mobile') ||
+                      titleEn.includes('tel') ||
+                      titleEn.includes('fax') ||
+                      titleAr.includes('هاتف') || 
+                      titleAr.includes('جوال') ||
+                      titleAr.includes('موبايل') ||
+                      titleAr.includes('فاكس')) && 
+                      !titleEn.includes('account') && 
+                      !titleEn.includes('iban') &&
+                      !titleAr.includes('حساب');
+        initialForm[f.id] = isTel ? "00966" : "";
       });
       setFormData(initialForm);
     }
@@ -94,8 +109,10 @@ const SuppliersPage = () => {
           newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
         }
         
-        if (isTel && value.length < 8) {
-          newErrors[field.id] = isRTL ? "الرقم  قصير جداًا" : " number is too short";
+        if (isTel && !validatePhone(value)) {
+          newErrors[field.id] = isRTL 
+            ? "يجب أن يبدأ الرقم بـ 00966 ويتكون من 14 رقماً" 
+            : "Phone must start with 00966 and be 14 digits total";
         }
       }
     });

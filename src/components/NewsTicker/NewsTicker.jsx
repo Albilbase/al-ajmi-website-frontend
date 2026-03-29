@@ -117,16 +117,29 @@ const NewsTicker = () => {
                         >
                             {tickerItems.map((item, index) => (
                                 <div key={index} className={styles.tickerItem}>
+                                    {!isAr && (
+                                        <div className={styles.tickerLogo}>
+                                            <Image
+                                                src="/logo.png"
+                                                alt="Logo"
+                                                width={24}
+                                                height={24}
+                                                className={styles.tickerLogoImg}
+                                            />
+                                        </div>
+                                    )}
                                     <p>{item}</p>
-                                    <div className={styles.tickerLogo}>
-                                        <Image
-                                            src="/logo.png"
-                                            alt="Logo"
-                                            width={24}
-                                            height={24}
-                                            className={styles.tickerLogoImg}
-                                        />
-                                    </div>
+                                    {isAr && (
+                                        <div className={styles.tickerLogo}>
+                                            <Image
+                                                src="/logo.png"
+                                                alt="Logo"
+                                                width={24}
+                                                height={24}
+                                                className={styles.tickerLogoImg}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
