@@ -60,6 +60,7 @@ export default function RootLayout({ children }) {
           draggable
           pauseOnHover
           theme="light"
+          style={{ zIndex: 9999999 }}
         />
       </body>
     </html>

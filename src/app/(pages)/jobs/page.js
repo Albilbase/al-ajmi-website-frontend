@@ -132,6 +132,16 @@ const JobsPage = () => {
         return;
       }
 
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        toast.error(isRTL 
+          ? "عذراً، يجب أن يكون حجم الملف أقل من 5 ميجابايت" 
+          : "Sorry, file size must be less than 5MB.");
+        event.target.value = "";
+        setFile(null);
+        setFileName("");
+        return;
+      }
+
       setFile(selectedFile);
       setFileName(selectedFile.name);
       if (errors['file']) {
@@ -211,7 +221,7 @@ const JobsPage = () => {
       submitData.append('data', JSON.stringify(dataObj));
 
       if (file) {
-        submitData.append('file', file);
+        submitData.append('files', file);
       }
 
       await submitContactFormAPI(submitData);

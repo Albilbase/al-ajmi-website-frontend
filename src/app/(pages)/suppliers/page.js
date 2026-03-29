@@ -139,6 +139,15 @@ const SuppliersPage = () => {
         event.target.value = ''; 
         return;
       }
+
+      const oversizedFiles = newSelectedFiles.filter(f => f.size > 5 * 1024 * 1024);
+      if (oversizedFiles.length > 0) {
+        toast.error(isRTL 
+          ? "يوجد ملفات تتجاوز الحد المسموح (5 ميجابايت). يرجى اختيار ملفات أصغر." 
+          : "Some files exceed the 5MB limit. Please choose smaller files.");
+        event.target.value = "";
+        return;
+      }
       
       // Combine with existing files if you want cumulative selection
       // But usually, standard <input> replaces files. To support cumulative, we must merge.
