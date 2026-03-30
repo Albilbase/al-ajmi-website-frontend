@@ -87,7 +87,7 @@ export const validatePhone = (value) => {
   const clean = value.replace(/[^0-9+]/g, '');
   // Matches: 
   // 1. Local: 0XXXXXXXXX (10 digits)
-  // 2. International: 00966XXXXXXXXX (14 digits)
-  // 3. International: +966XXXXXXXXX (13 digits)
-  return /^(0[0-9]{9}|00966[0-9]{9}|\+966[0-9]{9})$/.test(clean);
+  // 2. International: 00966XXXXXXXXXX (15 digits total, exactly 10 after 00966)
+  // 3. International: +966XXXXXXXXXX (14 digits total, exactly 10 after +966)
+  return /^(0[0-9]{9}|00966[0-9]{10}|\+966[0-9]{10})$/.test(clean);
 };
