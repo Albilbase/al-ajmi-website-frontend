@@ -222,15 +222,28 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
-  max-height: 720px; /* Precise height for 5 items including internal padding and gaps */
+  max-height: 700px;
   overflow-y: auto;
-  padding: 20px;
-  margin: -20px;
-  margin-top: -20px;
-  width: calc(100% + 40px);
+  padding: 10px 5px;
   scroll-behavior: smooth;
   scroll-snap-type: y mandatory;
-  scroll-padding-top: 20px; /* Matches the top padding of the container for snapping */
+  scroll-padding-top: 10px;
+  
+  /* Mask to fade out edges and hide partial items appearing sharply cut */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
   
   /* Stylish thin scrollbar */
   scrollbar-width: thin;
@@ -259,8 +272,8 @@
   cursor: pointer;
   transform-style: preserve-3d;
   transition: all 0.3s ease;
-  scroll-snap-align: start; /* Snap to top of card */
-  scroll-margin-top: 20px;   /* Margin for snap alignment */
+  scroll-snap-align: start;
+  scroll-margin-top: 10px;
 }
 
 .cardInner {
@@ -378,6 +391,9 @@
     grid-template-columns: repeat(2, 1fr);
     max-height: none;
     overflow-y: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+    padding: 0;
   }
 }
 

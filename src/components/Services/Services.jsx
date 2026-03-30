@@ -69,7 +69,7 @@ export default function Services({ homeData }) {
         if (activeElement) {
             // Scroll ONLY the container, NOT the whole page
             container.scrollTo({
-                top: activeElement.offsetTop - 20, // Simplified: offsetTop is relative to grid since grid is relative
+                top: activeElement.offsetTop - 10,
                 behavior: 'smooth'
             });
         }
