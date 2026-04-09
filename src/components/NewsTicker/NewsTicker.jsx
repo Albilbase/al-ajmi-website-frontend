@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Megaphone } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import styles from './NewsTicker.module.css';
 import useCMSStore from '@/store/useCMSStore';
 
@@ -11,6 +12,7 @@ const SPEED = 80;
 const NewsTicker = () => {
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
+    const router = useRouter();
     const sections = useCMSStore((state) => state.sections);
 
     const [items, setItems] = useState([]);
@@ -43,8 +45,27 @@ const NewsTicker = () => {
             .filter((i) => i.type === 'news_ticker' && i.is_active)
             .sort((a, b) => (b.id || 0) - (a.id || 0)); // highest ID (latest) first
 
-        setItems(newsData.map((i) => (isAr ? i.title_ar : i.title_en)));
+        setItems(newsData);
     }, [sections, isAr, t]);
+
+    const handleNewsClick = (newsItem) => {
+        if (!newsItem) return;
+
+        // Search for a matching media item title in all media sections
+        const mediaSectionItem = (sections || []).find(s => 
+            (s.section_key === 'media' || s.type === 'media' || s.section_key === 'news_media') &&
+            (
+                (s.title_en && s.title_en === newsItem.title_en) ||
+                (s.title_ar && s.title_ar === newsItem.title_ar)
+            )
+        );
+
+        if (mediaSectionItem) {
+            router.push(`/media/${mediaSectionItem.id}`);
+        } else {
+            console.warn("No matching media item found for title:", newsItem.title_en);
+        }
+    };
 
     // ───── Animation ─────
     useEffect(() => {
@@ -116,7 +137,11 @@ const NewsTicker = () => {
                             }}
                         >
                             {tickerItems.map((item, index) => (
-                                <div key={index} className={styles.tickerItem}>
+                                <div 
+                                    key={index} 
+                                    className={styles.tickerItem}
+                                    onClick={() => handleNewsClick(item)}
+                                >
                                     {!isAr && (
                                         <div className={styles.tickerLogo}>
                                             <Image
@@ -128,7 +153,7 @@ const NewsTicker = () => {
                                             />
                                         </div>
                                     )}
-                                    <p>{item}</p>
+                                    <p>{isAr ? item.title_ar : item.title_en}</p>
                                     {isAr && (
                                         <div className={styles.tickerLogo}>
                                             <Image

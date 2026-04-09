@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { X, ZoomIn } from 'lucide-react';
+import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './Awards.module.css';
 
 
@@ -140,14 +140,16 @@ const Awards = ({ homeData }) => {
     { id: 11, src: '/images/Our-Owards/picture3oct2018_1-1.jpg', category: 'Outstanding Performance', title: 'Safety Award 2018' }
   ];
 
-  const displayAwards = apiData.awards.length > 0 
-    ? apiData.awards.map(award => ({
-        ...award,
-        src: award.images && award.images.length > 0 && award.images[0]
-          ? `http://192.168.15.95:5000${award.images[0]}` 
-          : '/images/Our-Owards/1feb2023-1.png' // Fallback to a real existing static image
-      }))
-    : staticAwards;
+  const displayAwards = useMemo(() => {
+    return apiData.awards.length > 0 
+      ? apiData.awards.map(award => ({
+          ...award,
+          src: award.images && award.images.length > 0 && award.images[0]
+            ? `http://192.168.15.95:5000${award.images[0]}` 
+            : '/images/Our-Owards/1feb2023-1.png'
+        }))
+      : staticAwards;
+  }, [apiData.awards, staticAwards]);
 
   const headerTitle = apiData.header 
     ? (isAr ? apiData.header.title_ar : apiData.header.title_en) 
@@ -166,8 +168,74 @@ const Awards = ({ homeData }) => {
     return () => { document.body.style.overflow = 'unset'; };
   }, [selectedAward]);
 
+  const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
+  const sliderRef = useRef(null);
+  const trackRef = useRef(null);
+
+  useEffect(() => {
+    if (mounted && trackRef.current && sliderRef.current) {
+      const trackWidth = trackRef.current.scrollWidth;
+      const sliderWidth = sliderRef.current.offsetWidth;
+      setDragConstraints({
+        left: -(trackWidth - sliderWidth + 40), // 40 for padding/buffer
+        right: 0
+      });
+    }
+  }, [mounted, displayAwards]);
+
+  const scrollSlider = (direction) => {
+    if (!sliderRef.current) return;
+    const scrollAmount = 290; // Card width + gap
+    const currentScroll = sliderRef.current.scrollLeft;
+    const maxScroll = sliderRef.current.scrollWidth - sliderRef.current.offsetWidth;
+    
+    let newScroll;
+    
+    // In modern browsers, RTL scrollLeft starts at 0 and goes negative as we scroll left
+    if (isAr) {
+      if (direction === 'next') {
+        newScroll = currentScroll - scrollAmount;
+        if (Math.abs(newScroll) > maxScroll + 50) newScroll = 0;
+      } else {
+        newScroll = currentScroll + scrollAmount;
+        if (newScroll > 50) newScroll = -maxScroll;
+      }
+    } else {
+      if (direction === 'next') {
+        newScroll = currentScroll + scrollAmount;
+        if (newScroll > maxScroll + 50) newScroll = 0;
+      } else {
+        newScroll = currentScroll - scrollAmount;
+        if (newScroll < -50) newScroll = maxScroll;
+      }
+    }
+
+    sliderRef.current.scrollTo({
+      left: newScroll,
+      behavior: 'smooth'
+    });
+  };
+
+  // Autoplay Logic
+  const [isPaused, setIsPaused] = useState(false);
+  useEffect(() => {
+    if (!sliderRef.current || isPaused) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      scrollSlider('next');
+    }, 3000); 
+
+    return () => clearInterval(interval);
+  }, [isPaused, isAr]);
+
   return (
-    <section id="awards" className={styles.section} dir={isAr ? 'rtl' : 'ltr'}>
+    <section 
+      id="awards" 
+      className={styles.section} 
+      dir={isAr ? 'rtl' : 'ltr'}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <motion.span 
@@ -195,17 +263,50 @@ const Awards = ({ homeData }) => {
           </motion.p>
         </div>
 
-        <div className={styles.grid}>
-          {displayAwards.map((award, index) => (
-            <AwardCard 
-              key={award.id || index} 
-              award={award} 
-              index={index} 
-              onClick={setSelectedAward} 
-              isAr={isAr}
-              isFromAPI={apiData.awards.length > 0}
-            />
-          ))}
+        <div className={styles.navContainer}>
+          {/* Navigation Buttons Moved down */}
+          <div className={styles.navControls}>
+            <button 
+              className={styles.navBtn} 
+              onClick={() => scrollSlider(isAr ? 'next' : 'prev')}
+              aria-label="Previous"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button 
+              className={styles.navBtn} 
+              onClick={() => scrollSlider(isAr ? 'prev' : 'next')}
+              aria-label="Next"
+            >
+              <ChevronRight size={24} />
+            </button>
+          </div>
+        </div>
+
+        <div 
+          className={styles.sliderWrapper} 
+          ref={sliderRef}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <motion.div 
+            className={styles.sliderTrack}
+            ref={trackRef}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+          >
+            {displayAwards.map((award, index) => (
+              <div key={award.id || index} className={styles.sliderItem}>
+                <AwardCard 
+                  award={award} 
+                  index={index} 
+                  onClick={setSelectedAward} 
+                  isAr={isAr}
+                  isFromAPI={apiData.awards.length > 0}
+                />
+              </div>
+            ))}
+          </motion.div>
         </div>
       </div>
 

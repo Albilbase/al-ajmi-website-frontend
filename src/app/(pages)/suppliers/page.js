@@ -105,6 +105,16 @@ const SuppliersPage = () => {
                       field.title_en?.toLowerCase().includes('phone') || 
                       field.title_ar?.includes('هاتف');
 
+        const isRegistration = field.title_en?.toLowerCase().includes('registration') || 
+                               field.title_en?.toLowerCase().includes('commercial') || 
+                               field.title_en?.toLowerCase().includes('record') || 
+                               field.title_ar?.includes('سجل تجاري');
+        const isBankName = field.title_en?.toLowerCase().includes('bank name') || 
+                           field.title_ar?.includes('اسم البنك');
+        const isAccount = (field.title_en?.toLowerCase().includes('account') || 
+                           field.title_en?.toLowerCase().includes('iban') || 
+                           field.title_ar?.includes('حساب')) && !isTel;
+
         if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
         }
@@ -113,6 +123,18 @@ const SuppliersPage = () => {
           newErrors[field.id] = isRTL 
             ? "يجب أن يبدأ الرقم بـ 00966 ويتبعه 10 أرقام (المجموع 15 رقماً)" 
             : "Phone must start with 00966 followed by 10 digits (15 total)";
+        }
+
+        if (isRegistration && !/^[0-9]{10}$/.test(value)) {
+          newErrors[field.id] = isRTL ? "يجب أن يتكون السجل التجاري من 10 أرقام فقط" : "Commercial Registration must be exactly 10 digits";
+        }
+
+        if (isAccount && !/^[0-9]{10}$/.test(value)) {
+          newErrors[field.id] = isRTL ? "يجب أن يتكون رقم الحساب من 10 أرقام فقط" : "Account number must be exactly 10 digits";
+        }
+
+        if (isBankName && /[0-9]/.test(value)) {
+          newErrors[field.id] = isRTL ? "اسم البنك يجب أن يحتوي على نصوص فقط" : "Bank name must contain text only";
         }
       }
     });
@@ -148,12 +170,25 @@ const SuppliersPage = () => {
         event.target.value = "";
         return;
       }
+
+      // De-duplicate: Ensure name + size combination is unique
+      const uniqueNewFiles = newSelectedFiles.filter(newF => 
+        !files.some(existingF => existingF.name === newF.name && existingF.size === newF.size)
+      );
+
+      if (uniqueNewFiles.length === 0) {
+        toast.info(isRTL ? "هذه الملفات موجودة مسبقاً." : "These files already exist.");
+        event.target.value = "";
+        return;
+      }
+
+      if (uniqueNewFiles.length < newSelectedFiles.length) {
+        toast.info(isRTL ? "تم تجاهل الملفات المكررة." : "Duplicate files were ignored.");
+      }
       
-      // Combine with existing files if you want cumulative selection
-      // But usually, standard <input> replaces files. To support cumulative, we must merge.
-      // However the user just wants to "see them", let's make it cumulative so they see a growing list.
-      const combinedFiles = [...files, ...newSelectedFiles];
-      const combinedNames = [...fileNames, ...newSelectedFiles.map(f => f.name)];
+      // Combine with unique files only
+      const combinedFiles = [...files, ...uniqueNewFiles];
+      const combinedNames = [...fileNames, ...uniqueNewFiles.map(f => f.name)];
       
       setFiles(combinedFiles);
       setFileNames(combinedNames);
@@ -331,15 +366,32 @@ const SuppliersPage = () => {
                               value={formData[field.id] || ""}
                               onChange={(e) => handleInputChange(field.id, e.target.value)}
                               placeholder=" "
-                              onInput={(e) => {
-                                if (isTel) {
-                                  let val = e.target.value.replace(/[^0-9+]/g, '');
-                                  if (val.startsWith('00966')) val = val.slice(0, 15);
-                                  else if (val.startsWith('+966')) val = val.slice(0, 14);
-                                  else if (val.startsWith('0')) val = val.slice(0, 10);
-                                  e.target.value = val;
-                                }
-                              }}
+                                onInput={(e) => {
+                                  const tEn = field.title_en?.toLowerCase() || "";
+                                  const tAr = field.title_ar || "";
+                                  const isRegistration = tEn.includes('registration') || 
+                                                       tEn.includes('commercial') || 
+                                                       tEn.includes('record') || 
+                                                       tAr.includes('سجل تجاري');
+                                  const isBankName = tEn.includes('bank name') || tAr.includes('اسم البنك');
+                                  const isAccount = (tEn.includes('account') || tEn.includes('iban') || tAr.includes('حساب')) && !isTel;
+
+                                  if (isTel || isRegistration || isAccount) {
+                                    let val = e.target.value.replace(/[^0-9+]/g, '');
+                                    if (isRegistration || isAccount) {
+                                      val = val.replace(/[^0-9]/g, '').slice(0, 10);
+                                    } else if (val.startsWith('00966')) {
+                                      val = val.slice(0, 15);
+                                    } else if (val.startsWith('+966')) {
+                                      val = val.slice(0, 14);
+                                    } else if (val.startsWith('0')) {
+                                      val = val.slice(0, 10);
+                                    }
+                                    e.target.value = val;
+                                  } else if (isBankName) {
+                                    e.target.value = e.target.value.replace(/[0-9]/g, '');
+                                  }
+                                }}
                             />
                           );
                         })()}
