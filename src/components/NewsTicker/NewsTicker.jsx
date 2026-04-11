@@ -17,6 +17,7 @@ const NewsTicker = () => {
 
     const [items, setItems] = useState([]);
     const [label, setLabel] = useState('');
+    const [isPaused, setIsPaused] = useState(false);
 
     const maskRef = useRef(null);
     const scrollRef = useRef(null);
@@ -68,6 +69,11 @@ const NewsTicker = () => {
     };
 
     // ───── Animation ─────
+    const isPausedRef = useRef(isPaused);
+    useEffect(() => {
+        isPausedRef.current = isPaused;
+    }, [isPaused]);
+
     useEffect(() => {
         if (!items.length) return;
 
@@ -80,6 +86,7 @@ const NewsTicker = () => {
 
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
+        // Only reset position when items or language change
         posRef.current = isAr ? -maskWidth : maskWidth;
         lastTsRef.current = null;
 
@@ -88,19 +95,22 @@ const NewsTicker = () => {
             const dt = (ts - lastTsRef.current) / 1000;
             lastTsRef.current = ts;
 
-            if (isAr) {
-                posRef.current += SPEED * dt;
-                if (posRef.current >= halfWidth) {
-                    posRef.current -= halfWidth;
+            // Use ref to avoid closure reset
+            if (!isPausedRef.current) {
+                if (isAr) {
+                    posRef.current += SPEED * dt;
+                    if (posRef.current >= halfWidth) {
+                        posRef.current -= halfWidth;
+                    }
+                } else {
+                    posRef.current -= SPEED * dt;
+                    if (posRef.current <= -halfWidth) {
+                        posRef.current += halfWidth;
+                    }
                 }
-            } else {
-                posRef.current -= SPEED * dt;
-                if (posRef.current <= -halfWidth) {
-                    posRef.current += halfWidth;
-                }
+                scrollEl.style.transform = `translateX(${posRef.current}px)`;
             }
 
-            scrollEl.style.transform = `translateX(${posRef.current}px)`;
             rafRef.current = requestAnimationFrame(animate);
         };
 
@@ -127,7 +137,12 @@ const NewsTicker = () => {
                         </div>
                     </div>
 
-                    <div className={styles.contentMask} ref={maskRef}>
+                    <div 
+                        className={styles.contentMask} 
+                        ref={maskRef}
+                        onMouseEnter={() => setIsPaused(true)}
+                        onMouseLeave={() => setIsPaused(false)}
+                    >
                         <div
                             ref={scrollRef}
                             className={styles.tickerScroll}

@@ -128,8 +128,8 @@ const ContactPage = () => {
         
         if (isTel && !validatePhone(value)) {
           newErrors[field.id] = isRTL 
-            ? "يجب أن يبدأ الرقم بـ 00966 ويتبعه 10 أرقام (المجموع 15 رقماً)" 
-            : "Phone must start with 00966 followed by 10 digits (15 total)";
+            ? "يجب أن يبدأ الرقم بـ 00966 ويتبعه 9 أرقام (المجموع 14 رقماً) أو 10 أرقام محلية" 
+            : "Phone must start with 00966 followed by 9 digits (14 total) or be 10 local digits";
         }
 
         if (field.description_en === 'textarea' && value.length < 10) {
@@ -290,9 +290,13 @@ const ContactPage = () => {
                               onInput={(e) => {
                                 if (isTel) {
                                   let val = e.target.value.replace(/[^0-9+]/g, '');
-                                  if (val.startsWith('00966')) val = val.slice(0, 15);
-                                  else if (val.startsWith('+966')) val = val.slice(0, 14);
-                                  else if (val.startsWith('0')) val = val.slice(0, 10);
+                                  if (val.startsWith('00966')) {
+                                    val = val.slice(0, 14);
+                                  } else if (val.startsWith('+966')) {
+                                    val = val.slice(0, 13);
+                                  } else {
+                                    val = val.slice(0, 10);
+                                  }
                                   e.target.value = val;
                                 }
                               }}

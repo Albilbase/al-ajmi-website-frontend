@@ -121,16 +121,16 @@ const SuppliersPage = () => {
         
         if (isTel && !validatePhone(value)) {
           newErrors[field.id] = isRTL 
-            ? "يجب أن يبدأ الرقم بـ 00966 ويتبعه 10 أرقام (المجموع 15 رقماً)" 
-            : "Phone must start with 00966 followed by 10 digits (15 total)";
+            ? "يجب أن يبدأ الرقم بـ 00966 ويتبعه 9 أرقام (المجموع 14 رقماً) أو 10 أرقام محلية" 
+            : "Phone must start with 00966 followed by 9 digits (14 total) or be 10 local digits";
         }
 
         if (isRegistration && !/^[0-9]{10}$/.test(value)) {
           newErrors[field.id] = isRTL ? "يجب أن يتكون السجل التجاري من 10 أرقام فقط" : "Commercial Registration must be exactly 10 digits";
         }
 
-        if (isAccount && !/^[0-9]{10}$/.test(value)) {
-          newErrors[field.id] = isRTL ? "يجب أن يتكون رقم الحساب من 10 أرقام فقط" : "Account number must be exactly 10 digits";
+        if (isAccount && (value.length < 10 || value.length > 30)) {
+          newErrors[field.id] = isRTL ? "يجب أن يتكون رقم الحساب من 10 إلى 30 خانة" : "Account number must be between 10 and 30 characters";
         }
 
         if (isBankName && /[0-9]/.test(value)) {
@@ -377,15 +377,21 @@ const SuppliersPage = () => {
                                   const isAccount = (tEn.includes('account') || tEn.includes('iban') || tAr.includes('حساب')) && !isTel;
 
                                   if (isTel || isRegistration || isAccount) {
-                                    let val = e.target.value.replace(/[^0-9+]/g, '');
-                                    if (isRegistration || isAccount) {
+                                    let val = e.target.value.replace(/[^0-9+a-zA-Z]/g, ''); // Allow letters for IBAN
+                                    if (isRegistration) {
                                       val = val.replace(/[^0-9]/g, '').slice(0, 10);
-                                    } else if (val.startsWith('00966')) {
-                                      val = val.slice(0, 15);
-                                    } else if (val.startsWith('+966')) {
-                                      val = val.slice(0, 14);
-                                    } else if (val.startsWith('0')) {
-                                      val = val.slice(0, 10);
+                                    } else if (isAccount) {
+                                      val = val.slice(0, 30);
+                                    } else if (isTel) {
+                                      val = val.replace(/[^0-9+]/g, '');
+                                      if (val.startsWith('00966')) {
+                                        val = val.slice(0, 14);
+                                      } else if (val.startsWith('+966')) {
+                                        val = val.slice(0, 13);
+                                      } else {
+                                        // Locally 10 digits (starts with 0 typically)
+                                        val = val.slice(0, 10);
+                                      }
                                     }
                                     e.target.value = val;
                                   } else if (isBankName) {
