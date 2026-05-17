@@ -13,7 +13,10 @@ import {
   Type,
   Loader2,
   ChevronDown,
-  Mail
+  Mail,
+  Paperclip,
+  Download,
+  Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -21,7 +24,7 @@ import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './suppliers-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
 import ImageUpload from '../../_components/ImageUpload/ImageUpload';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, getReportsAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, getReportsAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 
@@ -70,6 +73,7 @@ export default function SuppliersManager() {
   const [reports, setReports] = useState([]);
   const [reportColumns, setReportColumns] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(false);
+  const [selectedAttachments, setSelectedAttachments] = useState(null);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -642,6 +646,8 @@ export default function SuppliersManager() {
                         {col.replace(/_/g, ' ')}
                       </th>
                     ))}
+                    <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>IP Address</th>
+                    <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Attachments</th>
                     <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Date</th>
                   </tr>
                 </thead>
@@ -669,6 +675,43 @@ export default function SuppliersManager() {
                             {detailsObj?.[col] || '-'}
                           </td>
                         ))}
+                        <td style={{ padding: '1rem', color: '#64748b', fontFamily: 'monospace' }}>
+                          {report.ip_address || '-'}
+                        </td>
+                        <td style={{ padding: '1rem', color: '#64748b' }}>
+                          {report.attachments && report.attachments.length > 0 ? (
+                            <button
+                              onClick={() => setSelectedAttachments({ reportId: report.id, attachments: report.attachments })}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.4rem 0.8rem',
+                                background: 'linear-gradient(135deg, #FFF0F2 0%, #FFE0E5 100%)',
+                                color: '#DC143C',
+                                border: '1px solid #FFD0D8',
+                                borderRadius: '8px',
+                                fontSize: '0.8rem',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(220, 20, 60, 0.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                              }}
+                            >
+                              <Paperclip size={14} />
+                              <span>{report.attachments.length} File(s)</span>
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>No files</span>
+                          )}
+                        </td>
                         <td style={{ padding: '1rem', color: '#64748b' }}>
                           {report.created_at ? new Date(report.created_at).toLocaleString('en-US') : '-'}
                         </td>
@@ -837,6 +880,120 @@ export default function SuppliersManager() {
                 />
               </div>
             </>
+          )}
+        </div>
+      </Modal>
+
+      {/* Attachments Preview & Download Modal */}
+      <Modal
+        isOpen={!!selectedAttachments}
+        onClose={() => setSelectedAttachments(null)}
+        title={`Attachments for Report #${selectedAttachments?.reportId}`}
+        footer={
+          <button 
+            onClick={() => setSelectedAttachments(null)} 
+            className={localStyles.saveButton} 
+            style={{ width: '100%', background: '#f1f5f9', color: '#64748b' }}
+          >
+            Close
+          </button>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem 0' }}>
+          {selectedAttachments?.attachments && selectedAttachments.attachments.length > 0 ? (
+            selectedAttachments.attachments.map((file, index) => {
+              const fileUrl = `${BASE_URL}/${file.path}`;
+              const sizeInKb = file.size ? (file.size / 1024).toFixed(1) : null;
+              const isImage = file.mimetype && file.mimetype.startsWith('image/');
+              
+              return (
+                <div 
+                  key={index}
+                  style={{
+                    background: '#f8fafc',
+                    borderRadius: '16px',
+                    padding: '1.25rem',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ 
+                        background: 'white', 
+                        padding: '0.75rem', 
+                        borderRadius: '12px', 
+                        border: '1px solid #e2e8f0',
+                        color: '#DC143C',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <FileText size={24} />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <h4 style={{ margin: 0, fontWeight: '700', color: '#1e293b', wordBreak: 'break-all', fontSize: '0.95rem' }} title={file.originalname}>
+                          {file.originalname || file.filename}
+                        </h4>
+                        <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#64748b', display: 'flex', gap: '0.75rem' }}>
+                          {sizeInKb && <span>{sizeInKb} KB</span>}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <a 
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={file.originalname}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#DC143C',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '10px',
+                        width: '40px',
+                        height: '40px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 2px 4px rgba(220, 20, 60, 0.15)',
+                      }}
+                      title="Download File"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#b01030';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#DC143C';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <Download size={18} />
+                    </a>
+                  </div>
+                  
+                  {isImage && (
+                    <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid #cbd5e1', background: '#f1f5f9' }}>
+                      <img 
+                        src={fileUrl} 
+                        alt={file.originalname} 
+                        style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', display: 'block' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+              <FileText size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+              <p>No attachments found.</p>
+            </div>
           )}
         </div>
       </Modal>

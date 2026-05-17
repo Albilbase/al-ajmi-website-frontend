@@ -1,7 +1,7 @@
 import axios from "axios";
 import { sanitizeData } from "./sanitizer";
 
-const BASE_URL = "http://192.168.15.95:5000";
+export const BASE_URL = "http://192.168.15.95:5000";
 
 const handleApiError = (error) => {
   const msg = error.response?.data?.message || error.message || "";

@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
-import { Calendar, Tag, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Calendar, Tag, ArrowLeft, ArrowRight, ZoomIn, X } from 'lucide-react';
 import Link from 'next/link';
 import useCMSStore from '@/store/useCMSStore';
 import { sanitizeText } from '@/lib/sanitizer';
@@ -28,12 +29,29 @@ const MediaDetailPage = () => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const params = useParams();
+  const searchParams = useSearchParams();
+  const source = searchParams.get('source');
   const mediaId = params.id;
   const sections = useCMSStore((state) => state.sections);
   const storeLoading = useCMSStore((state) => state.isLoading);
 
   const [banner, setBanner] = useState(null);
   const [currentMedia, setCurrentMedia] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (selectedImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [selectedImage]);
 
   useEffect(() => {
     const mediaSections = (sections || []).filter(section => section.section_key === 'media');
@@ -104,21 +122,24 @@ const MediaDetailPage = () => {
 
   return (
     <div className={styles.mediaDetailSection} dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Hero Banner */}
-      <div 
-        className={styles.hero}
-        style={{ backgroundImage: `url('${bannerImage}')` }}
-      >
-        <div className={styles.heroOverlay} />
-        <motion.div 
-          className={styles.heroContent}
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
+      {/* Hero Banner 
+      {source !== 'news' && (
+        <div 
+          className={styles.hero}
+          style={{ backgroundImage: `url('${bannerImage}')` }}
         >
-          <h1 className={styles.title}>{itemTitle}</h1>
-        </motion.div>
-      </div>
+          <div className={styles.heroOverlay} />
+          <motion.div 
+            className={styles.heroContent}
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+          >
+            <h1 className={styles.title}>{itemTitle}</h1>
+          </motion.div>
+        </div>
+      )}
+      */}
 
       {/* Content Section */}
       <div className={styles.container}>
@@ -225,17 +246,23 @@ const MediaDetailPage = () => {
               >
                 {imagesOnly.map((img, index) => (
                   <SwiperSlide key={index}>
-                    <div className={styles.slideImageWrapper}>
+                    <div 
+                      className={styles.slideImageWrapper}
+                      onClick={() => setSelectedImage(getImageUrl(img))}
+                    >
                       <Image
                         src={getImageUrl(img)}
                         alt={`${itemTitle} - ${index + 1}`}
                         fill
                         className={styles.slideImage}
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                        quality={90}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        quality={100}
                         unoptimized
                         priority={index === 0}
                       />
+                      <div className={styles.zoomOverlay}>
+                        <ZoomIn size={32} />
+                      </div>
                     </div>
                   </SwiperSlide>
                 ))}
@@ -259,6 +286,46 @@ const MediaDetailPage = () => {
           </motion.div>
         </div>
       </div>
+      {/* Lightbox / Modal */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {selectedImage && (
+            <motion.div
+              className={styles.modalOverlay}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedImage(null)}
+            >
+              <button 
+                className={styles.closeButton}
+                onClick={() => setSelectedImage(null)}
+              >
+                <X size={32} />
+              </button>
+
+              <motion.div
+                className={styles.modalContent}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()} 
+              >
+                  <Image
+                      src={selectedImage}
+                      alt={itemTitle}
+                      fill
+                      className={styles.fullImage}
+                      sizes="95vw"
+                      priority
+                      unoptimized
+                  />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };

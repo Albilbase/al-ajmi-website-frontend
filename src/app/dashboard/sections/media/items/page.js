@@ -11,7 +11,8 @@ import {
   UploadCloud, 
   X,
   Save,
-  Video
+  Video,
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -29,6 +30,113 @@ import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 import { validateImage, validateVideo } from '@/lib/validation';
 
+const CustomCombobox = ({ value, options, onChange, placeholder, isRTL, hasError }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(value || '');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    setInputValue(value || '');
+  }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const showAll = isOpen && (inputValue === '' || options.includes(inputValue));
+  const optionsToRender = showAll ? options : options.filter(opt => opt.toLowerCase().includes(inputValue.toLowerCase()));
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+      <div style={{ position: 'relative' }}>
+        <input 
+          className={`${localStyles.input} ${hasError ? dashboardStyles.invalidInput : ''}`} 
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            onChange(e.target.value);
+            if (!isOpen) setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          onClick={() => setIsOpen(true)}
+          placeholder={placeholder}
+          dir={isRTL ? 'rtl' : 'ltr'}
+          style={{ paddingRight: isRTL ? '12px' : '36px', paddingLeft: isRTL ? '36px' : '12px' }}
+        />
+        <ChevronDown 
+          size={18} 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            [isRTL ? 'left' : 'right']: '12px',
+            color: '#64748b',
+            cursor: 'pointer',
+            zIndex: 2
+          }} 
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+        />
+      </div>
+      <AnimatePresence>
+      {isOpen && options.length > 0 && (
+        <motion.ul 
+          initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }}
+          style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          maxHeight: '200px',
+          overflowY: 'auto',
+          backgroundColor: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          marginTop: '4px',
+          zIndex: 50,
+          listStyle: 'none',
+          padding: '4px',
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+        }}>
+          {optionsToRender.map((opt, i) => (
+            <li 
+              key={i}
+              onClick={() => {
+                setInputValue(opt);
+                onChange(opt);
+                setIsOpen(false);
+              }}
+              style={{
+                padding: '8px 12px',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                textAlign: isRTL ? 'right' : 'left',
+                fontSize: '0.9rem',
+                color: '#1e293b'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              {opt}
+            </li>
+          ))}
+          {optionsToRender.length === 0 && (
+             <li style={{ padding: '8px 12px', color: '#94a3b8', textAlign: 'center', fontSize: '0.9rem' }}>No matching options</li>
+          )}
+        </motion.ul>
+      )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 
 export default function MediaManager() {
   const [data, setData] = useState({ banner: "", bannerId: null, items: [] });
@@ -42,6 +150,9 @@ export default function MediaManager() {
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
   const refreshSections = useCMSStore((state) => state.refreshSections);
+
+  // Filter news items for linking
+  const newsItems = (sections || []).filter(s => s.section_key === 'news_ticker' && s.type === 'news_ticker');
 
   // Local file states for uploads
   const [bannerFile, setBannerFile] = useState(null);
@@ -173,8 +284,9 @@ export default function MediaManager() {
     if (!currentItem.ar.title) errors.item_title_ar = true;
     if (!currentItem.en.description) errors.item_desc_en = true;
     if (!currentItem.ar.description) errors.item_desc_ar = true;
-    if (!currentItem.tag_en) errors.item_tag_en = true;
-    if (!currentItem.tag_ar) errors.item_tag_ar = true;
+    // Tags are optional
+    // if (!currentItem.tag_en) errors.item_tag_en = true;
+    // if (!currentItem.tag_ar) errors.item_tag_ar = true;
     if (!currentItem.id && !mainImageFile) errors.item_image = true;
 
     if (Object.keys(errors).length > 0) {
@@ -573,11 +685,11 @@ export default function MediaManager() {
               </div>
               <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
                 <label className={localStyles.label}>Category / Tag (EN)</label>
-                <input className={`${localStyles.input} ${formErrors.item_tag_en ? dashboardStyles.invalidInput : ''}`} value={currentItem.tag_en} onChange={(e) => {setCurrentItem({...currentItem, tag_en: e.target.value}); if(formErrors.item_tag_en) setFormErrors({...formErrors, item_tag_en: false});}} placeholder="e.g. News" />
+                <input className={localStyles.input} value={currentItem.tag_en} onChange={(e) => setCurrentItem({...currentItem, tag_en: e.target.value})} placeholder="e.g. News" />
               </div>
               <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
                 <label className={localStyles.label}>Category / Tag (AR)</label>
-                <input className={`${localStyles.input} ${formErrors.item_tag_ar ? dashboardStyles.invalidInput : ''}`} value={currentItem.tag_ar} onChange={(e) => {setCurrentItem({...currentItem, tag_ar: e.target.value}); if(formErrors.item_tag_ar) setFormErrors({...formErrors, item_tag_ar: false});}} placeholder="مثلاً: أخبار" />
+                <input className={localStyles.input} value={currentItem.tag_ar} onChange={(e) => setCurrentItem({...currentItem, tag_ar: e.target.value})} placeholder="مثلاً: أخبار" />
               </div>
             </div>
 
@@ -630,8 +742,23 @@ export default function MediaManager() {
               <div className={localStyles.formSection}>
                 <h4 style={{ marginBottom: '1rem', color: '#DC143C' }}>English Details</h4>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.label}>Title</label>
-                  <input className={`${localStyles.input} ${formErrors.item_title_en ? dashboardStyles.invalidInput : ''}`} value={currentItem.en.title} onChange={(e) => updateField('en', 'title', e.target.value)} />
+                  <label className={localStyles.label}>Title (News Link)</label>
+                  <CustomCombobox 
+                    value={currentItem.en.title} 
+                    options={newsItems.map(n => n.title_en)}
+                    onChange={(val) => {
+                      const matching = newsItems.find(n => n.title_en === val);
+                      if (matching) {
+                          updateField('en', 'title', matching.title_en);
+                          updateField('ar', 'title', matching.title_ar);
+                      } else {
+                          updateField('en', 'title', val);
+                      }
+                    }}
+                    placeholder="Type or select from News..."
+                    isRTL={false}
+                    hasError={!!formErrors.item_title_en}
+                  />
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.label}>Description</label>
@@ -643,8 +770,23 @@ export default function MediaManager() {
               <div className={localStyles.formSection} dir="rtl">
                 <h4 style={{ marginBottom: '1rem', color: '#DC143C' }}>Arabic Details</h4>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.label}>Title</label>
-                  <input className={`${localStyles.input} ${formErrors.item_title_ar ? dashboardStyles.invalidInput : ''}`} value={currentItem.ar.title} onChange={(e) => updateField('ar', 'title', e.target.value)} />
+                  <label className={localStyles.label}>العنوان (ربط بالأخبار)</label>
+                  <CustomCombobox 
+                    value={currentItem.ar.title} 
+                    options={newsItems.map(n => n.title_ar)}
+                    onChange={(val) => {
+                      const matching = newsItems.find(n => n.title_ar === val);
+                      if (matching) {
+                          updateField('en', 'title', matching.title_en);
+                          updateField('ar', 'title', matching.title_ar);
+                      } else {
+                          updateField('ar', 'title', val);
+                      }
+                    }}
+                    placeholder="اكتب أو اختر من الأخبار..."
+                    isRTL={true}
+                    hasError={!!formErrors.item_title_ar}
+                  />
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.label}>Description</label>

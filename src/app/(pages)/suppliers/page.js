@@ -9,6 +9,7 @@ import styles from './suppliers.module.css';
 import { submitContactFormAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { validatePhone } from '@/lib/validation';
+import PhoneInput from '@/components/PhoneInput/PhoneInput';
 
 const SuppliersPage = () => {
   const { t, i18n } = useTranslation();
@@ -59,6 +60,7 @@ const SuppliersPage = () => {
       fields.forEach(f => {
         const titleEn = f.title_en?.toLowerCase() || "";
         const titleAr = f.title_ar || "";
+        const isEmail = f.description_en === 'email' || titleEn.includes('email') || titleEn.includes('mail') || titleAr.includes('البريد') || titleAr.includes('ايميل');
         const isTel = (f.description_en === 'tel' || 
                       titleEn.includes('phone') || 
                       titleEn.includes('mobile') ||
@@ -70,7 +72,7 @@ const SuppliersPage = () => {
                       titleAr.includes('فاكس')) && 
                       !titleEn.includes('account') && 
                       !titleEn.includes('iban') &&
-                      !titleAr.includes('حساب');
+                      !titleAr.includes('حساب') && !isEmail;
         initialForm[f.id] = isTel ? "00966" : "";
       });
       setFormData(initialForm);
@@ -97,23 +99,22 @@ const SuppliersPage = () => {
       if (!value) {
         newErrors[field.id] = isRTL ? `حقل ${label} مطلوب` : `${label} is required`;
       } else {
-        const isEmail = field.description_en === 'email' || 
-                        field.title_en?.toLowerCase().includes('email') || 
-                        field.title_ar?.includes('البريد');
+        const tEn = field.title_en?.toLowerCase() || "";
+        const tAr = field.title_ar || "";
+        const isEmail = field.description_en === 'email' || tEn.includes('email') || tEn.includes('mail') || tAr.includes('البريد') || tAr.includes('ايميل');
         
-        const isTel = field.description_en === 'tel' || 
-                      field.title_en?.toLowerCase().includes('phone') || 
-                      field.title_ar?.includes('هاتف');
+        const isTel = (field.description_en === 'tel' || 
+                      tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') ||
+                      tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && 
+                      !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
 
-        const isRegistration = field.title_en?.toLowerCase().includes('registration') || 
-                               field.title_en?.toLowerCase().includes('commercial') || 
-                               field.title_en?.toLowerCase().includes('record') || 
-                               field.title_ar?.includes('سجل تجاري');
-        const isBankName = field.title_en?.toLowerCase().includes('bank name') || 
-                           field.title_ar?.includes('اسم البنك');
-        const isAccount = (field.title_en?.toLowerCase().includes('account') || 
-                           field.title_en?.toLowerCase().includes('iban') || 
-                           field.title_ar?.includes('حساب')) && !isTel;
+        const isRegistration = tEn.includes('registration') || 
+                               tEn.includes('commercial') || 
+                               tEn.includes('record') || 
+                               tAr.includes('سجل تجاري');
+        const isBankName = tEn.includes('bank name') || tAr.includes('اسم البنك');
+        const isIBAN = tEn.includes('IBAN') || tAr.includes('دولي') || tAr.includes('ايبان') || tAr.includes('أيبان') || tAr.includes('iban');
+        const isAccountOnly = (tEn.includes('account') || tAr.includes('حساب')) && !isIBAN && !isTel;
 
         if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
@@ -121,16 +122,24 @@ const SuppliersPage = () => {
         
         if (isTel && !validatePhone(value)) {
           newErrors[field.id] = isRTL 
-            ? "يجب أن يبدأ الرقم بـ 00966 ويتبعه 9 أرقام (المجموع 14 رقماً) أو 10 أرقام محلية" 
-            : "Phone must start with 00966 followed by 9 digits (14 total) or be 10 local digits";
+            ? "الرجاء اختيار مفتاح الدولة وإدخال 9 أرقام" 
+            : "Please select country code and enter 9 digits";
         }
 
         if (isRegistration && !/^[0-9]{10}$/.test(value)) {
           newErrors[field.id] = isRTL ? "يجب أن يتكون السجل التجاري من 10 أرقام فقط" : "Commercial Registration must be exactly 10 digits";
         }
 
-        if (isAccount && (value.length < 10 || value.length > 30)) {
-          newErrors[field.id] = isRTL ? "يجب أن يتكون رقم الحساب من 10 إلى 30 خانة" : "Account number must be between 10 and 30 characters";
+        if (isIBAN && value.length !== 30) {
+          newErrors[field.id] = isRTL 
+            ? "يجب أن يتكون رقم الأيبان (IBAN) من 30 حرفاً ورقماً بالتمام" 
+            : "IBAN must be exactly 30 characters (letters and numbers)";
+        }
+
+        if (isAccountOnly && (value.length < 10 || value.length > 20)) {
+          newErrors[field.id] = isRTL 
+            ? "يجب أن يتكون رقم الحساب من 10 إلى 20 رقماً فقط" 
+            : "Account number must be between 10 and 20 digits only";
         }
 
         if (isBankName && /[0-9]/.test(value)) {
@@ -343,67 +352,71 @@ const SuppliersPage = () => {
                              placeholder=" "
                           />
                         ) : (() => {
-                          const isEmail = field.description_en === 'email' || 
-                                          field.title_en?.toLowerCase().includes('email') || 
-                                          field.title_en?.toLowerCase().includes('mail') || 
-                                          field.title_ar?.includes('البريد') || 
-                                          field.title_ar?.includes('ايميل') ||
-                                          field.title_ar?.includes('عنوان');
+                           const tEn = field.title_en?.toLowerCase() || "";
+                           const tAr = field.title_ar || "";
+                           const isEmail = field.description_en === 'email' || 
+                                           tEn.includes('email') || 
+                                           tEn.includes('mail') || 
+                                           tAr.includes('البريد') || 
+                                           tAr.includes('ايميل') ||
+                                           tAr.includes('عنوان');
+                           
+                           const isTel = (field.description_en === 'tel' || 
+                                         tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') ||
+                                         tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && 
+                                         !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
+                           
+                           if (isTel) {
+                             return (
+                               <PhoneInput 
+                                 id={`field-${field.id}`}
+                                 label={isRTL ? field.title_ar : field.title_en}
+                                 value={formData[field.id] || ""}
+                                 onChange={(val) => handleInputChange(field.id, val)}
+                                 isRTL={isRTL}
+                                 hasError={hasError}
+                               />
+                             );
+                           }
 
-                          const isTel = field.description_en === 'tel' || 
-                                        field.title_en?.toLowerCase().includes('phone') || 
-                                        field.title_en?.toLowerCase().includes('tel') || 
-                                        field.title_en?.toLowerCase().includes('mobile') ||
-                                        field.title_ar?.includes('هاتف') || 
-                                        field.title_ar?.includes('جوال') || 
-                                        field.title_ar?.includes('تلفون');
-                          
-                          return (
-                            <input 
-                              type={isEmail ? "email" : (isTel ? "tel" : (field.description_en || "text"))} 
-                              id={`field-${field.id}`}
-                              className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
-                              value={formData[field.id] || ""}
-                              onChange={(e) => handleInputChange(field.id, e.target.value)}
-                              placeholder=" "
-                                onInput={(e) => {
-                                  const tEn = field.title_en?.toLowerCase() || "";
-                                  const tAr = field.title_ar || "";
-                                  const isRegistration = tEn.includes('registration') || 
-                                                       tEn.includes('commercial') || 
-                                                       tEn.includes('record') || 
-                                                       tAr.includes('سجل تجاري');
-                                  const isBankName = tEn.includes('bank name') || tAr.includes('اسم البنك');
-                                  const isAccount = (tEn.includes('account') || tEn.includes('iban') || tAr.includes('حساب')) && !isTel;
+                           const isRegistration = tEn.includes('registration') || tEn.includes('commercial') || tEn.includes('record') || tAr.includes('سجل تجاري');
+                           const isBankName = tEn.includes('bank name') || tAr.includes('اسم البنك');
+                           const isIBAN = tEn.includes('iban') || tAr.includes('دولي') || tAr.includes('ايبان') || tAr.includes('أيبان') || tAr.includes('iban');
+                           const isAccountOnly = (tEn.includes('account') || tAr.includes('حساب')) && !isIBAN && !isTel;
 
-                                  if (isTel || isRegistration || isAccount) {
-                                    let val = e.target.value.replace(/[^0-9+a-zA-Z]/g, ''); // Allow letters for IBAN
-                                    if (isRegistration) {
-                                      val = val.replace(/[^0-9]/g, '').slice(0, 10);
-                                    } else if (isAccount) {
-                                      val = val.slice(0, 30);
-                                    } else if (isTel) {
-                                      val = val.replace(/[^0-9+]/g, '');
-                                      if (val.startsWith('00966')) {
-                                        val = val.slice(0, 14);
-                                      } else if (val.startsWith('+966')) {
-                                        val = val.slice(0, 13);
-                                      } else {
-                                        // Locally 10 digits (starts with 0 typically)
-                                        val = val.slice(0, 10);
-                                      }
-                                    }
-                                    e.target.value = val;
-                                  } else if (isBankName) {
-                                    e.target.value = e.target.value.replace(/[0-9]/g, '');
-                                  }
-                                }}
-                            />
-                          );
+                           return (
+                             <input 
+                               type={isEmail ? "email" : (isIBAN || isAccountOnly || isRegistration || isBankName ? "text" : (field.description_en || "text"))} 
+                               id={`field-${field.id}`}
+                               className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
+                               value={formData[field.id] || ""}
+                               onChange={(e) => handleInputChange(field.id, e.target.value)}
+                               placeholder=" "
+                               onInput={(e) => {
+                                 if (isIBAN) {
+                                   e.target.value = e.target.value.replace(/[^0-9a-zA-Z]/g, '').slice(0, 30);
+                                 } else if (isAccountOnly) {
+                                   e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 20);
+                                 } else if (isRegistration) {
+                                   e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                                 } else if (isBankName) {
+                                   e.target.value = e.target.value.replace(/[0-9]/g, '');
+                                 }
+                               }}
+                             />
+                           );
                         })()}
-                        <label htmlFor={`field-${field.id}`} className={styles.label}>
-                          {isRTL ? field.title_ar : field.title_en}
-                        </label>
+                        {!(() => {
+                           const tEn = field.title_en?.toLowerCase() || "";
+                           const tAr = field.title_ar || "";
+                           const isEmail = field.description_en === 'email' || tEn.includes('email') || tEn.includes('mail') || tAr.includes('البريد') || tAr.includes('ايميل');
+                           const isTel = (field.description_en === 'tel' || tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') || tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
+                           return isTel;
+                         })() && (
+                           <label htmlFor={`field-${field.id}`} className={styles.label}>
+                             {isRTL ? field.title_ar : field.title_en}
+                           </label>
+                         )}
                       </div>
                     ) : (
                       <div className={styles.inputWrapper}>
@@ -466,7 +479,6 @@ const SuppliersPage = () => {
                 </div>
               </div>
 
-              {/* Selected Files List Moved Outside Fixed Height Container */}
               {fileNames.length > 0 && (
                 <div className={styles.fileList}>
                   {fileNames.map((name, idx) => {

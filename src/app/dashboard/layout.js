@@ -29,7 +29,8 @@ import {
   FileText,
   Menu,
   X as CloseIcon,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './dashboard.module.css';
@@ -47,6 +48,7 @@ export default function DashboardLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const handleLogout = async (e) => {
     if (e) e.preventDefault();
@@ -109,6 +111,7 @@ export default function DashboardLayout({ children }) {
         if (initialRemaining <= 0) {
           logoutUser();
         } else {
+          setIsCheckingAuth(false);
           setTimeLeft(formatTime(initialRemaining));
           
           // Set timer to log out when token expires
@@ -127,6 +130,8 @@ export default function DashboardLayout({ children }) {
             }
           }, 1000);
         }
+      } else {
+        logoutUser();
       }
     }
 
@@ -187,6 +192,21 @@ export default function DashboardLayout({ children }) {
       { name: 'Contact Us', icon: Mail, path: '/dashboard/sections/contact' },
     ]
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100vw',
+        height: '100vh',
+        background: '#ffffff',
+      }}>
+        <Loader2 size={40} color="#DC143C" style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.dashboardContainer} dir="ltr">

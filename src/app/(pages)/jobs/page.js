@@ -14,7 +14,10 @@ import {
   ArrowRight,
   ArrowLeft,
   Send,
-  Info
+  Info,
+  X,
+  FileText,
+  File
 } from 'lucide-react';
 import useCMSStore from '@/store/useCMSStore';
 import styles from './jobs.module.css';
@@ -29,14 +32,15 @@ const fadeInUp = {
 import { submitContactFormAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { validatePhone } from '@/lib/validation';
+import PhoneInput from '@/components/PhoneInput/PhoneInput';
 
 const JobsPage = () => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const sections = useCMSStore((state) => state.sections);
   const storeLoading = useCMSStore((state) => state.isLoading);
-  const [fileName, setFileName] = useState("");
-  const [file, setFile] = useState(null);
+  const [fileNames, setFileNames] = useState([]);
+  const [files, setFiles] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [hero, setHero] = useState(null);
   const [formFields, setFormFields] = useState([]);
@@ -87,6 +91,7 @@ const JobsPage = () => {
       fields.forEach(f => {
         const titleEn = f.title_en?.toLowerCase() || "";
         const titleAr = f.title_ar || "";
+        const isEmail = f.description_en === 'email' || titleEn.includes('email') || titleEn.includes('mail') || titleAr.includes('البريد') || titleAr.includes('ايميل');
         const isTel = (f.description_en === 'tel' || 
                       titleEn.includes('phone') || 
                       titleEn.includes('mobile') ||
@@ -98,7 +103,7 @@ const JobsPage = () => {
                       titleAr.includes('فاكس')) && 
                       !titleEn.includes('account') && 
                       !titleEn.includes('iban') &&
-                      !titleAr.includes('حساب');
+                      !titleAr.includes('حساب') && !isEmail;
         initialForm[f.id] = isTel ? "00966" : "";
       });
       setFormData(initialForm);
@@ -117,33 +122,50 @@ const JobsPage = () => {
   };
 
   const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    if (selectedFile) {
+    const newSelectedFiles = Array.from(event.target.files);
+    if (newSelectedFiles.length > 0) {
       const allowedExtensions = ['pdf', 'doc', 'docx'];
-      const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
-      
-      if (!allowedExtensions.includes(fileExtension)) {
-        toast.error(isRTL 
-          ? "عذراً، يسمح فقط بملفات PDF و Word (.doc, .docx)" 
-          : "Sorry, only PDF and Word files (.doc, .docx) are allowed.");
-        event.target.value = ""; // Clear the input
-        setFile(null);
-        setFileName("");
+      const invalidFiles = newSelectedFiles.filter(f => {
+        const ext = f.name.split('.').pop().toLowerCase();
+        return !allowedExtensions.includes(ext);
+      });
+
+      if (invalidFiles.length > 0) {
+        toast.error(isRTL ? "يرجى اختيار ملفات PDF أو Word فقط." : "Please select only PDF or Word files.");
+        event.target.value = ''; 
         return;
       }
 
-      if (selectedFile.size > 5 * 1024 * 1024) {
+      const oversizedFiles = newSelectedFiles.filter(f => f.size > 5 * 1024 * 1024);
+      if (oversizedFiles.length > 0) {
         toast.error(isRTL 
-          ? "عذراً، يجب أن يكون حجم الملف أقل من 5 ميجابايت" 
-          : "Sorry, file size must be less than 5MB.");
+          ? "يوجد ملفات تتجاوز الحد المسموح (5 ميجابايت). يرجى اختيار ملفات أصغر." 
+          : "Some files exceed the 5MB limit. Please choose smaller files.");
         event.target.value = "";
-        setFile(null);
-        setFileName("");
         return;
       }
 
-      setFile(selectedFile);
-      setFileName(selectedFile.name);
+      // De-duplicate: Ensure name + size combination is unique
+      const uniqueNewFiles = newSelectedFiles.filter(newF => 
+        !files.some(existingF => existingF.name === newF.name && existingF.size === newF.size)
+      );
+
+      if (uniqueNewFiles.length === 0) {
+        toast.info(isRTL ? "هذه الملفات موجودة مسبقاً." : "These files already exist.");
+        event.target.value = "";
+        return;
+      }
+
+      if (uniqueNewFiles.length < newSelectedFiles.length) {
+        toast.info(isRTL ? "تم تجاهل الملفات المكررة." : "Duplicate files were ignored.");
+      }
+      
+      const combinedFiles = [...files, ...uniqueNewFiles];
+      const combinedNames = [...fileNames, ...uniqueNewFiles.map(f => f.name)];
+      
+      setFiles(combinedFiles);
+      setFileNames(combinedNames);
+      
       if (errors['file']) {
         setErrors(prev => {
           const newErrors = { ...prev };
@@ -151,10 +173,18 @@ const JobsPage = () => {
           return newErrors;
         });
       }
-    } else {
-      setFile(null);
-      setFileName("");
+      
+      event.target.value = '';
     }
+  };
+
+  const removeSpecificFile = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newFiles = files.filter((_, i) => i !== index);
+    const newFileNames = fileNames.filter((_, i) => i !== index);
+    setFiles(newFiles);
+    setFileNames(newFileNames);
   };
 
   const validate = () => {
@@ -166,13 +196,14 @@ const JobsPage = () => {
       if (!value) {
         newErrors[field.id] = isRTL ? `حقل ${label} مطلوب` : `${label} is required`;
       } else {
-        const isTel = field.description_en === 'tel' || 
-                        field.title_en?.toLowerCase().includes('phone') || 
-                        field.title_ar?.includes('هاتف');
-
-        const isEmail = field.description_en === 'email' || 
-                        field.title_en?.toLowerCase().includes('email') || 
-                        field.title_ar?.includes('البريد');
+        const tEn = field.title_en?.toLowerCase() || "";
+        const tAr = field.title_ar || "";
+        const isEmail = field.description_en === 'email' || tEn.includes('email') || tEn.includes('mail') || tAr.includes('البريد') || tAr.includes('ايميل');
+        
+        const isTel = (field.description_en === 'tel' || 
+                      tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') ||
+                      tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && 
+                      !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
 
         if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
@@ -180,13 +211,13 @@ const JobsPage = () => {
 
         if (isTel && !validatePhone(value)) {
           newErrors[field.id] = isRTL 
-            ? "يجب أن يبدأ الرقم بـ 00966 ويتبعه 9 أرقام (المجموع 14 رقماً) أو 10 أرقام محلية" 
-            : "Phone must start with 00966 followed by 9 digits (14 total) or be 10 local digits";
+            ? "الرجاء اختيار مفتاح الدولة وإدخال 9 أرقام" 
+            : "Please select country code and enter 9 digits";
         }
       }
     });
 
-    if (!file) {
+    if (files.length === 0) {
       newErrors['file'] = isRTL ? "يرجى إرفاق السيرة الذاتية" : "Please attach your resume";
     }
 
@@ -220,8 +251,10 @@ const JobsPage = () => {
       
       submitData.append('data', JSON.stringify(dataObj));
 
-      if (file) {
-        submitData.append('files', file);
+      if (files.length > 0) {
+        files.forEach(f => {
+          submitData.append('files', f);
+        });
       }
 
       await submitContactFormAPI(submitData);
@@ -232,8 +265,8 @@ const JobsPage = () => {
       const resetForm = {};
       formFields.forEach(f => { resetForm[f.id] = ""; });
       setFormData(resetForm);
-      setFile(null);
-      setFileName("");
+      setFiles([]);
+      setFileNames([]);
       setErrors({});
       setIsApplyModalOpen(false);
     } catch (error) {
@@ -432,42 +465,36 @@ const JobsPage = () => {
                               placeholder=" " 
                             />
                           ) : (() => {
-                            const isEmail = field.description_en === 'email' || 
-                                            field.title_en?.toLowerCase().includes('email') || 
-                                            field.title_en?.toLowerCase().includes('mail') || 
-                                            field.title_ar?.includes('البريد') || 
-                                            field.title_ar?.includes('ايميل') ||
-                                            field.title_ar?.includes('عنوان');
+                            const tEn = field.title_en?.toLowerCase() || "";
+                            const tAr = field.title_ar || "";
+                            const isEmail = field.description_en === 'email' || tEn.includes('email') || tEn.includes('mail') || tAr.includes('البريد') || tAr.includes('ايميل');
+                            
+                            const isTel = (field.description_en === 'tel' || 
+                                          tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') ||
+                                          tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && 
+                                          !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
 
-                            const isTel = field.description_en === 'tel' || 
-                                          field.title_en?.toLowerCase().includes('phone') || 
-                                          field.title_en?.toLowerCase().includes('tel') || 
-                                          field.title_en?.toLowerCase().includes('mobile') ||
-                                          field.title_ar?.includes('هاتف') || 
-                                          field.title_ar?.includes('جوال') || 
-                                          field.title_ar?.includes('تلفون');
+                            if (isTel) {
+                              return (
+                                <PhoneInput 
+                                  id={`f-${field.id}`} 
+                                  label={isRTL ? field.title_ar : field.title_en}
+                                  value={formData[field.id] || ""}
+                                  onChange={(val) => handleInputChange(field.id, val)}
+                                  isRTL={isRTL}
+                                  hasError={hasError}
+                                />
+                              );
+                            }
 
                             return (
                               <input 
-                                type={isEmail ? "email" : (isTel ? "tel" : (field.description_en || "text"))} 
-                                id={`f-${field.id}`} 
+                                type={isEmail ? "email" : (field.description_en || "text")} 
+                                id={`f-${field.id}`}
                                 className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
                                 value={formData[field.id] || ""}
                                 onChange={(e) => handleInputChange(field.id, e.target.value)}
-                                placeholder=" " 
-                                onInput={(e) => {
-                                  if (isTel) {
-                                    let val = e.target.value.replace(/[^0-9+]/g, '');
-                                    if (val.startsWith('00966')) {
-                                      val = val.slice(0, 14);
-                                    } else if (val.startsWith('+966')) {
-                                      val = val.slice(0, 13);
-                                    } else {
-                                      val = val.slice(0, 10);
-                                    }
-                                    e.target.value = val;
-                                  }
-                                }}
+                                placeholder=" "
                               />
                             );
                           })()}
@@ -488,9 +515,17 @@ const JobsPage = () => {
                           <ChevronDown size={16} style={{position: 'absolute', [isRTL ? 'left' : 'right']: '1rem', top:'50%', transform:'translateY(-50%)', pointerEvents:'none', opacity:0.5}}/>
                         </>
                       )}
-                      <label htmlFor={`f-${field.id}`} className={styles.label}>
-                        {isRTL ? field.title_ar : field.title_en}
-                      </label>
+                      {!(() => {
+                        const tEn = field.title_en?.toLowerCase() || "";
+                        const tAr = field.title_ar || "";
+                        const isEmail = field.description_en === 'email' || tEn.includes('email') || tEn.includes('mail') || tAr.includes('البريد') || tAr.includes('ايميل');
+                        const isTel = (field.description_en === 'tel' || tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') || tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
+                        return isTel;
+                      })() && (
+                        <label htmlFor={`f-${field.id}`} className={styles.label}>
+                          {isRTL ? field.title_ar : field.title_en}
+                        </label>
+                      )}
                     </div>
                     {hasError && (
                       <span className={styles.errorMessage}>
@@ -516,16 +551,41 @@ const JobsPage = () => {
                   className={styles.fileInput} 
                   onChange={handleFileChange}
                   accept=".pdf,.doc,.docx"
+                  multiple
                 />
-                <div className={`${styles.fileDecor} ${fileName ? styles.fileSelected : ''} ${errors['file'] ? styles.inputError : ''}`}>
+                <div className={`${styles.fileDecor} ${fileNames.length > 0 ? styles.fileSelected : ''} ${errors['file'] ? styles.inputError : ''}`}>
                   <div className={styles.iconWrapper}>
-                    {fileName ? <CheckCircle2 size={32} /> : <UploadCloud size={32} />}
+                    {fileNames.length > 0 ? <CheckCircle2 size={32} /> : <UploadCloud size={32} />}
                   </div>
                   <span className={styles.fileName}>
-                    {fileName || (isRTL ? "ارفق السيرة الذاتية (PDF, DOC)" : "Attach Resume (PDF, DOC)")}
+                    {isRTL ? "ارفق السيرة الذاتية والمزيد (PDF, DOC)" : "Attach Resume & More (PDF, DOC)"}
                   </span>
                 </div>
               </div>
+
+              {fileNames.length > 0 && (
+                <div className={styles.fileList}>
+                  {fileNames.map((name, idx) => {
+                    const isPDF = name.toLowerCase().endsWith('.pdf');
+                    return (
+                      <div key={idx} className={styles.fileItem}>
+                        <div className={styles.fileIcon}>
+                          {isPDF ? <FileText size={20} /> : <File size={20} />}
+                        </div>
+                        <span className={styles.fileItemName}>{name}</span>
+                        <button 
+                          type="button" 
+                          className={styles.removeFile} 
+                          onClick={(e) => removeSpecificFile(e, idx)}
+                          title="Remove file"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {errors['file'] && (
                 <span className={styles.errorMessage}>
                   <Info size={14} /> {errors['file']}

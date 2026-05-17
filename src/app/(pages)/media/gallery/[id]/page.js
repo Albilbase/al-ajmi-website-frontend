@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
@@ -24,6 +25,11 @@ const SubGalleryPage = () => {
   const [category, setCategory] = useState(null);
   const [banner, setBanner] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const gallerySections = (sections || []).filter(section => section.section_key === 'gallery');
@@ -34,6 +40,15 @@ const SubGalleryPage = () => {
       setBanner(bannerItem);
     }
   }, [sections, id]);
+
+  useEffect(() => {
+    if (selectedImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [selectedImage]);
 
   if (storeLoading && (sections || []).length === 0) {
     return (
@@ -130,44 +145,45 @@ const SubGalleryPage = () => {
       </div>
 
       {/* Lightbox / Modal */}
-      <AnimatePresence>
-        {selectedImage && (
-          <motion.div
-            className={styles.modalOverlay}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedImage(null)}
-          >
-            <button 
-              className={styles.closeButton}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {selectedImage && (
+            <motion.div
+              className={styles.modalOverlay}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setSelectedImage(null)}
             >
-              <X size={24} />
-            </button>
+              <button 
+                className={styles.closeButton}
+                onClick={() => setSelectedImage(null)}
+              >
+                <X size={32} />
+              </button>
 
-            <motion.div
-              className={styles.modalContent}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()} 
-            >
-               <div style={{ position: 'relative', width: '100%', height: '80vh' }}>
-                <Image
-                    src={selectedImage}
-                    alt={title}
-                    fill
-                    className={styles.fullImage}
-                    sizes="90vw"
-                    priority
-                    unoptimized
-                />
-               </div>
+              <motion.div
+                className={styles.modalContent}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()} 
+              >
+                  <Image
+                      src={selectedImage}
+                      alt={title}
+                      fill
+                      className={styles.fullImage}
+                      sizes="(max-width: 1200px) 100vw, 1200px"
+                      priority
+                      unoptimized
+                  />
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };

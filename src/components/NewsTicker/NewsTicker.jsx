@@ -62,7 +62,7 @@ const NewsTicker = () => {
         );
 
         if (mediaSectionItem) {
-            router.push(`/media/${mediaSectionItem.id}`);
+            router.push(`/media/${mediaSectionItem.id}?source=news`);
         } else {
             console.warn("No matching media item found for title:", newsItem.title_en);
         }
