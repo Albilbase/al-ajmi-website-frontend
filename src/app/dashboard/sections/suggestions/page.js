@@ -970,7 +970,7 @@ export default function SuggestionsManager() {
                         transition: 'all 0.2s',
                         boxShadow: '0 2px 4px rgba(220, 20, 60, 0.15)',
                       }}
-                      title="Download File"
+                      title="View / Download File"
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#b01030';
                         e.currentTarget.style.transform = 'translateY(-2px)';
@@ -980,7 +980,7 @@ export default function SuggestionsManager() {
                         e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      <Download size={18} />
+                      <Eye size={18} />
                     </a>
                   </div>
                   
