@@ -8,7 +8,7 @@ import styles from './suppliers.module.css';
 
 import { submitContactFormAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
-import { validatePhone } from '@/lib/validation';
+import { validatePhone, validateEmail, sanitizeEmailInput } from '@/lib/validation';
 import PhoneInput from '@/components/PhoneInput/PhoneInput';
 
 const SuppliersPage = () => {
@@ -116,7 +116,7 @@ const SuppliersPage = () => {
         const isIBAN = tEn.includes('IBAN') || tAr.includes('دولي') || tAr.includes('ايبان') || tAr.includes('أيبان') || tAr.includes('iban');
         const isAccountOnly = (tEn.includes('account') || tAr.includes('حساب')) && !isIBAN && !isTel;
 
-        if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        if (isEmail && !validateEmail(value)) {
           newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
         }
         
@@ -390,10 +390,15 @@ const SuppliersPage = () => {
                                id={`field-${field.id}`}
                                className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
                                value={formData[field.id] || ""}
-                               onChange={(e) => handleInputChange(field.id, e.target.value)}
+                               onChange={(e) => handleInputChange(
+                                 field.id,
+                                 isEmail ? sanitizeEmailInput(e.target.value) : e.target.value
+                               )}
                                placeholder=" "
                                onInput={(e) => {
-                                 if (isIBAN) {
+                                 if (isEmail) {
+                                   e.target.value = sanitizeEmailInput(e.target.value);
+                                 } else if (isIBAN) {
                                    e.target.value = e.target.value.replace(/[^0-9a-zA-Z]/g, '').slice(0, 30);
                                  } else if (isAccountOnly) {
                                    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 20);

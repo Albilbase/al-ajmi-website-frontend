@@ -41,6 +41,7 @@ import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './contact-manager.module.css';
 import Modal from '../../_components/Modal/Modal';
 import ImageUpload from '../../_components/ImageUpload/ImageUpload';
+import CopyableCell, { EMAIL_COLUMN_HEADER_STYLE, TABLE_CELL_STYLE } from '../../_components/CopyableCell/CopyableCell';
 
 export default function ContactManager() {
   // CMS Store
@@ -950,7 +951,7 @@ export default function ContactManager() {
                   <thead>
                     <tr style={{ background: '#f8fafc' }}>
                       <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>ID</th>
-                      <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Email (Send To)</th>
+                      <th style={EMAIL_COLUMN_HEADER_STYLE}>Email (Send To)</th>
                       {reportColumns.map(col => (
                         <th key={col} style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', textTransform: 'capitalize', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>
                           {col.replace(/_/g, ' ')}
@@ -969,24 +970,19 @@ export default function ContactManager() {
                       }
                       return (
                         <tr key={report.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                          <td style={{ padding: '1rem', color: '#64748b' }}>{report.id}</td>
-                          <td 
-                            style={{ padding: '1rem', color: '#64748b', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                            title={report.send_to || '-'}
-                          >
-                            {report.send_to || '-'}
+                          <td style={TABLE_CELL_STYLE}>
+                            <CopyableCell value={report.id} dir="ltr" minWidth="60px" maxWidth="100px" />
+                          </td>
+                          <td style={TABLE_CELL_STYLE}>
+                            <CopyableCell value={report.send_to} dir="ltr" minWidth="220px" maxWidth="320px" />
                           </td>
                           {reportColumns.map(col => (
-                            <td 
-                              key={col} 
-                              style={{ padding: '1rem', color: '#64748b', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                              title={detailsObj?.[col] || '-'}
-                            >
-                              {detailsObj?.[col] || '-'}
+                            <td key={col} style={TABLE_CELL_STYLE}>
+                              <CopyableCell value={detailsObj?.[col]} />
                             </td>
                           ))}
-                          <td style={{ padding: '1rem', color: '#64748b', fontFamily: 'monospace' }}>
-                            {report.ip_address || '-'}
+                          <td style={TABLE_CELL_STYLE}>
+                            <CopyableCell value={report.ip_address} dir="ltr" monospace />
                           </td>
                           <td style={{ padding: '1rem', color: '#64748b' }}>
                             {report.attachments && report.attachments.length > 0 ? (
@@ -1022,8 +1018,11 @@ export default function ContactManager() {
                               <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>No files</span>
                             )}
                           </td>
-                          <td style={{ padding: '1rem', color: '#64748b' }}>
-                            {report.created_at ? new Date(report.created_at).toLocaleString('en-US') : '-'}
+                          <td style={TABLE_CELL_STYLE}>
+                            <CopyableCell
+                              value={report.created_at ? new Date(report.created_at).toLocaleString('en-US') : ''}
+                              dir="ltr"
+                            />
                           </td>
                         </tr>
                       );

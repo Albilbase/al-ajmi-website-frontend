@@ -30,6 +30,9 @@ import Modal from '../../_components/Modal/Modal';
 import { createSectionAPI, updateSectionAPI, deleteSectionAPI, getReportsAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
+import CopyableCell, { EMAIL_COLUMN_HEADER_STYLE, TABLE_CELL_STYLE } from '../../_components/CopyableCell/CopyableCell';
+import AttachmentsModal from '../../_components/AttachmentsModal/AttachmentsModal';
+import { isEmailColumnName } from '@/lib/fileUtils';
 
 
 export default function JobsManager() {
@@ -689,9 +692,9 @@ export default function JobsManager() {
                       <tr style={{ background: '#f8fafc' }}>
                         <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>ID</th>
                         <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Job Title (Type)</th>
-                        <th style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>Email (Send To)</th>
+                        <th style={EMAIL_COLUMN_HEADER_STYLE}>Email (Send To)</th>
                         {reportColumns.map(col => (
-                          <th key={col} style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', textTransform: 'capitalize', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0' }}>
+                          <th key={col} style={{ padding: '1rem', color: '#1e293b', fontWeight: '600', textTransform: 'capitalize', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1, borderBottom: '2px solid #e2e8f0', ...(isEmailColumnName(col) ? { minWidth: '280px' } : {}) }}>
                             {col.replace(/_/g, ' ')}
                           </th>
                         ))}
@@ -708,25 +711,29 @@ export default function JobsManager() {
                         }
                         return (
                           <tr key={report.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                            <td style={{ padding: '1rem', color: '#64748b' }}>{report.id}</td>
-                            <td style={{ padding: '1rem', color: '#64748b' }}>{report.type}</td>
-                            <td 
-                              style={{ padding: '1rem', color: '#64748b', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                              title={report.send_to || '-'}
-                            >
-                              {report.send_to || '-'}
+                            <td style={TABLE_CELL_STYLE}>
+                              <CopyableCell value={report.id} dir="ltr" minWidth="60px" maxWidth="100px" />
                             </td>
-                            {reportColumns.map(col => (
-                              <td 
-                                key={col} 
-                                style={{ padding: '1rem', color: '#64748b', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                                title={detailsObj?.[col] || '-'}
-                              >
-                                {detailsObj?.[col] || '-'}
+                            <td style={TABLE_CELL_STYLE}>
+                              <CopyableCell value={report.type} />
+                            </td>
+                            <td style={TABLE_CELL_STYLE}>
+                              <CopyableCell value={report.send_to} dir="ltr" minWidth="220px" maxWidth="320px" />
+                            </td>
+                            {reportColumns.map(col => {
+                              const cellValue = detailsObj?.[col];
+                              return (
+                              <td key={col} style={TABLE_CELL_STYLE}>
+                                <CopyableCell
+                                  value={cellValue}
+                                  dir={isEmailColumnName(col) ? 'ltr' : 'auto'}
+                                  minWidth={isEmailColumnName(col) ? '220px' : '120px'}
+                                  maxWidth={isEmailColumnName(col) ? '320px' : '280px'}
+                                />
                               </td>
-                            ))}
-                            <td style={{ padding: '1rem', color: '#64748b', fontFamily: 'monospace' }}>
-                              {report.ip_address || '-'}
+                            );})}
+                            <td style={TABLE_CELL_STYLE}>
+                              <CopyableCell value={report.ip_address} dir="ltr" monospace />
                             </td>
                             <td style={{ padding: '1rem', color: '#64748b' }}>
                               {report.attachments && report.attachments.length > 0 ? (
@@ -762,8 +769,11 @@ export default function JobsManager() {
                                 <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>No files</span>
                               )}
                             </td>
-                            <td style={{ padding: '1rem', color: '#64748b', whiteSpace: 'nowrap' }}>
-                              {report.created_at ? new Date(report.created_at).toLocaleString('en-US') : '-'}
+                            <td style={TABLE_CELL_STYLE}>
+                              <CopyableCell
+                                value={report.created_at ? new Date(report.created_at).toLocaleString('en-US') : ''}
+                                dir="ltr"
+                              />
                             </td>
                           </tr>
                         );
@@ -974,119 +984,13 @@ export default function JobsManager() {
         </div>
       </Modal>
 
-      {/* Attachments Preview & Download Modal */}
-      <Modal
+      <AttachmentsModal
         isOpen={!!selectedAttachments}
         onClose={() => setSelectedAttachments(null)}
-        title={`Attachments for Report #${selectedAttachments?.reportId}`}
-        footer={
-          <button 
-            onClick={() => setSelectedAttachments(null)} 
-            className={localStyles.saveButton || ''} 
-            style={{ width: '100%', background: '#f1f5f9', color: '#64748b', padding: '0.8rem 1.5rem', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer' }}
-          >
-            Close
-          </button>
-        }
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem 0' }}>
-          {selectedAttachments?.attachments && selectedAttachments.attachments.length > 0 ? (
-            selectedAttachments.attachments.map((file, index) => {
-              const fileUrl = `${BASE_URL}/${file.path}`;
-              const sizeInKb = file.size ? (file.size / 1024).toFixed(1) : null;
-              const isImage = file.mimetype && file.mimetype.startsWith('image/');
-              
-              return (
-                <div 
-                  key={index}
-                  style={{
-                    background: '#f8fafc',
-                    borderRadius: '16px',
-                    padding: '1.25rem',
-                    border: '1px solid #e2e8f0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1rem',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ 
-                        background: 'white', 
-                        padding: '0.75rem', 
-                        borderRadius: '12px', 
-                        border: '1px solid #e2e8f0',
-                        color: '#DC143C',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <FileText size={24} />
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <h4 style={{ margin: 0, fontWeight: '700', color: '#1e293b', wordBreak: 'break-all', fontSize: '0.95rem' }} title={file.originalname}>
-                          {file.originalname || file.filename}
-                        </h4>
-                        <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#64748b', display: 'flex', gap: '0.75rem' }}>
-                          {sizeInKb && <span>{sizeInKb} KB</span>}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <a 
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download={file.originalname}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: '#DC143C',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '10px',
-                        width: '40px',
-                        height: '40px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        boxShadow: '0 2px 4px rgba(220, 20, 60, 0.15)',
-                      }}
-                      title="View / Download File"
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#b01030';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#DC143C';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
-                    >
-                      <Eye size={18} />
-                    </a>
-                  </div>
-                  
-                  {isImage && (
-                    <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid #cbd5e1', background: '#f1f5f9' }}>
-                      <img 
-                        src={fileUrl} 
-                        alt={file.originalname} 
-                        style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', display: 'block' }}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
-              <FileText size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-              <p>No attachments found.</p>
-            </div>
-          )}
-        </div>
-      </Modal>
+        reportId={selectedAttachments?.reportId}
+        attachments={selectedAttachments?.attachments || []}
+        saveButtonClass={localStyles.saveButton}
+      />
     </div>
   );
 

@@ -29,6 +29,7 @@ import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 import { validateImage, validateVideo } from '@/lib/validation';
+import RichTextEditor, { stripHtml } from '../../../_components/RichTextEditor/RichTextEditor';
 
 const CustomCombobox = ({ value, options, onChange, placeholder, isRTL, hasError }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -157,7 +158,6 @@ export default function MediaManager() {
   // Local file states for uploads
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
-  const [mainImageFile, setMainImageFile] = useState(null);
   const [sliderImageFiles, setSliderImageFiles] = useState([]);
 
   const sliderImagesInputRef = useRef(null);
@@ -171,17 +171,15 @@ export default function MediaManager() {
 
   const isVideo = (url) => {
     if (!url) return false;
-    // Explicit check for videos added in this session via #video hash
     if (url.includes('#video')) return true;
-    
-    // Handle blob URLs created during this session (fallback)
-    if (url.startsWith('blob:')) {
-      const isActuallyVideo = url.toLowerCase().includes('video');
-      return isActuallyVideo;
-    }
-    const commonVideoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
+    if (url.startsWith('blob:')) return url.toLowerCase().includes('video');
     const pathPart = url.split('?')[0].toLowerCase();
-    return commonVideoExtensions.some(ext => pathPart.endsWith(ext));
+    return ['.mp4', '.webm', '.ogg', '.mov'].some((ext) => pathPart.endsWith(ext));
+  };
+
+  const getCardThumbnail = (images = []) => {
+    const firstImage = images.find((img) => !isVideo(img));
+    return firstImage ? getImageUrl(firstImage) : (images[0] ? getImageUrl(images[0]) : '');
   };
 
   // Fetch data on mount
@@ -201,10 +199,9 @@ export default function MediaManager() {
           const itemSections = mediaSections.filter(s => s.type === 'item');
           const mappedItems = itemSections.map(s => ({
             id: s.id,
-            image: getImageUrl(s.images?.[0]),
-            rawMainImage: s.images?.[0] || null,
-            sliderImages: s.images?.slice(1).map(img => getImageUrl(img)) || [],
-            rawSliderImages: s.images?.slice(1) || [],
+            image: getCardThumbnail(s.images || []),
+            sliderImages: (s.images || []).map((img) => getImageUrl(img)),
+            rawSliderImages: s.images || [],
             date: s.details?.date || "",
             tag_en: s.details?.tag_en || "",
             tag_ar: s.details?.tag_ar || "",
@@ -237,7 +234,6 @@ export default function MediaManager() {
 
   const handleEdit = (item) => {
     setCurrentItem(JSON.parse(JSON.stringify(item)));
-    setMainImageFile(null);
     setSliderImageFiles([]);
     setIsModalOpen(true);
   };
@@ -246,9 +242,8 @@ export default function MediaManager() {
     setCurrentItem({
       id: null,
       image: "",
-      rawMainImage: null,
       sliderImages: [],
-      rawSliderImages: [], // Added for deletion tracking
+      rawSliderImages: [],
       date: new Date().toISOString().split('T')[0],
       tag_en: "",
       tag_ar: "",
@@ -256,7 +251,6 @@ export default function MediaManager() {
       en: { title: "", description: "" },
       ar: { title: "", description: "" }
     });
-    setMainImageFile(null);
     setSliderImageFiles([]);
     setIsModalOpen(true);
   };
@@ -282,16 +276,16 @@ export default function MediaManager() {
     const errors = {};
     if (!currentItem.en.title) errors.item_title_en = true;
     if (!currentItem.ar.title) errors.item_title_ar = true;
-    if (!currentItem.en.description) errors.item_desc_en = true;
-    if (!currentItem.ar.description) errors.item_desc_ar = true;
-    // Tags are optional
-    // if (!currentItem.tag_en) errors.item_tag_en = true;
-    // if (!currentItem.tag_ar) errors.item_tag_ar = true;
-    if (!currentItem.id && !mainImageFile) errors.item_image = true;
+    if (!stripHtml(currentItem.en.description)) errors.item_desc_en = true;
+    if (!stripHtml(currentItem.ar.description)) errors.item_desc_ar = true;
+
+    const hasGallery =
+      (currentItem.sliderImages?.length || 0) > 0 || sliderImageFiles.length > 0;
+    if (!currentItem.id && !hasGallery) errors.item_slider = true;
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error("Please fill in all required fields and upload a cover image");
+      toast.error("Please fill in all required fields and add at least one gallery item");
       return;
     }
 
@@ -314,10 +308,6 @@ export default function MediaManager() {
       videoIframes: currentItem.videoIframes?.filter(link => link.trim() !== "") || []
     };
     formData.append('details', JSON.stringify(details));
-
-    if (mainImageFile) {
-      formData.append('images', mainImageFile);
-    }
 
     if (sliderImageFiles.length > 0) {
       sliderImageFiles.forEach(file => {
@@ -342,10 +332,9 @@ export default function MediaManager() {
       if (s) {
           const savedItem = {
             id: s.id,
-            image: getImageUrl(s.images?.[0]),
-            rawMainImage: s.images?.[0] || null,
-            sliderImages: s.images?.slice(1).map(img => getImageUrl(img)) || [],
-            rawSliderImages: s.images?.slice(1) || [],
+            image: getCardThumbnail(s.images || []),
+            sliderImages: (s.images || []).map((img) => getImageUrl(img)),
+            rawSliderImages: s.images || [],
             date: s.details?.date || "",
             tag_en: s.details?.tag_en || "",
             tag_ar: s.details?.tag_ar || "",
@@ -365,7 +354,6 @@ export default function MediaManager() {
             return { ...prev, items: newItems };
           });
       }
-      setMainImageFile(null);
       setSliderImageFiles([]);
       setIsModalOpen(false);
     } catch (error) {
@@ -383,41 +371,6 @@ export default function MediaManager() {
     if(formErrors[`item_${field}_${lang}`]) setFormErrors({...formErrors, [`item_${field}_${lang}`]: false});
   };
 
-
-  const removeMainImage = async () => {
-    if (!currentItem.image) return;
-    
-    if (mainImageFile || !currentItem.id) {
-      // Just local removal
-      setMainImageFile(null);
-      setCurrentItem(prev => ({...prev, image: ""}));
-      return;
-    }
-
-    const result = await confirmDelete('Delete Cover Image', 'Are you sure you want to delete the main cover photo?');
-    if (result.isConfirmed) {
-      try {
-        await deleteImageAPI(currentItem.id, currentItem.rawMainImage);
-        setCurrentItem(prev => ({...prev, image: "", rawMainImage: null}));
-        setMainImageFile(null);
-        
-        // Update main data
-        setData(prev => {
-          const idx = prev.items.findIndex(i => i.id === currentItem.id);
-          if (idx === -1) return prev;
-          const newItems = [...prev.items];
-          newItems[idx].image = "";
-          newItems[idx].rawMainImage = null;
-          return { ...prev, items: newItems };
-        });
-        
-        await refreshSections();
-        toast.success("Cover image deleted successfully");
-      } catch (error) {
-        toast.error("An error occurred while deleting the image");
-      }
-    }
-  };
 
   const handleSliderImagesUpload = (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -644,7 +597,7 @@ export default function MediaManager() {
                     <Calendar size={14} /> {item.date}
                   </div>
                   <div className={localStyles.cardTitle}>{item.en.title}</div>
-                  <div className={localStyles.cardDesc}>{item.en.description}</div>
+                  <div className={localStyles.cardDesc}>{stripHtml(item.en.description)}</div>
                 </div>
                 <div className={localStyles.cardActions}>
                   <button className={`${localStyles.actionBtn} ${localStyles.editBtn}`} onClick={() => handleEdit(item)}>
@@ -665,7 +618,8 @@ export default function MediaManager() {
         isOpen={isModalOpen && !!currentItem}
         onClose={() => setIsModalOpen(false)}
         title={!currentItem?.id ? 'Add Media Item' : 'Edit Media Item'}
-        maxWidth="1000px"
+        maxWidth="min(95vw, 1600px)"
+        maxHeight="95vh"
         footer={
           <>
             <button className={localStyles.cancelBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
@@ -762,7 +716,12 @@ export default function MediaManager() {
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.label}>Description</label>
-                  <textarea className={`${localStyles.textarea} ${formErrors.item_desc_en ? dashboardStyles.invalidInput : ''}`} rows={5} value={currentItem.en.description} onChange={(e) => updateField('en', 'description', e.target.value)} />
+                  <RichTextEditor
+                    value={currentItem.en.description}
+                    onChange={(val) => updateField('en', 'description', val)}
+                    hasError={!!formErrors.item_desc_en}
+                    placeholder="Write the article content in English..."
+                  />
                 </div>
               </div>
 
@@ -789,35 +748,20 @@ export default function MediaManager() {
                   />
                 </div>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.label}>Description</label>
-                  <textarea className={`${localStyles.textarea} ${formErrors.item_desc_ar ? dashboardStyles.invalidInput : ''}`} rows={5} value={currentItem.ar.description} onChange={(e) => updateField('ar', 'description', e.target.value)} />
+                  <label className={localStyles.label}>الوصف</label>
+                  <RichTextEditor
+                    value={currentItem.ar.description}
+                    onChange={(val) => updateField('ar', 'description', val)}
+                    isRTL
+                    hasError={!!formErrors.item_desc_ar}
+                    placeholder="اكتب محتوى المقال بالعربية..."
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Row 3: Image Management */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', paddingTop: '2rem', borderTop: '2px solid #f1f5f9' }}>
-              {/* Cover Image DropZone */}
-              <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
-                <label className={localStyles.label}>Main Cover Image</label>
-                <ImageUpload
-                  value={currentItem.image}
-                  mode="standard"
-                  height="220px"
-                  onChange={(file) => {
-                    setMainImageFile(file);
-                    setCurrentItem(prev => ({
-                      ...prev,
-                      image: URL.createObjectURL(file)
-                    }));
-                    if (formErrors.item_image) setFormErrors({ ...formErrors, item_image: false });
-                  }}
-                  onDelete={removeMainImage}
-                />
-                {formErrors.item_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-220px', height: '220px', pointerEvents: 'none', position: 'relative', zIndex: 10 }}></div>}
-              </div>
-
-              {/* Slider Gallery Management */}
+            {/* Gallery */}
+            <div style={{ paddingTop: '2rem', borderTop: '2px solid #f1f5f9' }}>
                <div className={localStyles.sliderManagement} style={{ marginTop: 0, paddingTop: 0, border: 'none' }}>
                 <label className={localStyles.label}>Gallery / Slider (Photos & Uploaded Videos)</label>
                 <div className={localStyles.sliderGrid} style={{ marginTop: '0.2rem' }}>
@@ -867,6 +811,11 @@ export default function MediaManager() {
                     />
                   </div>
                 </div>
+                {formErrors.item_slider && (
+                  <p style={{ color: '#DC143C', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                    Please add at least one photo or video to the gallery.
+                  </p>
+                )}
               </div>
             </div>
           </div>

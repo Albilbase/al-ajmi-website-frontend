@@ -177,11 +177,10 @@ const MediaDetailPage = () => {
               )}
             </div>
 
-            <div className={styles.description}>
-              {itemDesc?.split('\n').map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
+            <div
+              className={styles.description}
+              dangerouslySetInnerHTML={{ __html: sanitizeText(itemDesc || '') }}
+            />
 
             {/* Videos Section */}
             {(uploadedVideos.length > 0 || (currentMedia.details?.videoIframes && currentMedia.details.videoIframes.length > 0)) && (
@@ -209,10 +208,12 @@ const MediaDetailPage = () => {
               </div>
             )}
 
-            <Link href="/media" className={styles.backButton}>
-              {isRTL ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
-              <span>{isRTL ? 'العودة إلى الميديا' : 'Back to Media'}</span>
-            </Link>
+            {source !== 'news' && (
+              <Link href="/media" className={styles.backButton}>
+                {isRTL ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
+                <span>{isRTL ? 'العودة إلى الميديا' : 'Back to Media'}</span>
+              </Link>
+            )}
           </motion.div>
 
           {/* Right Side - Image Slider */}

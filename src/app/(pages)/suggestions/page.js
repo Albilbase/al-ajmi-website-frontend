@@ -8,7 +8,7 @@ import styles from './suggestions.module.css';
 
 import { submitContactFormAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
-import { validatePhone } from '@/lib/validation';
+import { validatePhone, validateEmail, sanitizeEmailInput } from '@/lib/validation';
 import PhoneInput from '@/components/PhoneInput/PhoneInput';
 
 const SuggestionsPage = () => {
@@ -176,7 +176,7 @@ const SuggestionsPage = () => {
                       tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && 
                       !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
 
-        if (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        if (isEmail && !validateEmail(value)) {
           newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
         }
         
@@ -351,7 +351,10 @@ const SuggestionsPage = () => {
                                id={`field-${field.id}`}
                                className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
                                value={formData[field.id] || ""}
-                               onChange={(e) => handleInputChange(field.id, e.target.value)}
+                               onChange={(e) => handleInputChange(
+                                 field.id,
+                                 isEmail ? sanitizeEmailInput(e.target.value) : e.target.value
+                               )}
                                placeholder=" "
                              />
                            );

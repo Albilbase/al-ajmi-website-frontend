@@ -18,8 +18,12 @@ export const sanitizeText = (text, options = {}) => {
   }
 
   return DOMPurify.sanitize(text, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'iframe'],
-    ALLOWED_ATTR: ['href', 'target', 'src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'title'],
+    ALLOWED_TAGS: [
+      'b', 'i', 'em', 'strong', 'u', 'a', 'p', 'br',
+      'ul', 'ol', 'li', 'span', 'iframe',
+      'h1', 'h2', 'h3', 'h4', 'blockquote',
+    ],
+    ALLOWED_ATTR: ['href', 'target', 'src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'title', 'class', 'style'],
     ...options
   });
 };

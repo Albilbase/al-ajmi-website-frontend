@@ -54,7 +54,9 @@ const PhoneInput = ({ value = '', onChange, isRTL, hasError, label, id }) => {
   };
 
   const handleNumberChange = (e) => {
-    const newVal = e.target.value.replace(/[^0-9]/g, '').slice(0, 9);
+    let newVal = e.target.value.replace(/[^0-9]/g, '');
+    // Country code is already selected — local number must not start with 0
+    newVal = newVal.replace(/^0+/, '').slice(0, 9);
     onChange(currentCountry.code + newVal);
   };
 

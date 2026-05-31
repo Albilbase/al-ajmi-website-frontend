@@ -77,14 +77,46 @@ export const validateVideo = (file, isRTL = false) => {
   };
 
 
+const PHONE_COUNTRY_CODES = [
+  '00966', '00971', '00965', '00974', '00973', '00968',
+  '00962', '0020', '00961', '00964', '0090', '001', '0044',
+];
+
 /**
- * Validates a Saudi phone number (10 digits local or international 00966/+966)
- * @param {string} value - The phone number string
- * @returns {boolean} - True if valid
+ * Validates phone: country code (dropdown) + exactly 9 digits, no leading zero
+ * @param {string} value - Full value e.g. 009665XXXXXXXX
+ * @returns {boolean}
  */
 export const validatePhone = (value) => {
   if (!value) return false;
-  const clean = value.replace(/[^0-9]/g, '');
-  // Simple check: most phone numbers (code + number) are between 7 and 15 digits
-  return clean.length >= 7 && clean.length <= 15;
+  const matchedCode = PHONE_COUNTRY_CODES.find((code) => value.startsWith(code));
+  if (!matchedCode) return false;
+  const numberPart = value.slice(matchedCode.length);
+  return /^[1-9][0-9]{8}$/.test(numberPart);
+};
+
+/**
+ * Keeps only ASCII letters, digits, @ and . for email input
+ */
+export const sanitizeEmailInput = (value) => {
+  return (value || '').replace(/[^a-zA-Z0-9@.]/g, '');
+};
+
+/** Allowed TLDs only — rejects fake endings like .xnpgba */
+const ALLOWED_EMAIL_TLDS = new Set([
+  'com', 'net', 'org', 'edu', 'gov', 'info', 'biz',
+  'sa', 'ae', 'kw', 'qa', 'bh', 'om', 'jo', 'eg', 'lb', 'iq',
+]);
+
+/**
+ * Valid email: Latin only, local@domain.tld with an allowed TLD (e.g. .com, .net, .sa)
+ */
+export const validateEmail = (value) => {
+  if (!value) return false;
+  const match = value.match(
+    /^[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*\.([a-zA-Z]{2,})$/
+  );
+  if (!match?.[1]) return false;
+  const tld = match[1].toLowerCase();
+  return ALLOWED_EMAIL_TLDS.has(tld);
 };

@@ -1,7 +1,7 @@
 .mediaDetailSection {
   min-height: 100vh;
   background: #f8f9fa;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Hero Banner */
@@ -144,6 +144,73 @@
 
 .description p {
   margin-bottom: 2.5rem;
+}
+
+.description strong,
+.description b {
+  font-weight: 700;
+}
+
+.description ul,
+.description ol {
+  margin: 0 0 1.5rem;
+  padding-inline-start: 1.5rem;
+}
+
+.description h1,
+.description h2,
+.description h3 {
+  margin: 0 0 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.description h1 {
+  font-size: 1.75rem;
+}
+
+.description h2 {
+  font-size: 1.35rem;
+}
+
+.description h3 {
+  font-size: 1.15rem;
+}
+
+.description blockquote {
+  margin: 0 0 2rem;
+  padding: 1rem 1.5rem;
+  border-inline-start: 4px solid var(--accent);
+  background: #fff1f2;
+  border-radius: 0 12px 12px 0;
+  color: #475569;
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
+.description code {
+  background: #f1f5f9;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.9em;
+  color: #DC143C;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.description hr {
+  margin: 2rem 0;
+  border: none;
+  border-top: 2px solid #e2e8f0;
+}
+
+.description s,
+.description del {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.description h3 {
+  font-size: 1.15rem;
 }
 
 .backButton {

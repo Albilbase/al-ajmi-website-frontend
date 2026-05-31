@@ -81,9 +81,15 @@ const MediaPage = () => {
         <div className={styles.grid}>
           {items.map((item, index) => {
             const itemTitle = isRTL ? item.title_ar : item.title_en;
-            const itemImage = item.images?.[0] 
-              ? getImageUrl(item.images[0]) 
-              : "/images/placeholder.png";
+            const firstPhoto = (item.images || []).find((img) => {
+              const path = (img || '').split('?')[0].toLowerCase();
+              return !['.mp4', '.webm', '.ogg', '.mov'].some((ext) => path.endsWith(ext));
+            });
+            const itemImage = firstPhoto
+              ? getImageUrl(firstPhoto)
+              : item.images?.[0]
+                ? getImageUrl(item.images[0])
+                : "/images/placeholder.png";
 
             return (
               <Link 
