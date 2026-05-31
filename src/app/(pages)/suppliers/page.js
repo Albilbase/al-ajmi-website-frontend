@@ -6,7 +6,7 @@ import { UploadCloud, CheckCircle2, ChevronDown, Loader2, Info, X, FileText, Fil
 import useCMSStore from '@/store/useCMSStore';
 import styles from './suppliers.module.css';
 
-import { submitContactFormAPI } from '@/lib/api';
+import { submitContactFormRaw } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { validatePhone, validateEmail, sanitizeEmailInput } from '@/lib/validation';
 import PhoneInput from '@/components/PhoneInput/PhoneInput';
@@ -252,11 +252,11 @@ const SuppliersPage = () => {
 
       if (files.length > 0) {
         files.forEach(f => {
-          submitData.append('files', f);
+          submitData.append('files', f, f.name);
         });
       }
 
-      await submitContactFormAPI(submitData);
+      await submitContactFormRaw(submitData);
       
       toast.success(isRTL ? "تم إرسال النموذج بنجاح!" : "Form submitted successfully!");
       

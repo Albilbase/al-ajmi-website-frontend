@@ -150,6 +150,24 @@ export const submitContactFormAPI = async (formData) => {
 };
 
 /**
+ * Submit Contact Form directly without FormData sanitization (preserves file names).
+ * @param {FormData} formData
+ */
+export const submitContactFormRaw = async (formData) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/api/contact`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Contact Form Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
  * Get All Reports
  */
 export const getReportsAPI = async () => {

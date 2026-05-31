@@ -51,6 +51,10 @@ export const sanitizeData = (data) => {
         } catch (e) {
           newData.append(key, sanitizeText(value));
         }
+      } else if (value instanceof File) {
+        newData.append(key, value, value.name);
+      } else if (value instanceof Blob) {
+        newData.append(key, value, value.name || 'file');
       } else {
         newData.append(key, value);
       }

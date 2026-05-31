@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FileText, Eye } from 'lucide-react';
+import { FileText, Eye, Download } from 'lucide-react';
 import Modal from '../Modal/Modal';
 import { BASE_URL } from '@/lib/api';
 import { getAttachmentDisplayName } from '@/lib/fileUtils';
@@ -13,6 +13,27 @@ export default function AttachmentsModal({
   attachments = [],
   saveButtonClass,
 }) {
+  const handleDownload = async (e, fileUrl, displayName) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(fileUrl);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = displayName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed, falling back to open:', error);
+      window.open(fileUrl, '_blank');
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -22,8 +43,25 @@ export default function AttachmentsModal({
         <button
           type="button"
           onClick={onClose}
-          className={saveButtonClass}
-          style={{ width: '100%', background: '#f1f5f9', color: '#64748b' }}
+          style={{
+            width: '100%',
+            padding: '0.85rem 1.75rem',
+            background: 'white',
+            border: '2px solid #e2e8f0',
+            color: '#64748b',
+            borderRadius: '10px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = '#cbd5e1';
+            e.currentTarget.style.background = '#f8fafc';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = '#e2e8f0';
+            e.currentTarget.style.background = 'white';
+          }}
         >
           Close
         </button>
@@ -86,26 +124,25 @@ export default function AttachmentsModal({
                     </div>
                   </div>
 
-                  <a
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={displayName}
+                  <button
+                    onClick={(e) => handleDownload(e, fileUrl, displayName)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       background: '#DC143C',
                       color: 'white',
+                      border: 'none',
                       borderRadius: '10px',
                       width: '40px',
                       height: '40px',
                       flexShrink: 0,
+                      cursor: 'pointer',
                     }}
                     title="View / Download File"
                   >
                     <Eye size={18} />
-                  </a>
+                  </button>
                 </div>
 
                 {isImage && (

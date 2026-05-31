@@ -29,7 +29,7 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 };
 
-import { submitContactFormAPI } from '@/lib/api';
+import { submitContactFormRaw } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { validatePhone, validateEmail, sanitizeEmailInput } from '@/lib/validation';
 import PhoneInput from '@/components/PhoneInput/PhoneInput';
@@ -253,11 +253,11 @@ const JobsPage = () => {
 
       if (files.length > 0) {
         files.forEach(f => {
-          submitData.append('files', f);
+          submitData.append('files', f, f.name);
         });
       }
 
-      await submitContactFormAPI(submitData);
+      await submitContactFormRaw(submitData);
 
       toast.success(isRTL ? "تم إرسال طلبك بنجاح!" : "Application sent successfully!");
       
