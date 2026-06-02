@@ -48,23 +48,15 @@
   margin: 0 auto;
 }
 
-.navContainer {
-  display: flex;
-  justify-content: flex-end;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 20px;
-  margin-bottom: -10px;
+.sliderOuter {
   position: relative;
-  z-index: 10;
-}
-
-.navControls {
-  display: flex;
-  gap: 12px;
 }
 
 .navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -79,10 +71,18 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
+.navLeft {
+  left: -5px;
+}
+
+.navRight {
+  right: -5px;
+}
+
 .navBtn:hover {
   background: var(--accent);
   color: white;
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.1);
   box-shadow: 0 8px 20px rgba(220, 20, 60, 0.25);
 }
 
@@ -319,7 +319,7 @@
     flex-direction: column;
     text-align: center;
   }
-  .navControls {
+  .navBtn {
     display: none;
   }
   .sliderItem {

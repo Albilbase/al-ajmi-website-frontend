@@ -6,6 +6,7 @@ import CompanyHistory from "@/components/CompanyHistory/CompanyHistory";
 import Projects from "@/components/Projects/Projects";
 import Awards from "@/components/Awards/Awards";
 import Partners from "@/components/Partners/Partners";
+import Videos from "@/components/Videos/Videos";
 import useCMSStore from "@/store/useCMSStore";
 import styles from "./page.module.css";
 
@@ -28,7 +29,7 @@ export default function Home() {
       <Projects homeData={homeData} />
       <Awards homeData={homeData} />
       <Partners homeData={homeData} />
-      {/* Other sections can go here */}
+      <Videos homeData={homeData} />
     </div>
   );
 }

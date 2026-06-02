@@ -263,32 +263,28 @@ const Awards = ({ homeData }) => {
           </motion.p>
         </div>
 
-        <div className={styles.navContainer}>
-          {/* Navigation Buttons Moved down */}
-          <div className={styles.navControls}>
-            <button 
-              className={styles.navBtn} 
-              onClick={() => scrollSlider(isAr ? 'next' : 'prev')}
-              aria-label="Previous"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <button 
-              className={styles.navBtn} 
-              onClick={() => scrollSlider(isAr ? 'prev' : 'next')}
-              aria-label="Next"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
-        </div>
+        <div className={styles.sliderOuter}>
+          <button 
+            className={`${styles.navBtn} ${styles.navLeft}`} 
+            onClick={() => scrollSlider(isAr ? 'next' : 'prev')}
+            aria-label="Previous"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <button 
+            className={`${styles.navBtn} ${styles.navRight}`} 
+            onClick={() => scrollSlider(isAr ? 'prev' : 'next')}
+            aria-label="Next"
+          >
+            <ChevronRight size={24} />
+          </button>
 
-        <div 
-          className={styles.sliderWrapper} 
-          ref={sliderRef}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
+          <div 
+            className={styles.sliderWrapper} 
+            ref={sliderRef}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
           <motion.div 
             className={styles.sliderTrack}
             ref={trackRef}
@@ -307,6 +303,7 @@ const Awards = ({ homeData }) => {
               </div>
             ))}
           </motion.div>
+        </div>
         </div>
       </div>
 

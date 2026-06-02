@@ -21,12 +21,11 @@
 
 .bgImage {
     position: absolute;
-    top: -20%; /* Increased top to allow more scroll range */
-    inset-inline-start: 0;
-    width: 110%; /* Slightly larger for parallax */
-    height: 140%; /* Taller to handle the fixed scroll movement */
+    inset: 0;
+    width: 100%;
+    height: 100%;
     z-index: 1;
-    pointer-events: none; /* Background shouldn't intercept clicks */
+    pointer-events: none;
 }
 
 .vignette {
@@ -95,70 +94,6 @@
     line-height: 1.8;
     margin-bottom: 3rem;
     max-width: 600px;
-}
-
-.btnGroup {
-    display: flex;
-    gap: 1.5rem;
-}
-
-/* Premium Main Button */
-.mainBtn {
-    position: relative;
-    padding: 1.2rem 3rem;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.1rem;
-    cursor: pointer;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btnContent {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.btnBg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--accent, #DC143C);
-    z-index: 1;
-    transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
-}
-
-.mainBtn:hover .btnBg {
-    transform: scaleX(0.95) scaleY(0.9);
-    background: #fff;
-}
-
-.mainBtn:hover {
-    color: var(--accent, #DC143C);
-}
-
-.outlineBtn {
-    padding: 1.2rem 3rem;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.outlineBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #fff;
 }
 
 /* Side Navigation */
@@ -272,24 +207,6 @@
     /* Autoplay progress animation */
 }
 
-/* Decorative Info */
-.yearLabel {
-    position: absolute;
-    top: 50%;
-    inset-inline-end: 4rem;
-    transform: translateY(-50%) rotate(90deg);
-    z-index: 20;
-}
-
-.yearLabel span {
-    color: rgba(255, 255, 255, 0.1);
-    font-size: 6rem;
-    font-weight: 900;
-    letter-spacing: 10px;
-    white-space: nowrap;
-    pointer-events: none;
-}
-
 .bottomDecor {
     position: absolute;
     bottom: 4rem; /* Moved up for ticker */
@@ -323,10 +240,6 @@
     width: 2px;
     height: 20px;
     background: var(--accent, #DC143C);
-}
-
-.flipIcon {
-    transform: rotate(180deg);
 }
 
 /* NEWS TICKER STYLES */
@@ -447,12 +360,6 @@
     .nextBtn {
         inset-inline-end: 1.5rem;
     }
-    .yearLabel {
-        inset-inline-end: 2rem;
-    }
-    .yearLabel span {
-        font-size: 4.5rem;
-    }
     .bottomDecor {
         inset-inline-end: 2.5rem;
         bottom: 3rem;
@@ -466,10 +373,8 @@
 }
 
 @media (max-width: 768px) {
-    .btnGroup { flex-direction: column; width: 100%; }
-    .mainBtn, .outlineBtn { width: 100%; }
-    .sideNav { display: none; } /* Hide side arrows on mobile for better space */
-    .paginationLayer { bottom: 4rem; } /* Higher up because of ticker */
+    .sideNav { display: none; }
+    .paginationLayer { bottom: 4rem; }
     .title { font-size: 2.8rem; }
     .description { font-size: 1rem; }
     .slideContainer { padding: 0 1.5rem; }

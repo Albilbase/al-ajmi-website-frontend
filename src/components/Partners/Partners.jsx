@@ -1,14 +1,16 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./Partners.module.css";
-
 
 const Partners = ({ homeData }) => {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
+  const sliderRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   const [partners, setPartners] = useState([]);
 
@@ -25,7 +27,6 @@ const Partners = ({ homeData }) => {
         }));
         setPartners(partnerData);
       } else {
-        // Fallback to static partners
         setPartners([
           { id: 1, src: "/images/partners/partner1.jpg", title: "Partner 1" },
           { id: 2, src: "/images/partners/partner2.jpg", title: "Partner 2" },
@@ -37,51 +38,94 @@ const Partners = ({ homeData }) => {
     }
   }, [homeData, isAr]);
 
-  // Repeat the partners to ensure seamless loop on all screen sizes
-  const duplicatedPartners = [...partners, ...partners, ...partners, ...partners];
+  const scrollSlider = (direction) => {
+    if (!sliderRef.current) return;
+    const scrollAmount = 280;
+    const currentScroll = sliderRef.current.scrollLeft;
+    const maxScroll = sliderRef.current.scrollWidth - sliderRef.current.offsetWidth;
+
+    let newScroll;
+    if (isAr) {
+      if (direction === 'next') {
+        newScroll = currentScroll - scrollAmount;
+        if (Math.abs(newScroll) > maxScroll + 50) newScroll = 0;
+      } else {
+        newScroll = currentScroll + scrollAmount;
+        if (newScroll > 50) newScroll = -maxScroll;
+      }
+    } else {
+      if (direction === 'next') {
+        newScroll = currentScroll + scrollAmount;
+        if (newScroll > maxScroll + 50) newScroll = 0;
+      } else {
+        newScroll = currentScroll - scrollAmount;
+        if (newScroll < -50) newScroll = maxScroll;
+      }
+    }
+
+    sliderRef.current.scrollTo({
+      left: newScroll,
+      behavior: 'smooth'
+    });
+  };
+
+  useEffect(() => {
+    if (!sliderRef.current || isPaused) return;
+    const interval = setInterval(() => scrollSlider('next'), 3500);
+    return () => clearInterval(interval);
+  }, [isPaused, isAr, partners]);
 
   return (
-    <section className={styles.partnersSection}>
+    <section className={styles.section}>
       <div className={styles.container}>
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className={styles.title}
-        >
-          {t("partners.title", "Our Partners")}
-        </motion.h2>
-
-        <div className={styles.sliderContainer} dir="ltr">
-          <motion.div
-            className={styles.track}
-            animate={{
-              x: ["0%", "-50%"],
-            }}
-            transition={{
-              x: {
-                repeat: Infinity,
-                repeatType: "loop",
-                duration: 20,
-                ease: "linear",
-              },
-            }}
+        <div className={styles.header}>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={styles.title}
           >
-            {duplicatedPartners.map((partner, index) => (
-              <div key={`${partner.id}-${index}`} className={styles.partnerLogo}>
-                <Image 
-                  src={partner.src} 
-                  alt={partner.title} 
-                  className={styles.image} 
-                  width={150}
-                  height={80}
-                  style={{ objectFit: 'contain' }}
-                  sizes="150px"
-                  unoptimized
-                />
-              </div>
-            ))}
-          </motion.div>
+            {t("partners.title", "Our Partners")}
+          </motion.h2>
+        </div>
+
+        <div className={styles.sliderOuter}>
+          <button className={`${styles.navBtn} ${styles.navLeft}`} onClick={() => scrollSlider(isAr ? 'next' : 'prev')}>
+            <ChevronLeft size={24} />
+          </button>
+          <button className={`${styles.navBtn} ${styles.navRight}`} onClick={() => scrollSlider(isAr ? 'prev' : 'next')}>
+            <ChevronRight size={24} />
+          </button>
+
+          <div 
+            className={styles.sliderWrapper} 
+            ref={sliderRef}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
+            <motion.div className={styles.sliderTrack}>
+              {partners.map((partner, index) => (
+                <motion.div
+                  key={partner.id || index}
+                  className={styles.partnerCard}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                >
+                  <div className={styles.logoWrapper}>
+                    <Image 
+                      src={partner.src} 
+                      alt={partner.title} 
+                      width={120}
+                      height={80}
+                      style={{ objectFit: 'contain' }}
+                      unoptimized
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </div>
     </section>

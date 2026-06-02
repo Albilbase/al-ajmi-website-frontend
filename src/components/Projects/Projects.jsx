@@ -112,21 +112,20 @@ const Projects = ({ homeData }) => {
           </motion.h2>
         </div>
 
-        <div className={styles.navControls}>
-          <button className={styles.navBtn} onClick={() => scrollSlider(isAr ? 'next' : 'prev')}>
+        <div className={styles.sliderOuter}>
+          <button className={`${styles.navBtn} ${styles.navLeft}`} onClick={() => scrollSlider(isAr ? 'next' : 'prev')}>
             <ChevronLeft size={24} />
           </button>
-          <button className={styles.navBtn} onClick={() => scrollSlider(isAr ? 'prev' : 'next')}>
+          <button className={`${styles.navBtn} ${styles.navRight}`} onClick={() => scrollSlider(isAr ? 'prev' : 'next')}>
             <ChevronRight size={24} />
           </button>
-        </div>
 
-        <div 
-          className={styles.sliderWrapper} 
-          ref={sliderRef}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
+          <div 
+            className={styles.sliderWrapper} 
+            ref={sliderRef}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
           <motion.div className={styles.sliderTrack} ref={trackRef}>
             {displayProjects.map((project, index) => (
               <Link key={project.id || index} href="/projects" className={styles.linkWrapper}>
@@ -160,6 +159,7 @@ const Projects = ({ homeData }) => {
               </Link>
             ))}
           </motion.div>
+        </div>
         </div>
       </div>
     </section>

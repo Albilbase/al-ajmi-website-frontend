@@ -11,7 +11,8 @@ import {
   ChevronRight,
   X,
   Layout,
-  Type
+  Type,
+  GripVertical
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import dashboardStyles from '../../../dashboard.module.css';
@@ -31,6 +32,9 @@ export default function HeroManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [orderChanged, setOrderChanged] = useState(false);
   
   // CMS Store
   const sections = useCMSStore((state) => state.sections);
@@ -41,8 +45,6 @@ export default function HeroManager() {
     title_ar: "",
     description_en: "",
     description_ar: "",
-    cta_en: "",
-    cta_ar: "",
     imageFile: null,
     imagePreview: null
   });
@@ -73,11 +75,10 @@ export default function HeroManager() {
               title_ar: s.title_ar,
               description_en: s.description_en,
               description_ar: s.description_ar,
-              cta_en: s.details?.cta_en || "",
-              cta_ar: s.details?.cta_ar || "",
               image: s.images && s.images.length > 0 ? `http://192.168.15.95:5000${s.images[s.images.length - 1]}` : null,
-              rawImage: s.images && s.images.length > 0 ? s.images[s.images.length - 1] : null
-            }));
+              rawImage: s.images && s.images.length > 0 ? s.images[s.images.length - 1] : null,
+              sort_order: s.sort_order || 999
+            })).sort((a, b) => a.sort_order - b.sort_order);
             setSlides(mappedSlides);
           }
         }
@@ -102,8 +103,6 @@ export default function HeroManager() {
     if (!currentSlide.title_ar) errors.title_ar = true;
     if (!currentSlide.description_en) errors.description_en = true;
     if (!currentSlide.description_ar) errors.description_ar = true;
-    if (!currentSlide.cta_en) errors.cta_en = true;
-    if (!currentSlide.cta_ar) errors.cta_ar = true;
     if (!currentSlide.image && !editorFile) errors.image = true;
 
     if (Object.keys(errors).length > 0) {
@@ -124,13 +123,7 @@ export default function HeroManager() {
     formData.append('section_key', 'home');
     formData.append('type', 'hero_slider');
     formData.append('is_active', 'true');
-    
-    // Details
-    const details = {
-      cta_en: currentSlide.cta_en,
-      cta_ar: currentSlide.cta_ar
-    };
-    formData.append('details', JSON.stringify(details));
+    formData.append('sort_order', (activeSlide + 1).toString());
 
     if (editorFile) {
         formData.append('images', editorFile);
@@ -237,8 +230,6 @@ export default function HeroManager() {
     if (!newSlide.title_ar) errors.new_title_ar = true;
     if (!newSlide.description_en) errors.new_description_en = true;
     if (!newSlide.description_ar) errors.new_description_ar = true;
-    if (!newSlide.cta_en) errors.new_cta_en = true;
-    if (!newSlide.cta_ar) errors.new_cta_ar = true;
     if (!newSlide.imageFile) errors.new_image = true;
 
     if (Object.keys(errors).length > 0) {
@@ -261,16 +252,10 @@ export default function HeroManager() {
     formData.append('section_key', 'home');
     formData.append('type', 'hero_slider');
     formData.append('test', '1');
+    formData.append('sort_order', (slides.length + 1).toString());
     
     // Images field (actual file)
     formData.append('images', newSlide.imageFile);
-    
-    // Details field for extra data like CTA
-    const details = {
-      cta_en: newSlide.cta_en,
-      cta_ar: newSlide.cta_ar
-    };
-    formData.append('details', JSON.stringify(details));
 
     try {
       const response = await createSectionAPI(formData);
@@ -296,8 +281,6 @@ export default function HeroManager() {
         title_ar: "",
         description_en: "",
         description_ar: "",
-        cta_en: "",
-        cta_ar: "",
         imageFile: null,
         imagePreview: null
       });
@@ -335,11 +318,59 @@ export default function HeroManager() {
     updatedSlides[activeSlide][field] = value;
     setSlides(updatedSlides);
     
-    // Fixed: Properly detect title_en vs title_en in formErrors
     if(formErrors[field]) {
        const newErrors = { ...formErrors };
        delete newErrors[field];
        setFormErrors(newErrors);
+    }
+  };
+
+  const handleDragStart = (index) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragEnd = async () => {
+    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+      const updatedSlides = [...slides];
+      const [moved] = updatedSlides.splice(draggedIndex, 1);
+      updatedSlides.splice(dragOverIndex, 0, moved);
+      setSlides(updatedSlides);
+      setActiveSlide(dragOverIndex);
+      setOrderChanged(true);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const saveOrder = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i];
+        const formData = new FormData();
+        formData.append('title_en', slide.title_en);
+        formData.append('title_ar', slide.title_ar);
+        formData.append('description_en', slide.description_en);
+        formData.append('description_ar', slide.description_ar);
+        formData.append('section_key', 'home');
+        formData.append('type', 'hero_slider');
+        formData.append('is_active', 'true');
+        formData.append('sort_order', (i + 1).toString());
+        await updateSectionAPI(slide.id, formData);
+      }
+      await refreshSections();
+      toast.success('Slide order saved');
+      setOrderChanged(false);
+    } catch (error) {
+      toast.error('Failed to save order');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -351,6 +382,11 @@ export default function HeroManager() {
           <p className={dashboardStyles.sectionSubtitle}>Manage the main slides on your index page.</p>
         </div>
         <div className={localStyles.headerActions}>
+          {orderChanged && (
+            <button className={localStyles.saveOrderButton} onClick={saveOrder} disabled={isSubmitting}>
+              <Layout size={20} /> {isSubmitting ? 'Saving...' : 'Save Order'}
+            </button>
+          )}
           <button className={localStyles.saveButton} onClick={handleSaveChanges} disabled={isSubmitting}>
             <Save size={20} /> {isSubmitting ? 'Saving...' : 'Save Changes'}
           </button>
@@ -375,8 +411,16 @@ export default function HeroManager() {
               <div 
                 key={slide.id}
                 onClick={() => setActiveSlide(index)}
-                className={`${localStyles.slideItem} ${activeSlide === index ? localStyles.slideItemActive : localStyles.slideItemNormal}`}
+                className={`${localStyles.slideItem} ${activeSlide === index ? localStyles.slideItemActive : localStyles.slideItemNormal} ${dragOverIndex === index ? localStyles.dragOver : ''}`}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                onDragEnter={(e) => e.preventDefault()}
               >
+                <span className={localStyles.dragHandle} onMouseDown={(e) => e.stopPropagation()}>
+                  <GripVertical size={16} />
+                </span>
                 <div className={localStyles.slideThumb}>
                    <img src={slide.image} alt="" />
                 </div>
@@ -428,15 +472,6 @@ export default function HeroManager() {
                         className={`${localStyles.textareaField} ${formErrors.description_en ? dashboardStyles.invalidInput : ''}`}
                       />
                     </div>
-                    <div className={localStyles.inputGroup}>
-                      <label className={localStyles.fieldLabel}>Primary Button Text (EN)</label>
-                      <input 
-                        type="text" 
-                        value={slides[activeSlide]?.cta_en || ""}
-                        onChange={(e) => updateActiveSlide('cta_en', e.target.value)}
-                        className={`${localStyles.inputField} ${formErrors.cta_en ? dashboardStyles.invalidInput : ''}`}
-                      />
-                    </div>
                 </div>
 
                 {/* Arabic Section */}
@@ -462,15 +497,6 @@ export default function HeroManager() {
                         value={slides[activeSlide]?.description_ar || ""}
                         onChange={(e) => updateActiveSlide('description_ar', e.target.value)}
                         className={`${localStyles.textareaField} ${formErrors.description_ar ? dashboardStyles.invalidInput : ''}`}
-                      />
-                    </div>
-                    <div dir="rtl" className={localStyles.inputGroup}>
-                      <label className={localStyles.fieldLabel}>CTA Button Text (AR)</label>
-                      <input 
-                        type="text" 
-                        value={slides[activeSlide]?.cta_ar || ""}
-                        onChange={(e) => updateActiveSlide('cta_ar', e.target.value)}
-                        className={`${localStyles.inputField} ${formErrors.cta_ar ? dashboardStyles.invalidInput : ''}`}
                       />
                     </div>
                 </div>
@@ -589,41 +615,6 @@ export default function HeroManager() {
                 }
               }}
               className={`${localStyles.textareaField} ${formErrors.new_description_ar ? dashboardStyles.invalidInput : ''}`}
-            />
-          </div>
-        </div>
-
-        <div className={localStyles.formGrid}>
-          <div className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>CTA (EN)</label>
-            <input 
-              type="text" 
-              value={newSlide.cta_en}
-              onChange={(e) => {
-                setNewSlide({...newSlide, cta_en: e.target.value});
-                if(formErrors.new_cta_en) {
-                   const newErrors = { ...formErrors };
-                   delete newErrors.new_cta_en;
-                   setFormErrors(newErrors);
-                }
-              }}
-              className={`${localStyles.inputField} ${formErrors.new_cta_en ? dashboardStyles.invalidInput : ''}`}
-            />
-          </div>
-          <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>CTA (AR)</label>
-            <input 
-              type="text" 
-              value={newSlide.cta_ar}
-              onChange={(e) => {
-                setNewSlide({...newSlide, cta_ar: e.target.value});
-                if(formErrors.new_cta_ar) {
-                   const newErrors = { ...formErrors };
-                   delete newErrors.new_cta_ar;
-                   setFormErrors(newErrors);
-                }
-              }}
-              className={`${localStyles.inputField} ${formErrors.new_cta_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>

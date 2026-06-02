@@ -167,6 +167,7 @@ export default function DashboardLayout({ children }) {
       { name: 'Projects Section', path: '/dashboard/sections/home/projects' },
       { name: 'Awards', path: '/dashboard/sections/home/awards' },
       { name: 'Partners', path: '/dashboard/sections/home/partners' },
+      { name: 'Videos', path: '/dashboard/sections/home/videos' },
       { name: 'News Ticker', path: '/dashboard/sections/home/news-ticker' },
     ],
     company: [

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Navigation, Pagination, Parallax } from 'swiper/modules';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import 'swiper/css';
@@ -23,7 +23,8 @@ const Hero = ({ homeData }) => {
         if (homeData) {
             const sliderItems = homeData.filter(item => item.type === 'hero_slider' && item.is_active);
             if (sliderItems.length > 0) {
-                setApiSlides(sliderItems);
+                const sorted = [...sliderItems].sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999));
+                setApiSlides(sorted);
             }
         }
     }, [homeData]);
@@ -150,28 +151,7 @@ const Hero = ({ homeData }) => {
                                                         {isAr ? (slide.description_ar || slide.description) : (slide.description_en || slide.description)}
                                                     </motion.p>
 
-                                                    <motion.div 
-                                                        variants={{
-                                                            hidden: { opacity: 0, scale: 0.9 },
-                                                            visible: { opacity: 1, scale: 1 }
-                                                        }}
-                                                        transition={{ duration: 0.5, delay: 0.4 }}
-                                                        className={styles.btnGroup}
-                                                    >
-                                                        <button className={styles.mainBtn}>
-                                                            <span className={styles.btnContent}>
-                                                                {apiSlides.length > 0 
-                                                                    ? (isAr ? slide.details?.cta_ar : slide.details?.cta_en) 
-                                                                    : slide.cta}
-                                                                <ArrowRight size={20} className={isAr ? styles.flipIcon : ''} />
-                                                            </span>
-                                                            <div className={styles.btnBg} />
-                                                        </button>
-                                                        
-                                                        <button className={styles.outlineBtn}>
-                                                            <span>{isAr ? 'اكتشف المزيد' : 'Discover More'}</span>
-                                                        </button>
-                                                    </motion.div>
+
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
@@ -193,9 +173,6 @@ const Hero = ({ homeData }) => {
                     <div className={styles.paginationWrapper}></div>
                 </div>
 
-                <div className={styles.yearLabel}>
-                    <span>EST. 1980</span>
-                </div>
             </Swiper>
 
             <div className={styles.bottomDecor}>
