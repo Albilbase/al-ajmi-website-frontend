@@ -671,9 +671,9 @@ export default function HseManager() {
                        <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('principles', idx, 'ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`principles_${idx}_ar`] ? dashboardStyles.invalidInput : ''}`} />
                      </div>
                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                       <button onClick={() => saveListItem('principles', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                          <Save size={18} color="#22c55e" />
-                       </button>
+                        <button onClick={() => saveListItem('principles', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                           <Save size={16} color="#22c55e" /> حفظ واعتماد
+                        </button>
                        <button onClick={() => removeListItem('principles', item.id, idx)} className={localStyles.removeBtn}>
                           <Trash2 size={18} />
                        </button>
@@ -735,9 +735,9 @@ export default function HseManager() {
                        <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('statement', idx, 'ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`statement_${idx}_ar`] ? dashboardStyles.invalidInput : ''}`} />
                      </div>
                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                       <button onClick={() => saveListItem('statement', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                          <Save size={18} color="#22c55e" />
-                       </button>
+                        <button onClick={() => saveListItem('statement', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                           <Save size={16} color="#22c55e" /> حفظ واعتماد
+                        </button>
                        <button onClick={() => removeListItem('statement', item.id, idx)} className={localStyles.removeBtn}>
                           <Trash2 size={18} />
                        </button>
@@ -799,9 +799,9 @@ export default function HseManager() {
                        <textarea rows="3" value={item.ar} onChange={(e) => updateListItem('responsibility', idx, 'ar', e.target.value)} className={`${localStyles.textareaField} ${formErrors[`responsibility_${idx}_ar`] ? dashboardStyles.invalidInput : ''}`} />
                      </div>
                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                       <button onClick={() => saveListItem('responsibility', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                          <Save size={18} color="#22c55e" />
-                       </button>
+                        <button onClick={() => saveListItem('responsibility', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                           <Save size={16} color="#22c55e" /> حفظ واعتماد
+                        </button>
                        <button onClick={() => removeListItem('responsibility', item.id, idx)} className={localStyles.removeBtn}>
                           <Trash2 size={18} />
                        </button>

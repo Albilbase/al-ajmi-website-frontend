@@ -31,27 +31,28 @@ const WhyAjamiPage = () => {
 
   const [whyAjamiData, setWhyAjamiData] = useState({
     hero: null,
-    intro: null,
-    petroleum: null,
+    contentSections: [],
     expertiseHeader: null,
     expertiseItems: [],
     offices: null
   });
 
+  const RESERVED_TYPES = ['hero', 'expertise_header', 'expertise_item', 'offices'];
+
   useEffect(() => {
     const whyAjamiSections = (sections || []).filter(section => section.section_key === 'why_ajami');
     if (whyAjamiSections.length > 0) {
       const hero = whyAjamiSections.find(item => item.type === 'hero' && item.is_active);
-      const intro = whyAjamiSections.find(item => item.type === 'intro' && item.is_active);
-      const petroleum = whyAjamiSections.find(item => item.type === 'petroleum' && item.is_active);
       const expertiseHeader = whyAjamiSections.find(item => item.type === 'expertise_header' && item.is_active);
       const expertiseItems = whyAjamiSections.filter(item => item.type === 'expertise_item' && item.is_active);
       const offices = whyAjamiSections.find(item => item.type === 'offices' && item.is_active);
-      
+      const contentSections = whyAjamiSections
+        .filter(item => !RESERVED_TYPES.includes(item.type) && item.is_active)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
       setWhyAjamiData({
         hero,
-        intro,
-        petroleum,
+        contentSections,
         expertiseHeader,
         expertiseItems,
         offices
@@ -62,14 +63,6 @@ const WhyAjamiPage = () => {
   const heroBgImage = whyAjamiData.hero?.images && whyAjamiData.hero.images.length > 0
     ? `url('http://192.168.15.95:5000${whyAjamiData.hero.images[0]}')`
     : "url('/images/whyajami/WhatsApp Image 2026-01-08 at 12.03.08 PM.jpeg')";
-
-  const introImage = whyAjamiData.intro?.images && whyAjamiData.intro.images.length > 0
-    ? `http://192.168.15.95:5000${whyAjamiData.intro.images[0]}`
-    : "/images/whyajami/WhatsApp Image 2026-01-14 at 8.25.15 AM (2).jpeg";
-
-  const petroleumImage = whyAjamiData.petroleum?.images && whyAjamiData.petroleum.images.length > 0
-    ? `http://192.168.15.95:5000${whyAjamiData.petroleum.images[0]}`
-    : "/images/whyajami/e1e855e9-b768-4f96-93e3-0e32c1de20f3.jpeg";
 
   const expertiseList = whyAjamiData.expertiseItems.length > 0
     ? whyAjamiData.expertiseItems
@@ -103,70 +96,73 @@ const WhyAjamiPage = () => {
       </div>
 
       <div className={styles.container}>
-        {/* Intro Section - Split Layout */}
-        <motion.section 
-          className={styles.section}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={fadeInUp}
-        >
-          <div className={styles.textContent}>
-            <h2>
-              {whyAjamiData.intro 
-                ? (isAr ? whyAjamiData.intro.title_ar : whyAjamiData.intro.title_en)
-                : t('whyAjamiPage.intro.title')}
-            </h2>
-            <p>
-              {whyAjamiData.intro 
-                ? (isAr ? whyAjamiData.intro.description_ar : whyAjamiData.intro.description_en)
-                : t('whyAjamiPage.intro.text')}
-            </p>
-          </div>
-          <div className={styles.imageWrapper}>
-            <Image 
-              src={introImage} 
-              alt="Transport Fleet" 
-              fill
-              className={styles.image}
-              sizes="(max-width: 768px) 100vw, 600px"
-              priority
-              unoptimized={whyAjamiData.intro?.images && whyAjamiData.intro.images.length > 0}
-            />
-          </div>
-        </motion.section>
+        {/* Dynamic Content Sections */}
+        {whyAjamiData.contentSections.map((section, index) => {
+          const imagePosition = section.details?.image_position || 'left';
+          const sectionImage = section.images?.[0]
+            ? `http://192.168.15.95:5000${section.images[0]}`
+            : null;
+          const swapOrder = isAr ? imagePosition === 'right' : imagePosition === 'left';
 
-        {/* Petroleum Section - Inverted Layout */}
-        <motion.section 
-          className={styles.section}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={fadeInUp}
-        >
-          <div className={`${styles.imageWrapper} ${isAr ? styles.orderLast : ''}`}>
-            <Image 
-              src={petroleumImage} 
-              alt="Petroleum Services" 
-              fill
-              className={styles.image}
-              sizes="(max-width: 768px) 100vw, 600px"
-              unoptimized={whyAjamiData.petroleum?.images && whyAjamiData.petroleum.images.length > 0}
-            />
-          </div>
-          <div className={styles.textContent}>
-            <h2>
-              {whyAjamiData.petroleum 
-                ? (isAr ? whyAjamiData.petroleum.title_ar : whyAjamiData.petroleum.title_en)
-                : t('whyAjamiPage.petroleum.title')}
-            </h2>
-            <p>
-              {whyAjamiData.petroleum 
-                ? (isAr ? whyAjamiData.petroleum.description_ar : whyAjamiData.petroleum.description_en)
-                : t('whyAjamiPage.petroleum.text')}
-            </p>
-          </div>
-        </motion.section>
+          return (
+            <motion.section
+              key={section.id || index}
+              className={styles.section}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={fadeInUp}
+            >
+              {swapOrder ? (
+                <>
+                  <div className={styles.imageWrapper}>
+                    {sectionImage && (
+                      <Image
+                        src={sectionImage}
+                        alt={isAr ? section.title_ar : section.title_en}
+                        fill
+                        className={styles.image}
+                        sizes="(max-width: 768px) 100vw, 600px"
+                        unoptimized
+                      />
+                    )}
+                  </div>
+                  <div className={styles.textContent}>
+                    <h2>
+                      {isAr ? section.title_ar : section.title_en}
+                    </h2>
+                    <p>
+                      {isAr ? section.description_ar : section.description_en}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={styles.textContent}>
+                    <h2>
+                      {isAr ? section.title_ar : section.title_en}
+                    </h2>
+                    <p>
+                      {isAr ? section.description_ar : section.description_en}
+                    </p>
+                  </div>
+                  <div className={styles.imageWrapper}>
+                    {sectionImage && (
+                      <Image
+                        src={sectionImage}
+                        alt={isAr ? section.title_ar : section.title_en}
+                        fill
+                        className={styles.image}
+                        sizes="(max-width: 768px) 100vw, 600px"
+                        unoptimized
+                      />
+                    )}
+                  </div>
+                </>
+              )}
+            </motion.section>
+          );
+        })}
 
         {/* Expertise Grid */}
         <div className={styles.expertiseSection}>

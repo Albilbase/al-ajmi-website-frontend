@@ -239,6 +239,129 @@
 
 /* Modal Base Styles removed in favor of reusable Modal component */
 
+.dynamicSectionCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.dynamicSectionCard:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.dynamicSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.dynamicSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.dynamicSectionActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.orderInputGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orderLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.orderInput {
+  width: 60px;
+  padding: 0.4rem 0.5rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.orderInput:focus {
+  border-color: #DC143C;
+}
+
+/* Hide number input spinners for cleaner look */
+.orderInput::-webkit-inner-spin-button,
+.orderInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.orderInput[type=number] {
+  -moz-appearance: textfield;
+}
+
+.saveBtn {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.saveBtn:hover {
+  background: #dcfce7;
+}
+
+.positionToggle {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.posBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #64748b;
+  transition: all 0.2s;
+  flex: 1;
+  justify-content: center;
+}
+
+.posBtn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.posBtnActive {
+  border-color: #DC143C;
+  background: rgba(220, 20, 60, 0.05);
+  color: #DC143C;
+}
+
 .cancelBtn {
   padding: 0.75rem 1.5rem;
   border-radius: 10px;

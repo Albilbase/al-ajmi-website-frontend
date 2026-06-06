@@ -3,15 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Save, 
-  Image as ImageIcon, 
   Plus, 
   Trash2, 
   Truck, 
-  Droplet, 
   Layout, 
   MapPin,
   Settings,
-  X
+  GripVertical
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -22,6 +20,9 @@ import Modal from '../../../_components/Modal/Modal';
 import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { confirmDelete } from '@/lib/sweetalert';
 
+const RESERVED_TYPES = ['hero', 'expertise_header', 'expertise_item', 'offices'];
+
+let nextLocalId = 1;
 
 export default function WhyAjamiManager() {
   const [loading, setLoading] = useState(true);
@@ -38,23 +39,7 @@ export default function WhyAjamiManager() {
       subtitle_ar: "",
       bgImage: null
     },
-    intro: {
-      id: null,
-      title_en: "",
-      title_ar: "",
-      text_en: "",
-      text_ar: "",
-      image: null
-    },
-    petroleum: {
-      id: null,
-      title_en: "",
-      title_ar: "",
-      text_en: "",
-      text_ar: "",
-      image: null,
-      rawImage: null
-    },
+    contentSections: [],
     expertise: {
       id: null,
       title_en: "",
@@ -72,15 +57,9 @@ export default function WhyAjamiManager() {
     }
   });
 
-  // Image states
+  // Image states for hero
   const [heroImageFile, setHeroImageFile] = useState(null);
   const [heroImagePreview, setHeroImagePreview] = useState(null);
-  
-  const [introImageFile, setIntroImageFile] = useState(null);
-  const [introImagePreview, setIntroImagePreview] = useState(null);
-
-  const [petroleumImageFile, setPetroleumImageFile] = useState(null);
-  const [petroleumImagePreview, setPetroleumImagePreview] = useState(null);
 
   const [newItem, setNewItem] = useState({ en: "", ar: "" });
 
@@ -91,7 +70,6 @@ export default function WhyAjamiManager() {
     return `http://192.168.15.95:5000${cleanPath}`;
   };
 
-  // Fetch all data on mount
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -99,8 +77,7 @@ export default function WhyAjamiManager() {
         const response = await getAllSectionsAPI();
         if (response.status === 200 && response.data) {
           const whySections = response.data.filter(s => s.section_key === 'why_ajami');
-          
-          // 1. Hero
+
           const hero = whySections.find(s => s.type === 'hero');
           if (hero) {
             setContent(prev => ({
@@ -117,41 +94,24 @@ export default function WhyAjamiManager() {
             }));
           }
 
-          // 2. Intro
-          const intro = whySections.find(s => s.type === 'intro');
-          if (intro) {
-            setContent(prev => ({
-              ...prev,
-              intro: {
-                id: intro.id,
-                title_en: intro.title_en || "",
-                title_ar: intro.title_ar || "",
-                text_en: intro.description_en || "",
-                text_ar: intro.description_ar || "",
-                image: getImageUrl(intro.images?.[0]),
-                rawImage: intro.images?.[0] || null
-              }
+          const dynamicSections = whySections
+            .filter(s => !RESERVED_TYPES.includes(s.type))
+            .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+            .map(s => ({
+              localId: ++nextLocalId,
+              id: s.id,
+              title_en: s.title_en || "",
+              title_ar: s.title_ar || "",
+              text_en: s.description_en || "",
+              text_ar: s.description_ar || "",
+              image: getImageUrl(s.images?.[0]),
+              rawImage: s.images?.[0] || null,
+              imagePosition: s.details?.image_position || 'left',
+              sort_order: s.sort_order || 0
             }));
-          }
 
-          // 4. Petroleum
-          const petroleum = whySections.find(s => s.type === 'petroleum');
-          if (petroleum) {
-            setContent(prev => ({
-              ...prev,
-              petroleum: {
-                id: petroleum.id,
-                title_en: petroleum.title_en || "",
-                title_ar: petroleum.title_ar || "",
-                text_en: petroleum.description_en || "",
-                text_ar: petroleum.description_ar || "",
-                image: getImageUrl(petroleum.images?.[0]),
-                rawImage: petroleum.images?.[0] || null
-              }
-            }));
-          }
+          setContent(prev => ({ ...prev, contentSections: dynamicSections }));
 
-          // 5. Expertise Header
           const expertiseHeader = whySections.find(s => s.type === 'expertise_header');
           const expertiseItems = whySections.filter(s => s.type === 'expertise_item');
           setContent(prev => ({
@@ -166,7 +126,6 @@ export default function WhyAjamiManager() {
             }
           }));
 
-          // 6. Offices
           const offices = whySections.find(s => s.type === 'offices');
           if (offices) {
             setContent(prev => ({
@@ -201,25 +160,22 @@ export default function WhyAjamiManager() {
     }));
   };
 
+  const handleContentSectionUpdate = (localId, field, value) => {
+    setContent(prev => ({
+      ...prev,
+      contentSections: prev.contentSections.map(s =>
+        s.localId === localId ? { ...s, [field]: value } : s
+      )
+    }));
+  };
+
   const removeImage = async (section) => {
-    // Local preview removal
     if (section === 'hero' && heroImageFile) {
       setHeroImageFile(null);
       setHeroImagePreview(null);
       return;
     }
-    if (section === 'intro' && introImageFile) {
-      setIntroImageFile(null);
-      setIntroImagePreview(null);
-      return;
-    }
-    if (section === 'petroleum' && petroleumImageFile) {
-      setPetroleumImageFile(null);
-      setPetroleumImagePreview(null);
-      return;
-    }
 
-    // Server image removal
     let targetId = null;
     let targetImage = null;
     let targetRawImage = null;
@@ -228,27 +184,17 @@ export default function WhyAjamiManager() {
       targetId = content.hero.id;
       targetImage = content.hero.bgImage;
       targetRawImage = content.hero.rawImage;
-    } else if (section === 'intro') {
-      targetId = content.intro.id;
-      targetImage = content.intro.image;
-      targetRawImage = content.intro.rawImage;
-    } else if (section === 'petroleum') {
-      targetId = content.petroleum.id;
-      targetImage = content.petroleum.image;
-      targetRawImage = content.petroleum.rawImage;
     }
 
     if (targetId && targetImage) {
       const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف الصورة نهائياً من السيرفر؟');
       if (result.isConfirmed) {
-
         try {
           const rawPath = targetRawImage || targetImage.replace('http://192.168.15.95:5000', '');
           await deleteImageAPI(targetId, rawPath);
-          
           setContent(prev => ({
             ...prev,
-            [section]: { ...prev[section], [section === 'hero' ? 'bgImage' : 'image']: null, rawImage: null }
+            hero: { ...prev.hero, bgImage: null, rawImage: null }
           }));
           toast.success("تم حذف الصورة");
         } catch (e) {
@@ -256,6 +202,143 @@ export default function WhyAjamiManager() {
           toast.error("فشل حذف الصورة");
         }
       }
+    }
+  };
+
+  const removeContentSectionImage = async (localId) => {
+    const section = content.contentSections.find(s => s.localId === localId);
+    if (!section) return;
+
+    if (!section.id) {
+      handleContentSectionUpdate(localId, 'image', null);
+      handleContentSectionUpdate(localId, 'rawImage', null);
+      return;
+    }
+
+    const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف الصورة نهائياً من السيرفر؟');
+    if (result.isConfirmed) {
+      try {
+        const rawPath = section.rawImage || section.image.replace('http://192.168.15.95:5000', '');
+        await deleteImageAPI(section.id, rawPath);
+        handleContentSectionUpdate(localId, 'image', null);
+        handleContentSectionUpdate(localId, 'rawImage', null);
+        toast.success("تم حذف الصورة");
+      } catch (e) {
+        console.error(e);
+        toast.error("فشل حذف الصورة");
+      }
+    }
+  };
+
+  const addContentSection = () => {
+    const maxOrder = content.contentSections.reduce((max, s) => Math.max(max, s.sort_order || 0), 0);
+    setContent(prev => ({
+      ...prev,
+      contentSections: [
+        ...prev.contentSections,
+        {
+          localId: ++nextLocalId,
+          id: null,
+          title_en: "",
+          title_ar: "",
+          text_en: "",
+          text_ar: "",
+          image: null,
+          rawImage: null,
+          imagePosition: 'left',
+          sort_order: maxOrder + 1,
+          imageFile: null,
+          imagePreview: null
+        }
+      ]
+    }));
+  };
+
+  const removeContentSection = async (localId) => {
+    const section = content.contentSections.find(s => s.localId === localId);
+    if (!section) return;
+
+    if (section.id) {
+      const result = await confirmDelete('حذف القسم', 'هل أنت متأكد من حذف هذا القسم؟');
+      if (!result.isConfirmed) return;
+      try {
+        await deleteSectionAPI(section.id);
+        toast.success("تم حذف القسم");
+      } catch (error) {
+        toast.error("حدث خطأ أثناء الحذف");
+        return;
+      }
+    }
+
+    setContent(prev => ({
+      ...prev,
+      contentSections: prev.contentSections.filter(s => s.localId !== localId)
+    }));
+  };
+
+  const saveContentSection = async (localId) => {
+    const section = content.contentSections.find(s => s.localId === localId);
+    if (!section) return;
+
+    const errors = {};
+    if (!section.title_en) errors.content_title_en = true;
+    if (!section.title_ar) errors.content_title_ar = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error("يرجى إدخال عنوان القسم");
+      return;
+    }
+
+    setFormErrors({});
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('section_key', 'why_ajami');
+    formData.append('type', 'content_section');
+    formData.append('title_en', section.title_en);
+    formData.append('title_ar', section.title_ar);
+    formData.append('description_en', section.text_en);
+    formData.append('description_ar', section.text_ar);
+    formData.append('sort_order', String(section.sort_order || 0));
+    formData.append('is_active', 'true');
+    formData.append('details', JSON.stringify({ image_position: section.imagePosition }));
+
+    if (section.imageFile) {
+      formData.append('images', section.imageFile);
+    }
+
+    try {
+      let response;
+      if (section.id) {
+        response = await updateSectionAPI(section.id, formData);
+      } else {
+        response = await createSectionAPI(formData);
+      }
+
+      if (response && response.data) {
+        setContent(prev => ({
+          ...prev,
+          contentSections: prev.contentSections.map(s =>
+            s.localId === localId
+              ? {
+                  ...s,
+                  id: response.data.id,
+                  image: getImageUrl(response.data.images?.[0]),
+                  rawImage: response.data.images?.[0] || s.rawImage,
+                  imageFile: null,
+                  imagePreview: null
+                }
+              : s
+          )
+        }));
+      }
+
+      toast.success("تم حفظ القسم بنجاح");
+    } catch (error) {
+      console.error(error);
+      toast.error("حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -292,8 +375,7 @@ export default function WhyAjamiManager() {
       } else {
         response = await createSectionAPI(formData);
       }
-      
-      // Update state with new data from server to reflect image immediately
+
       if (response && response.data) {
         setContent(prev => ({
           ...prev,
@@ -312,120 +394,6 @@ export default function WhyAjamiManager() {
     } catch (error) {
       console.error(error);
       toast.error("حدث خطأ أثناء حفظ البانر");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSaveIntro = async () => {
-    const errors = {};
-    if (!content.intro.title_en) errors.intro_title_en = true;
-    if (!content.intro.title_ar) errors.intro_title_ar = true;
-
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      toast.error("يرجى إدخال عنوان الإمكانيات");
-      return;
-    }
-
-    setFormErrors({});
-    setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append('section_key', 'why_ajami');
-    formData.append('type', 'intro');
-    formData.append('title_en', content.intro.title_en);
-    formData.append('title_ar', content.intro.title_ar);
-    formData.append('description_en', content.intro.text_en);
-    formData.append('description_ar', content.intro.text_ar);
-    formData.append('is_active', 'true');
-
-    if (introImageFile) {
-      formData.append('images', introImageFile);
-    }
-
-    try {
-      let response;
-      if (content.intro.id) {
-        response = await updateSectionAPI(content.intro.id, formData);
-      } else {
-        response = await createSectionAPI(formData);
-      }
-
-      if (response && response.data) {
-        setContent(prev => ({
-          ...prev,
-          intro: {
-            ...prev.intro,
-            id: response.data.id,
-            image: getImageUrl(response.data.images?.[0]),
-            rawImage: response.data.images?.[0] || prev.intro.rawImage
-          }
-        }));
-      }
-
-      toast.success("تم حفظ قسم الإمكانيات بنجاح");
-      setIntroImageFile(null);
-      setIntroImagePreview(null);
-    } catch (error) {
-       console.error(error);
-      toast.error("حدث خطأ أثناء حفظ الإمكانيات");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSavePetroleum = async () => {
-    const errors = {};
-    if (!content.petroleum.title_en) errors.petro_title_en = true;
-    if (!content.petroleum.title_ar) errors.petro_title_ar = true;
-
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      toast.error("يرجى إدخال عنوان البترول");
-      return;
-    }
-
-    setFormErrors({});
-    setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append('section_key', 'why_ajami');
-    formData.append('type', 'petroleum');
-    formData.append('title_en', content.petroleum.title_en);
-    formData.append('title_ar', content.petroleum.title_ar);
-    formData.append('description_en', content.petroleum.text_en);
-    formData.append('description_ar', content.petroleum.text_ar);
-    formData.append('is_active', 'true');
-
-    if (petroleumImageFile) {
-      formData.append('images', petroleumImageFile);
-    }
-
-    try {
-      let response;
-      if (content.petroleum.id) {
-        response = await updateSectionAPI(content.petroleum.id, formData);
-      } else {
-        response = await createSectionAPI(formData);
-      }
-
-      if (response && response.data) {
-        setContent(prev => ({
-          ...prev,
-          petroleum: {
-            ...prev.petroleum,
-            id: response.data.id,
-            image: getImageUrl(response.data.images?.[0]),
-            rawImage: response.data.images?.[0] || prev.petroleum.rawImage
-          }
-        }));
-      }
-
-      toast.success("تم حفظ قسم البترول بنجاح");
-      setPetroleumImageFile(null);
-      setPetroleumImagePreview(null);
-    } catch (error) {
-      console.error(error);
-      toast.error("حدث خطأ أثناء حفظ البترول");
     } finally {
       setIsSubmitting(false);
     }
@@ -526,12 +494,12 @@ export default function WhyAjamiManager() {
     try {
       const response = await createSectionAPI(formData);
       const addedItem = { id: response.data.id, en: newItem.en, ar: newItem.ar };
-      
+
       setContent(prev => ({
         ...prev,
         expertise: { ...prev.expertise, list: [...prev.expertise.list, addedItem] }
       }));
-      
+
       toast.success("تمت الإضافة بنجاح");
       setIsModalOpen(false);
       setNewItem({ en: "", ar: "" });
@@ -547,7 +515,6 @@ export default function WhyAjamiManager() {
 
     const result = await confirmDelete();
     if (result.isConfirmed) {
-
       try {
         await deleteSectionAPI(id);
         const newList = content.expertise.list.filter((_, i) => i !== index);
@@ -617,7 +584,7 @@ export default function WhyAjamiManager() {
       <div className={localStyles.header}>
         <div>
           <h2 className={dashboardStyles.sectionTitle}>Why Al-Ajmi Management</h2>
-          <p className={dashboardStyles.sectionSubtitle}>Manage the unique selling points, transport fleet, and petroleum services.</p>
+          <p className={dashboardStyles.sectionSubtitle}>Manage hero, dynamic content sections, expertise grid, and offices.</p>
         </div>
       </div>
 
@@ -668,96 +635,109 @@ export default function WhyAjamiManager() {
             </div>
         </div>
 
-        {/* Integrated Capabilities & Transport */}
+        {/* Dynamic Content Sections */}
         <div className={dashboardStyles.contentCard}>
            <div className={localStyles.cardHeader}>
               <div className={localStyles.cardHeaderLeft}>
                 <Truck size={20} color="#DC143C" />
-                <h3 className={localStyles.cardTitle}>Capabilities & Transport Fleet</h3>
+                <h3 className={localStyles.cardTitle}>Content Sections</h3>
               </div>
-              <button onClick={handleSaveIntro} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Intro'}
+              <button onClick={addContentSection} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Plus size={16} /> Add Section
               </button>
            </div>
-           <div className={localStyles.formGrid}>
-              <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Intro Title (EN)</label>
-                <input value={content.intro.title_en} onChange={(e) => handleUpdate('intro', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.intro_title_en ? dashboardStyles.invalidInput : ''}`} />
-              </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>عنوان المقدمة (AR)</label>
-                <input value={content.intro.title_ar} onChange={(e) => handleUpdate('intro', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.intro_title_ar ? dashboardStyles.invalidInput : ''}`} />
-              </div>
-           </div>
-           <div className={localStyles.formGrid}>
-              <div className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>Fleet Description (EN)</label>
-                 <textarea rows="4" value={content.intro.text_en} onChange={(e) => handleUpdate('intro', 'text_en', e.target.value)} className={localStyles.textareaField} />
-              </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>وصف الأسطول (AR)</label>
-                 <textarea rows="4" value={content.intro.text_ar} onChange={(e) => handleUpdate('intro', 'text_ar', e.target.value)} className={localStyles.textareaField} />
-              </div>
-           </div>
-            <div className={localStyles.inputGroup}>
-               <label className={localStyles.fieldLabel}>Fleet Image</label>
-               <ImageUpload 
-                 value={introImagePreview || content.intro.image}
-                 mode="standard"
-                 height="200px"
-                 onChange={(file) => {
-                   setIntroImageFile(file);
-                   setIntroImagePreview(URL.createObjectURL(file));
-                 }}
-                 onDelete={() => removeImage('intro')}
-               />
-            </div>
-        </div>
 
-        {/* Petroleum Services */}
-        <div className={dashboardStyles.contentCard}>
-           <div className={localStyles.cardHeader}>
-              <div className={localStyles.cardHeaderLeft}>
-                <Droplet size={20} color="#DC143C" />
-                <h3 className={localStyles.cardTitle}>Petroleum Services Division</h3>
-              </div>
-              <button onClick={handleSavePetroleum} disabled={isSubmitting} className={localStyles.saveButton} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-                <Save size={16} /> {isSubmitting ? 'Saving...' : 'Save Petroleum'}
-              </button>
-           </div>
-           <div className={localStyles.formGrid}>
-              <div className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>Section Title (EN)</label>
-                <input value={content.petroleum.title_en} onChange={(e) => handleUpdate('petroleum', 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.petro_title_en ? dashboardStyles.invalidInput : ''}`} />
-              </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                <label className={localStyles.fieldLabel}>عنوان القسم (AR)</label>
-                <input value={content.petroleum.title_ar} onChange={(e) => handleUpdate('petroleum', 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.petro_title_ar ? dashboardStyles.invalidInput : ''}`} />
-              </div>
-           </div>
-           <div className={localStyles.formGrid}>
-              <div className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>Petroleum Text (EN)</label>
-                 <textarea rows="4" value={content.petroleum.text_en} onChange={(e) => handleUpdate('petroleum', 'text_en', e.target.value)} className={localStyles.textareaField} />
-              </div>
-              <div dir="rtl" className={localStyles.inputGroup}>
-                 <label className={localStyles.fieldLabel}>نص الخدمات البترولية (AR)</label>
-                 <textarea rows="4" value={content.petroleum.text_ar} onChange={(e) => handleUpdate('petroleum', 'text_ar', e.target.value)} className={localStyles.textareaField} />
-              </div>
-           </div>
-            <div className={localStyles.inputGroup}>
-               <label className={localStyles.fieldLabel}>Petroleum Image</label>
-               <ImageUpload 
-                 value={petroleumImagePreview || content.petroleum.image}
-                 mode="standard"
-                 height="200px"
-                 onChange={(file) => {
-                   setPetroleumImageFile(file);
-                   setPetroleumImagePreview(URL.createObjectURL(file));
-                 }}
-                 onDelete={() => removeImage('petroleum')}
-               />
-            </div>
+           {content.contentSections.length === 0 && (
+             <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>
+               No content sections yet. Click "Add Section" to create one.
+             </p>
+           )}
+
+           {content.contentSections.map((section, index) => (
+             <div key={section.localId} className={localStyles.dynamicSectionCard}>
+               <div className={localStyles.dynamicSectionHeader}>
+                 <div className={localStyles.dynamicSectionTitle}>
+                   <GripVertical size={18} color="#94a3b8" />
+                   <span>Section {index + 1}{section.title_en ? `: ${section.title_en}` : ''}</span>
+                 </div>
+                 <div className={localStyles.dynamicSectionActions}>
+                   <div className={localStyles.orderInputGroup}>
+                     <label className={localStyles.orderLabel}>Order</label>
+                     <input
+                       type="number"
+                       min="0"
+                       value={section.sort_order}
+                       onChange={(e) => handleContentSectionUpdate(section.localId, 'sort_order', parseInt(e.target.value) || 0)}
+                       className={localStyles.orderInput}
+                     />
+                   </div>
+                   <button onClick={() => saveContentSection(section.localId)} disabled={isSubmitting} className={localStyles.saveBtn}>
+                     <Save size={16} /> حفظ واعتماد
+                   </button>
+                   <button onClick={() => removeContentSection(section.localId)} className={localStyles.removeBtn}>
+                     <Trash2 size={16} />
+                   </button>
+                 </div>
+               </div>
+
+               <div className={localStyles.formGrid}>
+                 <div className={localStyles.inputGroup}>
+                   <label className={localStyles.fieldLabel}>Title (EN)</label>
+                   <input value={section.title_en} onChange={(e) => handleContentSectionUpdate(section.localId, 'title_en', e.target.value)} className={`${localStyles.inputField} ${formErrors.content_title_en ? dashboardStyles.invalidInput : ''}`} />
+                 </div>
+                 <div dir="rtl" className={localStyles.inputGroup}>
+                   <label className={localStyles.fieldLabel}>العنوان (AR)</label>
+                   <input value={section.title_ar} onChange={(e) => handleContentSectionUpdate(section.localId, 'title_ar', e.target.value)} className={`${localStyles.inputField} ${formErrors.content_title_ar ? dashboardStyles.invalidInput : ''}`} />
+                 </div>
+               </div>
+
+               <div className={localStyles.formGrid}>
+                 <div className={localStyles.inputGroup}>
+                   <label className={localStyles.fieldLabel}>Description (EN)</label>
+                   <textarea rows="4" value={section.text_en} onChange={(e) => handleContentSectionUpdate(section.localId, 'text_en', e.target.value)} className={localStyles.textareaField} />
+                 </div>
+                 <div dir="rtl" className={localStyles.inputGroup}>
+                   <label className={localStyles.fieldLabel}>الوصف (AR)</label>
+                   <textarea rows="4" value={section.text_ar} onChange={(e) => handleContentSectionUpdate(section.localId, 'text_ar', e.target.value)} className={localStyles.textareaField} />
+                 </div>
+               </div>
+
+               <div className={localStyles.formGrid}>
+                 <div className={localStyles.inputGroup}>
+                   <label className={localStyles.fieldLabel}>Image</label>
+                   <ImageUpload 
+                     value={section.imagePreview || section.image}
+                     mode="standard"
+                     height="200px"
+                     onChange={(file) => {
+                       handleContentSectionUpdate(section.localId, 'imageFile', file);
+                       handleContentSectionUpdate(section.localId, 'imagePreview', URL.createObjectURL(file));
+                     }}
+                     onDelete={() => removeContentSectionImage(section.localId)}
+                   />
+                 </div>
+                 <div className={localStyles.inputGroup}>
+                   <label className={localStyles.fieldLabel}>Image Position</label>
+                   <div className={localStyles.positionToggle}>
+                     <button
+                       type="button"
+                       className={`${localStyles.posBtn} ${section.imagePosition === 'left' ? localStyles.posBtnActive : ''}`}
+                       onClick={() => handleContentSectionUpdate(section.localId, 'imagePosition', 'left')}
+                     >
+                       Image Left
+                     </button>
+                     <button
+                       type="button"
+                       className={`${localStyles.posBtn} ${section.imagePosition === 'right' ? localStyles.posBtnActive : ''}`}
+                       onClick={() => handleContentSectionUpdate(section.localId, 'imagePosition', 'right')}
+                     >
+                       Image Right
+                     </button>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           ))}
         </div>
 
         {/* Expertise Grid Management */}
@@ -785,7 +765,7 @@ export default function WhyAjamiManager() {
                 </button>
               </div>
            </div>
-           
+
            <div className={localStyles.formGrid}>
               <div className={localStyles.inputGroup}>
                 <label className={localStyles.fieldLabel}>Section Title (EN)</label>
@@ -847,9 +827,9 @@ export default function WhyAjamiManager() {
                        />
                      </div>
                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                       <button onClick={() => saveListItem(idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                          <Save size={18} color="#22c55e" />
-                       </button>
+                        <button onClick={() => saveListItem(idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                           <Save size={16} color="#22c55e" /> حفظ واعتماد
+                        </button>
                        <button onClick={() => removeExpertiseItem(item.id, idx)} className={localStyles.removeBtn}>
                           <Trash2 size={18} />
                        </button>
@@ -894,7 +874,6 @@ export default function WhyAjamiManager() {
         </div>
       </div>
 
-      {/* Reusable Modal Implementation */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

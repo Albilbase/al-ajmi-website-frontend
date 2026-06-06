@@ -750,9 +750,9 @@ export default function VisionManager() {
                          <textarea rows="2" value={item.ar} onChange={(e) => updateListItem('vision', '', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => saveListItem('vision', '', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                           <Save size={18} color="#22c55e" />
-                        </button>
+                         <button onClick={() => saveListItem('vision', '', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                            <Save size={16} color="#22c55e" /> حفظ واعتماد
+                         </button>
                         <button onClick={() => removeListItem('vision', '', item.id, idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
                       </div>
                    </div>
@@ -846,9 +846,9 @@ export default function VisionManager() {
                          <textarea rows="2" value={item.ar} onChange={(e) => updateListItem('values', 'transparency', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => saveListItem('values', 'transparency', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                           <Save size={18} color="#22c55e" />
-                        </button>
+                         <button onClick={() => saveListItem('values', 'transparency', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                            <Save size={16} color="#22c55e" /> حفظ واعتماد
+                         </button>
                         <button onClick={() => removeListItem('values', 'transparency', item.id, idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
                       </div>
                    </div>
@@ -875,9 +875,9 @@ export default function VisionManager() {
                          <textarea rows="2" value={item.ar} onChange={(e) => updateListItem('values', 'responsibility', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => saveListItem('values', 'responsibility', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                           <Save size={18} color="#22c55e" />
-                        </button>
+                         <button onClick={() => saveListItem('values', 'responsibility', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                            <Save size={16} color="#22c55e" /> حفظ واعتماد
+                         </button>
                         <button onClick={() => removeListItem('values', 'responsibility', item.id, idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
                       </div>
                    </div>
@@ -904,9 +904,9 @@ export default function VisionManager() {
                          <textarea rows="2" value={item.ar} onChange={(e) => updateListItem('values', 'profitability', idx, 'ar', e.target.value)} className={localStyles.textareaField} />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => saveListItem('values', 'profitability', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                           <Save size={18} color="#22c55e" />
-                        </button>
+                         <button onClick={() => saveListItem('values', 'profitability', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                            <Save size={16} color="#22c55e" /> حفظ واعتماد
+                         </button>
                         <button onClick={() => removeListItem('values', 'profitability', item.id, idx)} className={localStyles.removeBtn}><Trash2 size={18} /></button>
                       </div>
                    </div>

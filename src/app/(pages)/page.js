@@ -25,11 +25,12 @@ export default function Home() {
     <div className={styles.container}>
       <Hero homeData={homeData} />
       <CompanyHistory homeData={homeData} />
+      <Videos homeData={homeData} />
       <Services homeData={homeData} />
       <Projects homeData={homeData} />
       <Awards homeData={homeData} />
       <Partners homeData={homeData} />
-      <Videos homeData={homeData} />
+      
     </div>
   );
 }

@@ -882,9 +882,9 @@ export default function AboutManager() {
                         />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => saveListItem('certificates', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                           <Save size={18} color="#22c55e" />
-                        </button>
+                         <button onClick={() => saveListItem('certificates', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                            <Save size={16} color="#22c55e" /> حفظ واعتماد
+                         </button>
                         <button onClick={() => removeListItem('certificates', cert.id, idx)} className={localStyles.removeBtn}>
                            <Trash2 size={18} />
                         </button>
@@ -980,9 +980,9 @@ export default function AboutManager() {
                         />
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => saveListItem('partners', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                           <Save size={18} color="#22c55e" />
-                        </button>
+                         <button onClick={() => saveListItem('partners', idx)} className={localStyles.saveBtn} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem' }}>
+                            <Save size={16} color="#22c55e" /> حفظ واعتماد
+                         </button>
                         <button onClick={() => removeListItem('partners', partner.id, idx)} className={localStyles.removeBtn}>
                            <Trash2 size={18} />
                         </button>

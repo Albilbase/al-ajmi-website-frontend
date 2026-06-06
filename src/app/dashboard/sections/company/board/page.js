@@ -532,15 +532,15 @@ export default function BoardManager() {
                           <button 
                              onClick={() => saveMember(idx)}
                              className={`${localStyles.actionBtn}`}
-                             style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
-                          >
-                            <Save size={18} color="#22c55e" />
-                          </button>
-                          <button 
-                             onClick={() => removeMember(member.id, idx)}
-                             className={`${localStyles.actionBtn} ${localStyles.deleteBtn}`}
-                          >
-                            <Trash2 size={18} />
+                              style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '8px 12px', fontSize: '0.8rem' }}
+                           >
+                             <Save size={16} color="#22c55e" /> حفظ واعتماد
+                           </button>
+                           <button 
+                              onClick={() => removeMember(member.id, idx)}
+                              className={`${localStyles.actionBtn} ${localStyles.deleteBtn}`}
+                           >
+                             <Trash2 size={18} />
                           </button>
                         </div>
                      </div>
