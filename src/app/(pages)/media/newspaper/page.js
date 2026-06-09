@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
@@ -25,6 +26,20 @@ const NewspaperPage = () => {
   });
   const [selectedItem, setSelectedItem] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (selectedItem) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [selectedItem]);
 
   useEffect(() => {
     const newspaperSections = (sections || []).filter(section => section.section_key === 'newspaper');
@@ -114,97 +129,100 @@ const NewspaperPage = () => {
       </div>
 
       {/* Lightbox / Modal */}
-      <AnimatePresence>
-        {selectedItem && (
-          <motion.div
-            className={styles.modalOverlay}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedItem(null)}
-          >
-            <button 
-              className={styles.closeButton}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {selectedItem && (
+            <motion.div
+              className={styles.modalOverlay}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setSelectedItem(null)}
             >
-              <X size={24} />
-            </button>
+              <button 
+                className={styles.closeButton}
+                onClick={() => setSelectedItem(null)}
+              >
+                <X size={24} />
+              </button>
 
-            <motion.div
-              className={styles.modalBody}
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className={styles.modalImageContainer}>
-                {selectedItem.images && selectedItem.images.length > 1 && (
-                  <>
-                    <button 
-                      className={`${styles.navButton} ${styles.prevBtn}`}
-                      onClick={() => setCurrentImageIndex(prev => prev === 0 ? selectedItem.images.length - 1 : prev - 1)}
+              <motion.div
+                className={styles.modalBody}
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className={styles.modalImageContainer}>
+                  {selectedItem.images && selectedItem.images.length > 1 && (
+                    <>
+                      <button 
+                        className={`${styles.navButton} ${styles.prevBtn}`}
+                        onClick={() => setCurrentImageIndex(prev => prev === 0 ? selectedItem.images.length - 1 : prev - 1)}
+                      >
+                        <ChevronLeft size={24} />
+                      </button>
+                      <button 
+                        className={`${styles.navButton} ${styles.nextBtn}`}
+                        onClick={() => setCurrentImageIndex(prev => prev === selectedItem.images.length - 1 ? 0 : prev + 1)}
+                      >
+                        <ChevronRight size={24} />
+                      </button>
+                      <div className={styles.imageCounter}>
+                        {currentImageIndex + 1} / {selectedItem.images.length}
+                      </div>
+                    </>
+                  )}
+
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentImageIndex}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
                     >
-                      <ChevronLeft size={24} />
-                    </button>
-                    <button 
-                      className={`${styles.navButton} ${styles.nextBtn}`}
-                      onClick={() => setCurrentImageIndex(prev => prev === selectedItem.images.length - 1 ? 0 : prev + 1)}
-                    >
-                      <ChevronRight size={24} />
-                    </button>
-                    <div className={styles.imageCounter}>
-                      {currentImageIndex + 1} / {selectedItem.images.length}
-                    </div>
-                  </>
-                )}
-
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentImageIndex}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                    style={{ position: 'relative', width: '100%', height: '100%' }}
-                  >
-                    <Image
-                      src={`${BASE_URL}${selectedItem.images[currentImageIndex]}`}
-                      alt={isAr ? selectedItem.title_ar : selectedItem.title_en}
-                      fill
-                      className={styles.fullImage}
-                      sizes="(max-width: 1000px) 100vw, 1000px"
-                      priority
-                      unoptimized
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              <div className={styles.modalDescriptionContainer} dir={isAr ? 'rtl' : 'ltr'}>
-                <h2 className={styles.modalItemTitle}>
-                  {isAr ? selectedItem.title_ar : selectedItem.title_en}
-                </h2>
-                <div className={styles.modalItemDescription}>
-                  {isAr ? selectedItem.description_ar : selectedItem.description_en}
-                </div>
-                
-                {selectedItem.images && selectedItem.images.length > 1 && (
-                  <div className={styles.indicators}>
-                    {selectedItem.images.map((_, idx) => (
-                      <div 
-                        key={idx} 
-                        className={`${styles.indicator} ${idx === currentImageIndex ? styles.indicatorActive : ''}`}
-                        onClick={() => setCurrentImageIndex(idx)}
-                        style={{ cursor: 'pointer' }}
+                      <Image
+                        src={`${BASE_URL}${selectedItem.images[currentImageIndex]}`}
+                        alt={isAr ? selectedItem.title_ar : selectedItem.title_en}
+                        fill
+                        className={styles.fullImage}
+                        sizes="(max-width: 1000px) 100vw, 1000px"
+                        priority
+                        unoptimized
                       />
-                    ))}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                <div className={styles.modalDescriptionContainer} dir={isAr ? 'rtl' : 'ltr'}>
+                  <h2 className={styles.modalItemTitle}>
+                    {isAr ? selectedItem.title_ar : selectedItem.title_en}
+                  </h2>
+                  <div className={styles.modalItemDescription}>
+                    {isAr ? selectedItem.description_ar : selectedItem.description_en}
                   </div>
-                )}
-              </div>
+                  
+                  {selectedItem.images && selectedItem.images.length > 1 && (
+                    <div className={styles.indicators}>
+                      {selectedItem.images.map((_, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`${styles.indicator} ${idx === currentImageIndex ? styles.indicatorActive : ''}`}
+                          onClick={() => setCurrentImageIndex(idx)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };
