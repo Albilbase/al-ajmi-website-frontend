@@ -1,21 +1,22 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react'; 
+import React, { useState, useEffect } from 'react'; 
 import { motion } from 'framer-motion'; 
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import { BASE_URL } from '@/lib/api';
 import styles from './Projects.module.css';
 
-const Projects = ({ homeData }) => {
+const Projects = ({ homeData, variant = 'slider' }) => {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   
-  const sliderRef = useRef(null);
-  const trackRef = useRef(null);
-  const [isPaused, setIsPaused] = useState(false);
-
   const [apiData, setApiData] = useState({
     header: null,
     projects: []
@@ -43,50 +44,12 @@ const Projects = ({ homeData }) => {
   const getProjectImage = (project) => {
     if (apiData.projects.length > 0) {
       if (project.images && project.images.length > 0) {
-        return `http://192.168.15.95:5000${project.images[0]}`;
+        return `${BASE_URL}${project.images[0]}`;
       }
       return "/images/placeholder.png";
     }
     return project.logo || "/images/placeholder.png";
   }; 
-
-  const scrollSlider = (direction) => {
-    if (!sliderRef.current) return;
-    const scrollAmount = 350; // Approximated card width + gap
-    const currentScroll = sliderRef.current.scrollLeft;
-    const maxScroll = sliderRef.current.scrollWidth - sliderRef.current.offsetWidth;
-    
-    let newScroll;
-    
-    if (isAr) {
-      if (direction === 'next') {
-        newScroll = currentScroll - scrollAmount;
-        if (Math.abs(newScroll) > maxScroll + 50) newScroll = 0;
-      } else {
-        newScroll = currentScroll + scrollAmount;
-        if (newScroll > 50) newScroll = -maxScroll;
-      }
-    } else {
-      if (direction === 'next') {
-        newScroll = currentScroll + scrollAmount;
-        if (newScroll > maxScroll + 50) newScroll = 0;
-      } else {
-        newScroll = currentScroll - scrollAmount;
-        if (newScroll < -50) newScroll = maxScroll;
-      }
-    }
-
-    sliderRef.current.scrollTo({
-      left: newScroll,
-      behavior: 'smooth'
-    });
-  };
-
-  useEffect(() => {
-    if (!sliderRef.current || isPaused) return;
-    const interval = setInterval(() => scrollSlider('next'), 3500);
-    return () => clearInterval(interval);
-  }, [isPaused, isAr, apiData.projects]);
 
   return (
     <section className={styles.section} dir={isAr ? 'rtl' : 'ltr'}>
@@ -112,28 +75,16 @@ const Projects = ({ homeData }) => {
           </motion.h2>
         </div>
 
-        <div className={styles.sliderOuter}>
-          <button className={`${styles.navBtn} ${styles.navLeft}`} onClick={() => scrollSlider(isAr ? 'next' : 'prev')}>
-            <ChevronLeft size={24} />
-          </button>
-          <button className={`${styles.navBtn} ${styles.navRight}`} onClick={() => scrollSlider(isAr ? 'prev' : 'next')}>
-            <ChevronRight size={24} />
-          </button>
-
-          <div 
-            className={styles.sliderWrapper} 
-            ref={sliderRef}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-          >
-          <motion.div className={styles.sliderTrack} ref={trackRef}>
+        {variant === 'grid' ? (
+          <div className={styles.grid}>
             {displayProjects.map((project, index) => (
-              <Link key={project.id || index} href="/projects" className={styles.linkWrapper}>
+              <Link key={project.id || index} href={`/projects?cat=${encodeURIComponent(project.title_en || project.description_en || project.name || '')}`} className={styles.linkWrapper}>
                 <motion.div
-                  className={styles.item}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+                  className={`${styles.item} ${styles.gridItem}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
                 >
                   <div className={styles.logoWrapper}>
                     <Image
@@ -146,7 +97,6 @@ const Projects = ({ homeData }) => {
                       unoptimized={apiData.projects.length > 0}
                     />
                   </div>
-
                   <div className={styles.info}>
                     <h3 className={styles.projectName}>
                       {isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
@@ -158,9 +108,67 @@ const Projects = ({ homeData }) => {
                 </motion.div>
               </Link>
             ))}
-          </motion.div>
-        </div>
-        </div>
+          </div>
+        ) : (
+          <div className={styles.sliderOuter}>
+            <button className={`${styles.navBtn} ${styles.swiperPrev}`}>
+              <ChevronLeft size={24} />
+            </button>
+            <button className={`${styles.navBtn} ${styles.swiperNext}`}>
+              <ChevronRight size={24} />
+            </button>
+
+            <Swiper
+              modules={[Navigation, Autoplay]}
+              navigation={{
+                nextEl: `.${styles.swiperNext}`,
+                prevEl: `.${styles.swiperPrev}`,
+              }}
+              autoplay={{
+                delay: 3500,
+                disableOnInteraction: false,
+              }}
+              loop={true}
+              breakpoints={{
+                320: { slidesPerView: 1, spaceBetween: 16 },
+                640: { slidesPerView: 2, spaceBetween: 24 },
+                1024: { slidesPerView: 3, spaceBetween: 32 },
+                1280: { slidesPerView: 4, spaceBetween: 32 },
+              }}
+              className={styles.swiper}
+              dir={isAr ? 'rtl' : 'ltr'}
+              key={isAr ? 'rtl' : 'ltr'}
+            >
+              {displayProjects.map((project, index) => (
+                <SwiperSlide key={`${project.id || index}-${index}`} className={styles.swiperSlide}>
+                  <Link href={`/projects?cat=${encodeURIComponent(project.title_en || project.description_en || project.name || '')}`} className={styles.linkWrapper}>
+                    <div className={styles.item}>
+                      <div className={styles.logoWrapper}>
+                        <Image
+                          src={getProjectImage(project)}
+                          alt={isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
+                          className={styles.logo}
+                          width={100}
+                          height={100}
+                          style={{ objectFit: 'contain' }}
+                          unoptimized={apiData.projects.length > 0}
+                        />
+                      </div>
+                      <div className={styles.info}>
+                        <h3 className={styles.projectName}>
+                          {isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
+                        </h3>
+                        <span className={styles.projectType}>
+                          {isAr ? (project.description_ar || project.type) : (project.description_en || project.type)}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+        )}
       </div>
     </section>
   );

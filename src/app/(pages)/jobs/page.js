@@ -29,7 +29,7 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 };
 
-import { submitContactFormRaw } from '@/lib/api';
+import { submitContactFormRaw, BASE_URL } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { validatePhone, validateEmail, sanitizeEmailInput } from '@/lib/validation';
 import PhoneInput from '@/components/PhoneInput/PhoneInput';
@@ -281,7 +281,7 @@ const JobsPage = () => {
     if (!path) return "/images/Job-Search.jpg";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   if (storeLoading && (sections || []).length === 0) {

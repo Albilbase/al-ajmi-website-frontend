@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './why-ajami-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
@@ -67,7 +67,7 @@ export default function WhyAjamiManager() {
     if (!path) return "";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   useEffect(() => {
@@ -190,7 +190,7 @@ export default function WhyAjamiManager() {
       const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف الصورة نهائياً من السيرفر؟');
       if (result.isConfirmed) {
         try {
-          const rawPath = targetRawImage || targetImage.replace('http://192.168.15.95:5000', '');
+          const rawPath = targetRawImage || targetImage.replace(BASE_URL, '');
           await deleteImageAPI(targetId, rawPath);
           setContent(prev => ({
             ...prev,
@@ -218,7 +218,7 @@ export default function WhyAjamiManager() {
     const result = await confirmDelete('حذف الصورة', 'هل أنت متأكد من حذف الصورة نهائياً من السيرفر؟');
     if (result.isConfirmed) {
       try {
-        const rawPath = section.rawImage || section.image.replace('http://192.168.15.95:5000', '');
+        const rawPath = section.rawImage || section.image.replace(BASE_URL, '');
         await deleteImageAPI(section.id, rawPath);
         handleContentSectionUpdate(localId, 'image', null);
         handleContentSectionUpdate(localId, 'rawImage', null);

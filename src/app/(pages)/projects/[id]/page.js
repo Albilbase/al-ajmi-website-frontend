@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 import { 
   ArrowLeft, ArrowRight, Building2, MapPin, 
   Clock, Activity, Banknote 
@@ -49,7 +50,7 @@ const ProjectDetails = () => {
 
   const projectDetails = project.details?.[isAr ? 'ar' : 'en'] || {};
   const imagePath = project.images && project.images.length > 0 
-    ? `http://192.168.15.95:5000${project.images[0]}` 
+    ? `${BASE_URL}${project.images[0]}` 
     : '/images/placeholder.jpg';
 
   // Helper for status color

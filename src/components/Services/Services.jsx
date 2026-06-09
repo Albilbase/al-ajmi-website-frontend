@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"; // animation library
 import { useTranslation } from "react-i18next"; // i18next library
 import Image from "next/image";
 import styles from "./Services.module.css"; // styles
-import { getSectionsBySectionKey } from "@/lib/api";
+import { getSectionsBySectionKey, BASE_URL } from "@/lib/api";
 
 export default function Services({ homeData }) {
   const { t, i18n } = useTranslation(); // translation function
@@ -43,7 +43,7 @@ export default function Services({ homeData }) {
   const getServiceImage = (service) => {
       if (apiData.services.length > 0) {
           if (service.images && service.images.length > 0) {
-              return `http://192.168.15.95:5000${service.images[0]}`;
+              return `${BASE_URL}${service.images[0]}`;
           }
           return "/images/placeholder.png"; 
       }

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 import styles from './media.module.css';
 
 // Define the animation variants
@@ -39,7 +40,7 @@ const MediaPage = () => {
     if (!path) return "/images/placeholder.png";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   if (storeLoading && (sections || []).length === 0) {

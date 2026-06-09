@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 import styles from './newspaper.module.css';
 
 const fadeInUp = {
@@ -36,7 +37,7 @@ const NewspaperPage = () => {
   }, [sections]);
 
   const heroBgImage = newspaperData.banner?.images && newspaperData.banner.images.length > 0
-    ? `url('http://192.168.15.95:5000${newspaperData.banner.images[0]}')`
+    ? `url('${BASE_URL}${newspaperData.banner.images[0]}')`
     : "url('/images/newspaper/newspaperbanner.jpg')";
 
   if (storeLoading && (sections || []).length === 0) {
@@ -74,7 +75,7 @@ const NewspaperPage = () => {
         <div className={styles.grid}>
           {newspaperData.items.map((item, index) => {
             const itemImage = item.images && item.images.length > 0 
-              ? `http://192.168.15.95:5000${item.images[0]}`
+              ? `${BASE_URL}${item.images[0]}`
               : '/images/placeholder.jpg';
 
             return (
@@ -167,7 +168,7 @@ const NewspaperPage = () => {
                     style={{ position: 'relative', width: '100%', height: '100%' }}
                   >
                     <Image
-                      src={`http://192.168.15.95:5000${selectedItem.images[currentImageIndex]}`}
+                      src={`${BASE_URL}${selectedItem.images[currentImageIndex]}`}
                       alt={isAr ? selectedItem.title_ar : selectedItem.title_en}
                       fill
                       className={styles.fullImage}

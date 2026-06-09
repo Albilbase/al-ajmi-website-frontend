@@ -252,6 +252,49 @@
   transform: translateY(-1px);
 }
 
+.saveOrderBtn {
+  background: #1e293b;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.saveOrderBtn:hover {
+  background: #0f172a;
+  transform: translateY(-2px);
+}
+
+.moveBtn {
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.moveBtn:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #DC143C;
+  border-color: #DC143C;
+}
+
+.moveBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .spinner {
   animation: spin 1s linear infinite;
 }

@@ -16,7 +16,8 @@ import {
   createSectionAPI, 
   updateSectionAPI, 
   deleteSectionAPI,
-  deleteImageAPI 
+  deleteImageAPI,
+  BASE_URL 
 } from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './newspaper-manager.module.css';
@@ -55,7 +56,7 @@ export default function NewspaperManager() {
     if (!path) return "";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   useEffect(() => {

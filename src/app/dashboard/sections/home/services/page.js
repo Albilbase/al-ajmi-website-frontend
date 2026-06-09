@@ -17,7 +17,7 @@ import localStyles from './services-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { toast } from 'react-toastify';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 
@@ -90,7 +90,7 @@ export default function ServicesManager() {
               title_ar: s.title_ar,
               description_en: s.description_en,
               description_ar: s.description_ar,
-              image: s.images && s.images.length > 0 ? `http://192.168.15.95:5000${s.images[s.images.length - 1]}` : null
+              image: s.images && s.images.length > 0 ? `${BASE_URL}${s.images[s.images.length - 1]}` : null
             }));
             setServices(mappedServices);
           }
@@ -105,7 +105,7 @@ export default function ServicesManager() {
               subtitle_en: bannerSection.description_en || "",
               subtitle_ar: bannerSection.description_ar || "",
               image: bannerSection.images && bannerSection.images.length > 0 
-                ? `http://192.168.15.95:5000${bannerSection.images[bannerSection.images.length - 1]}` 
+                ? `${BASE_URL}${bannerSection.images[bannerSection.images.length - 1]}` 
                 : null,
               rawImage: bannerSection.images && bannerSection.images.length > 0 ? bannerSection.images[bannerSection.images.length - 1] : null
             });
@@ -302,7 +302,7 @@ export default function ServicesManager() {
         if (result.isConfirmed) {
           try {
 
-             const rawPath = currentService.image.replace('http://192.168.15.95:5000', '');
+             const rawPath = currentService.image.replace(BASE_URL, '');
              await deleteImageAPI(currentService.id, rawPath);
              await refreshSections();
              
@@ -332,7 +332,7 @@ export default function ServicesManager() {
           const result = await confirmDelete('Delete Banner Image', 'Are you sure you want to delete the banner image permanently?');
           if (result.isConfirmed) {
            try {
-              await deleteImageAPI(banner.id, banner.rawImage || banner.image.replace('http://192.168.15.95:5000', ''));
+               await deleteImageAPI(banner.id, banner.rawImage || banner.image.replace(BASE_URL, ''));
                await refreshSections();
                setBanner(prev => ({ ...prev, image: null, rawImage: null }));
                toast.success("Banner image deleted successfully");

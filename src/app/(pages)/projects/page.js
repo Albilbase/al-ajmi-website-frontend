@@ -4,20 +4,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import styles from './projects.module.css';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 };
 
-const ProjectsPage = () => {
+  const ProjectsPage = () => {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const sections = useCMSStore((state) => state.sections);
   const storeLoading = useCMSStore((state) => state.isLoading);
+  const searchParams = useSearchParams();
   
   const tabsWrapperRef = useRef(null);
   const tabsContainerRef = useRef(null);
@@ -37,11 +40,32 @@ const ProjectsPage = () => {
       setCategories(cats);
       setAllProjects(projects);
       
+      const catParam = searchParams.get('cat');
+      if (catParam) {
+        const decoded = decodeURIComponent(catParam).toLowerCase().trim();
+        const match = cats.find(c => 
+          c.title_en?.toLowerCase() === decoded || 
+          c.title_ar?.toLowerCase() === decoded
+        );
+        if (match) {
+          setActiveTab(match.id.toString());
+          return;
+        }
+        const projectMatch = projects.find(p => 
+          p.title_en?.toLowerCase() === decoded || 
+          p.title_ar?.toLowerCase() === decoded
+        );
+        if (projectMatch) {
+          setActiveTab(projectMatch.type);
+          return;
+        }
+      }
+      
       if (cats.length > 0 && !activeTab) {
         setActiveTab(cats[0].id.toString());
       }
     }
-  }, [sections]);
+  }, [sections, searchParams]);
 
   const updateConstraints = () => {
     if (tabsWrapperRef.current && tabsContainerRef.current) {
@@ -145,7 +169,7 @@ const ProjectsPage = () => {
                     <div className={styles.imageWrapper}>
                       <Image
                         src={project.images && project.images.length > 0 
-                          ? `http://192.168.15.95:5000${project.images[0]}` 
+                          ? `${BASE_URL}${project.images[0]}` 
                           : '/images/placeholder.jpg'}
                         alt={isAr ? project.title_ar : project.title_en}
                         fill

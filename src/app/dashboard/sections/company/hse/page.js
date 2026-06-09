@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './hse-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
@@ -79,7 +79,7 @@ export default function HseManager() {
     if (!path) return "";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   // Fetch all data on mount

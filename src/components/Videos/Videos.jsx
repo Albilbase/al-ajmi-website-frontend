@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Play, X } from 'lucide-react';
+import { BASE_URL } from '@/lib/api';
 import styles from './Videos.module.css';
 
 const Videos = ({ homeData }) => {
@@ -25,7 +26,7 @@ const Videos = ({ homeData }) => {
           id: item.id,
           title_en: item.title_en,
           title_ar: item.title_ar,
-          src: item.images && item.images.length > 0 ? `http://192.168.15.95:5000${item.images[0]}` : null
+          src: item.images && item.images.length > 0 ? `${BASE_URL}${item.images[0]}` : null
         }));
         setVideos(mapped);
       }

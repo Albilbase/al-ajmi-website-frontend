@@ -12,6 +12,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 import Image from 'next/image';
+import { BASE_URL } from '@/lib/api';
 import styles from './Hero.module.css';
 
 const Hero = ({ homeData }) => {
@@ -38,7 +39,7 @@ const Hero = ({ homeData }) => {
     const getSlideImage = (slide, index) => {
         if (apiSlides.length > 0) {
             if (slide.images && slide.images.length > 0) {
-                return `http://192.168.15.95:5000${slide.images[0]}`;
+                return `${BASE_URL}${slide.images[0]}`;
             }
             return "/images/placeholder.png";
         }

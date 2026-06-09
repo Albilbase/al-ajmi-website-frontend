@@ -6,6 +6,7 @@ import Image from 'next/image';
 import useCMSStore from '@/store/useCMSStore';
 import styles from './about.module.css';
 import { Award, CheckCircle, ShieldCheck } from 'lucide-react';
+import { BASE_URL } from '@/lib/api';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -61,7 +62,7 @@ const AboutPage = () => {
   }, [sections]);
 
   const introImages = aboutData.intro?.images && aboutData.intro.images.length > 0
-    ? aboutData.intro.images.map(img => `http://192.168.15.95:5000${img}`)
+    ? aboutData.intro.images.map(img => `${BASE_URL}${img}`)
     : [
         '/images/historysection/7.png',
         '/images/historysection/8.png',
@@ -76,11 +77,11 @@ const AboutPage = () => {
   }, [introImages.length]);
 
   const heroBgImage = aboutData.hero?.images && aboutData.hero.images.length > 0
-    ? `url('http://192.168.15.95:5000${aboutData.hero.images[0]}')`
+    ? `url('${BASE_URL}${aboutData.hero.images[0]}')`
     : "url('/images/historysection/1.png')";
 
   const capabilitiesImage = aboutData.capabilities?.images && aboutData.capabilities.images.length > 0
-    ? `http://192.168.15.95:5000${aboutData.capabilities.images[0]}`
+    ? `${BASE_URL}${aboutData.capabilities.images[0]}`
     : "/images/historysection/7.png";
 
   return (

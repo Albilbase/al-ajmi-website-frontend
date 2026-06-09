@@ -413,7 +413,7 @@ export default function SuppliersManager() {
     if (!path) return "";
     if (path.startsWith('blob:')) return path;
     if (path.startsWith('http')) return path;
-    return `http://192.168.15.95:5000${path.startsWith('/') ? path : `/${path}`}`;
+    return `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
   };
 
   if (loading) {

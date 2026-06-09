@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'; // Import i18next for translatio
 import styles from './services.module.css'; // Import the CSS module
 import Services from '@/components/Services/Services'; // Import the Services component
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -30,7 +31,7 @@ const ServicesPage = () => {
   }, [sections]);
 
   const bgImage = (banner && banner.images && banner.images.length > 0) 
-    ? `url('http://192.168.15.95:5000${banner.images[0]}')` 
+    ? `url('${BASE_URL}${banner.images[0]}')` 
     : null;
 
   const title = banner 

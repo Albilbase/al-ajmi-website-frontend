@@ -7,6 +7,7 @@ import Image from 'next/image';
 import useCMSStore from '@/store/useCMSStore';
 import { ShieldCheck, Leaf, HeartPulse, ClipboardCheck, Info, CheckCircle2 } from 'lucide-react';
 import styles from './hsep.module.css';
+import { BASE_URL } from '@/lib/api';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -57,7 +58,7 @@ const HsepPage = () => {
   }, [sections]);
 
   const heroBgImage = hseData.hero?.images && hseData.hero.images.length > 0
-    ? `url('http://192.168.15.95:5000${hseData.hero.images[0]}')`
+    ? `url('${BASE_URL}${hseData.hero.images[0]}')`
     : "url('/images/hsep/hsep-banner.jpg')";
 
   const principlesList = hseData.principlesItems.length > 0

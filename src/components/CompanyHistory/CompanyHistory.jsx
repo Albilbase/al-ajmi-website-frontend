@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
+import { BASE_URL } from '@/lib/api';
 import styles from './CompanyHistory.module.css';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Pagination, Navigation } from 'swiper/modules';
@@ -50,7 +51,7 @@ const CompanyHistory = ({ homeData }) => {
     ];
 
     const images = (content && content.images && content.images.length > 0) 
-        ? content.images.map(img => `http://192.168.15.95:5000${img}`)
+        ? content.images.map(img => `${BASE_URL}${img}`)
         : staticImages;
 
     return (

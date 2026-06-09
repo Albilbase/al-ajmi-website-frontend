@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 import styles from './gallery.module.css';
 
 const fadeInUp = {
@@ -33,7 +34,7 @@ const GalleryPage = () => {
   }, [sections]);
 
   const heroBgImage = galleryData.banner?.images && galleryData.banner.images.length > 0
-    ? `url('http://192.168.15.95:5000${galleryData.banner.images[0]}')`
+    ? `url('${BASE_URL}${galleryData.banner.images[0]}')`
     : "url('/images/piclaybrary/piclaybrary banner.webp')";
 
   if (storeLoading && (sections || []).length === 0) {
@@ -71,7 +72,7 @@ const GalleryPage = () => {
         <div className={styles.grid}>
           {galleryData.items.map((item, index) => {
             const coverImage = item.images && item.images.length > 0 
-              ? `http://192.168.15.95:5000${item.images[0]}`
+              ? `${BASE_URL}${item.images[0]}`
               : '/images/placeholder.jpg';
 
             return (

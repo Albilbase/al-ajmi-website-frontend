@@ -21,7 +21,7 @@ import Modal from '../../../_components/Modal/Modal';
 import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 
 import { toast } from 'react-toastify';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 
@@ -75,7 +75,7 @@ export default function HeroManager() {
               title_ar: s.title_ar,
               description_en: s.description_en,
               description_ar: s.description_ar,
-              image: s.images && s.images.length > 0 ? `http://192.168.15.95:5000${s.images[s.images.length - 1]}` : null,
+              image: s.images && s.images.length > 0 ? `${BASE_URL}${s.images[s.images.length - 1]}` : null,
               rawImage: s.images && s.images.length > 0 ? s.images[s.images.length - 1] : null,
               sort_order: s.sort_order || 999
             })).sort((a, b) => a.sort_order - b.sort_order);
@@ -138,7 +138,7 @@ export default function HeroManager() {
         if (response.data && response.data.images && response.data.images.length > 0) {
             const updatedSlides = [...slides];
             // Update with the actual server URL
-            updatedSlides[activeSlide].image = `http://192.168.15.95:5000${response.data.images[response.data.images.length - 1]}`;
+            updatedSlides[activeSlide].image = `${BASE_URL}${response.data.images[response.data.images.length - 1]}`;
             setSlides(updatedSlides);
         } else if (editorPreview) {
              // Fallback if server doesn't return the image immediately, though less ideal
@@ -183,7 +183,7 @@ export default function HeroManager() {
       setEditorPreview(null);
       const updatedSlides = [...slides];
       // Restore original image if available, else null
-      updatedSlides[activeSlide].image = currentSlide.rawImage ? `http://192.168.15.95:5000${currentSlide.rawImage}` : null;
+      updatedSlides[activeSlide].image = currentSlide.rawImage ? `${BASE_URL}${currentSlide.rawImage}` : null;
       setSlides(updatedSlides);
       const fileInput = document.getElementById('editorImageInput');
       if (fileInput) fileInput.value = "";
@@ -251,8 +251,6 @@ export default function HeroManager() {
     formData.append('sort_order', (slides.length + 1).toString());
     formData.append('section_key', 'home');
     formData.append('type', 'hero_slider');
-    formData.append('test', '1');
-    formData.append('sort_order', (slides.length + 1).toString());
     
     // Images field (actual file)
     formData.append('images', newSlide.imageFile);

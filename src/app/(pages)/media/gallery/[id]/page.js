@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { X, ZoomIn, ArrowLeft } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 import styles from '../gallery.module.css';
 
 const fadeInUp = {
@@ -69,7 +70,7 @@ const SubGalleryPage = () => {
   const title = isAr ? category.title_ar : category.title_en;
   
   const heroBgImage = banner?.images && banner.images.length > 0
-    ? `url('http://192.168.15.95:5000${banner.images[0]}')`
+    ? `url('${BASE_URL}${banner.images[0]}')`
     : "url('/images/piclaybrary/piclaybrary banner.webp')";
 
   return (
@@ -113,7 +114,7 @@ const SubGalleryPage = () => {
       <div className={styles.container}>
         <div className={styles.grid}>
           {category.images && category.images.map((img, index) => {
-            const fullImgPath = `http://192.168.15.95:5000${img}`;
+            const fullImgPath = `${BASE_URL}${img}`;
 
             return (
               <motion.div

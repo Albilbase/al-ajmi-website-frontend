@@ -10,6 +10,7 @@ import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 import { Calendar, Tag, ArrowLeft, ArrowRight, ZoomIn, X } from 'lucide-react';
 import Link from 'next/link';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 import { sanitizeText } from '@/lib/sanitizer';
 
 // Import Swiper styles
@@ -68,7 +69,7 @@ const MediaDetailPage = () => {
     if (!path) return "/images/placeholder.png";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   const formatDate = (dateStr) => {

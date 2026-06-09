@@ -6,9 +6,8 @@ import Image from 'next/image';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BASE_URL } from '@/lib/api';
 import styles from './Awards.module.css';
-
-
 
 
 const AwardCard = ({ award, index, onClick, isAr, isFromAPI }) => {
@@ -145,7 +144,7 @@ const Awards = ({ homeData }) => {
       ? apiData.awards.map(award => ({
           ...award,
           src: award.images && award.images.length > 0 && award.images[0]
-            ? `http://192.168.15.95:5000${award.images[0]}` 
+            ? `${BASE_URL}${award.images[0]}` 
             : '/images/Our-Owards/1feb2023-1.png'
         }))
       : staticAwards;

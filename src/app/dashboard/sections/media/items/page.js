@@ -20,7 +20,8 @@ import {
   createSectionAPI, 
   updateSectionAPI, 
   deleteSectionAPI,
-  deleteImageAPI 
+  deleteImageAPI,
+  BASE_URL 
 } from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './media-manager.module.css';
@@ -166,7 +167,7 @@ export default function MediaManager() {
     if (!path) return "";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   const isVideo = (url) => {
@@ -807,7 +808,7 @@ export default function MediaManager() {
                       type="file" 
                       hidden 
                       onChange={handleVideoUpload} 
-                      accept="video/*" 
+                      accept="video/*,.mp4,.webm,.ogg,.mov,.avi,.wmv,.mkv,.flv,.3gp,.m4v"
                     />
                   </div>
                 </div>

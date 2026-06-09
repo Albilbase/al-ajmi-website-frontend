@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './board-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
@@ -62,7 +62,7 @@ export default function BoardManager() {
     if (!path) return "";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   // Fetch all board data on mount
@@ -180,7 +180,7 @@ export default function BoardManager() {
        const updatedMembers = [...content.members];
        updatedMembers[index].newFile = null;
        // Revert to server image if exists, else null
-       updatedMembers[index].image = member.rawImage ? `http://192.168.15.95:5000${member.rawImage}` : null;
+       updatedMembers[index].image = member.rawImage ? `${BASE_URL}${member.rawImage}` : null;
        setContent(prev => ({ ...prev, members: updatedMembers }));
        
        // Reset specific input? Hard with mapping. React state handling is sufficient if we key the input or manage it.

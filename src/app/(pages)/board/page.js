@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { Crown } from 'lucide-react';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 import styles from './board.module.css';
 
 // Define the animation variants
@@ -42,7 +43,7 @@ const BoardPage = () => {
   }, [sections]);
 
   const heroBgImage = boardData.hero?.images && boardData.hero.images.length > 0
-    ? `url('http://192.168.15.95:5000${boardData.hero.images[0]}')`
+    ? `url('${BASE_URL}${boardData.hero.images[0]}')`
     : "url('/images/board/banner-board.png')";
 
   if (storeLoading && (sections || []).length === 0) {
@@ -91,7 +92,7 @@ const BoardPage = () => {
                   <div className={styles.imageWrapper}>
                     <Image 
                       src={member.images && member.images.length > 0 
-                        ? `http://192.168.15.95:5000${member.images[0]}` 
+                        ? `${BASE_URL}${member.images[0]}` 
                         : "/images/placeholder.jpg"} 
                       alt={isAr ? member.title_ar : member.title_en} 
                       fill

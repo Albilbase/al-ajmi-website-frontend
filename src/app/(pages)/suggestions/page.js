@@ -6,7 +6,7 @@ import { UploadCloud, CheckCircle2, ChevronDown, Loader2, Info, X, FileText, Fil
 import useCMSStore from '@/store/useCMSStore';
 import styles from './suggestions.module.css';
 
-import { submitContactFormRaw } from '@/lib/api';
+import { submitContactFormRaw, BASE_URL } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { validatePhone, validateEmail, sanitizeEmailInput } from '@/lib/validation';
 import PhoneInput from '@/components/PhoneInput/PhoneInput';
@@ -246,7 +246,7 @@ const SuggestionsPage = () => {
     if (!path) return "/images/contactbanner.jpeg";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   if (storeLoading && sections.length === 0) {

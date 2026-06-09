@@ -17,7 +17,8 @@ import {
   createSectionAPI, 
   updateSectionAPI, 
   deleteSectionAPI,
-  deleteImageAPI 
+  deleteImageAPI,
+  BASE_URL 
 } from '@/lib/api';
 import dashboardStyles from '../../dashboard.module.css';
 import localStyles from './projects-manager.module.css';
@@ -54,7 +55,7 @@ export default function ProjectsManager() {
     if (!path) return "";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   useEffect(() => {
@@ -192,15 +193,18 @@ export default function ProjectsManager() {
     setCurrentProject({
       id: null,
       image: "",
-      en: { title: "", owner: "", location: "", duration: "", status: "", value: "" },
-      ar: { title: "", owner: "", location: "", duration: "", status: "", value: "" }
+      en: { title: "", owner: activeCategory?.name_en || "", location: "", duration: "", status: "", value: "" },
+      ar: { title: "", owner: activeCategory?.name_ar || "", location: "", duration: "", status: "", value: "" }
     });
     setProjectFile(null);
     setIsProjectModalOpen(true);
   };
 
   const handleEdit = (project) => {
-    setCurrentProject(JSON.parse(JSON.stringify(project)));
+    const cloned = JSON.parse(JSON.stringify(project));
+    cloned.en.owner = activeCategory?.name_en || cloned.en.owner;
+    cloned.ar.owner = activeCategory?.name_ar || cloned.ar.owner;
+    setCurrentProject(cloned);
     setProjectFile(null);
     setIsProjectModalOpen(true);
   };
@@ -209,12 +213,8 @@ export default function ProjectsManager() {
     const errors = {};
     if (!currentProject.en.title) errors.proj_title_en = true;
     if (!currentProject.ar.title) errors.proj_title_ar = true;
-    if (!currentProject.en.owner) errors.proj_owner_en = true;
-    if (!currentProject.ar.owner) errors.proj_owner_ar = true;
-    if (!currentProject.en.location) errors.proj_location_en = true;
-    if (!currentProject.ar.location) errors.proj_location_ar = true;
-    if (!currentProject.en.duration) errors.proj_duration_en = true;
-    if (!currentProject.ar.duration) errors.proj_duration_ar = true;
+
+
     if (!currentProject.en.status) errors.proj_status_en = true;
     if (!currentProject.ar.status) errors.proj_status_ar = true;
     if (!currentProject.en.value) errors.proj_value_en = true;
@@ -504,7 +504,7 @@ export default function ProjectsManager() {
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Owner</label>
-                  <input className={`${localStyles.inputField} ${formErrors.proj_owner_en ? dashboardStyles.invalidInput : ''}`} value={currentProject.en.owner} onChange={(e) => updateField('en', 'owner', e.target.value)} />
+                  <input className={localStyles.inputField} value={currentProject.en.owner} disabled style={{ background: '#f1f5f9', cursor: 'not-allowed' }} />
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Status</label>
@@ -530,7 +530,7 @@ export default function ProjectsManager() {
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Owner</label>
-                  <input className={`${localStyles.inputField} ${formErrors.proj_owner_ar ? dashboardStyles.invalidInput : ''}`} value={currentProject.ar.owner} onChange={(e) => updateField('ar', 'owner', e.target.value)} />
+                  <input className={localStyles.inputField} value={currentProject.ar.owner} disabled style={{ background: '#f1f5f9', cursor: 'not-allowed' }} />
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Status</label>

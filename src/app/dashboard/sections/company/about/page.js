@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './about-manager.module.css';
@@ -94,7 +94,7 @@ export default function AboutManager() {
     if (!path) return "";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   // Fetch all about data on mount
@@ -234,7 +234,7 @@ export default function AboutManager() {
         if (result.isConfirmed) {
           try {
 
-            await deleteImageAPI(content.hero.id, content.hero.bgImage?.replace('http://192.168.15.95:5000', ''));
+            await deleteImageAPI(content.hero.id, content.hero.bgImage?.replace(BASE_URL, ''));
             await refreshSections();
             setContent(prev => ({ ...prev, hero: { ...prev.hero, bgImage: null } }));
             toast.success("Image deleted successfully");
@@ -282,7 +282,7 @@ export default function AboutManager() {
         if (result.isConfirmed) {
           try {
 
-            await deleteImageAPI(content.capabilities.id, content.capabilities.image?.replace('http://192.168.15.95:5000', ''));
+            await deleteImageAPI(content.capabilities.id, content.capabilities.image?.replace(BASE_URL, ''));
             await refreshSections();
             setContent(prev => ({ ...prev, capabilities: { ...prev.capabilities, image: null } }));
             toast.success("Image deleted successfully");

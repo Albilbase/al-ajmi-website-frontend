@@ -16,7 +16,7 @@ import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './history-manager.module.css';
 import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { toast } from 'react-toastify';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 
@@ -68,7 +68,7 @@ export default function HistoryManager() {
           button_text_en: section.details?.button_text_en || "",
           button_text_ar: section.details?.button_text_ar || "",
           // Images
-          images: section.images?.map(img => `http://192.168.15.95:5000${img}`) || []
+          images: section.images?.map(img => `${BASE_URL}${img}`) || []
         });
       }
     };
@@ -91,7 +91,7 @@ export default function HistoryManager() {
 
       try {
         // Extract raw path from URL (remove domain)
-        const rawPath = imageUrl.replace('http://192.168.15.95:5000', '');
+        const rawPath = imageUrl.replace(BASE_URL, '');
         
         await deleteImageAPI(content.id, rawPath);
         

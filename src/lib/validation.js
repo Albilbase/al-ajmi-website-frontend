@@ -50,16 +50,19 @@ export const validateImage = (file, mode = 'standard', isRTL = false) => {
  * @returns {boolean} - Returns true if valid, false otherwise.
  */
 export const validateVideo = (file, isRTL = false) => {
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
     const maxSize = 50 * 1024 * 1024; // 50MB for video
   
     if (!file) return false;
   
-    // 1. Format Check
-    if (!allowedTypes.includes(file.type)) {
+    // 1. Format Check: allow all video types or typical video extensions if type is empty
+    const fileName = file.name || '';
+    const extension = fileName.split('.').pop().toLowerCase();
+    const videoExtensions = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'wmv', 'mkv', 'flv', '3gp', 'm4v'];
+
+    if (!file.type.startsWith('video/') && !videoExtensions.includes(extension)) {
       const errorMsg = isRTL 
-        ? "عذراً، نوع الملف غير مدعوم كفيديو. يرجى اختيار فيديو بصيغة (MP4, WebM, OGG)" 
-        : "Unsupported video format. Please select a video (MP4, WebM, OGG)";
+        ? "عذراً، نوع الملف غير مدعوم كفيديو. يرجى اختيار ملف فيديو صالح" 
+        : "Unsupported video format. Please select a valid video file.";
       toast.error(errorMsg);
       return false;
     }

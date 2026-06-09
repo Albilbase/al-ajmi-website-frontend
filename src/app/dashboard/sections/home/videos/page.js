@@ -14,7 +14,7 @@ import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './videos-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import { toast } from 'react-toastify';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 import { validateVideo } from '@/lib/validation';
@@ -49,7 +49,7 @@ export default function VideosManager() {
               id: s.id,
               title_en: s.title_en,
               title_ar: s.title_ar,
-              src: s.images && s.images.length > 0 ? `http://192.168.15.95:5000${s.images[s.images.length - 1]}` : null
+              src: s.images && s.images.length > 0 ? `${BASE_URL}${s.images[s.images.length - 1]}` : null
             }));
             setVideos(mapped);
           }
@@ -232,7 +232,7 @@ export default function VideosManager() {
                       <label className={localStyles.fieldLabel}>Replace Video (optional)</label>
                       <input 
                         type="file"
-                        accept="video/mp4,video/webm,video/ogg"
+                        accept="video/*,.mp4,.webm,.ogg,.mov,.avi,.wmv,.mkv,.flv,.3gp,.m4v"
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (file) setEditVideoFile(file);
@@ -322,13 +322,13 @@ export default function VideosManager() {
         </div>
         <div className={localStyles.inputGroup}>
           <label className={localStyles.fieldLabel}>
-            Video File (MP4, WebM, OGG — max 50MB)
+            Video File (Any Video Format — max 50MB)
             {formErrors.video && <span style={{ color: '#DC143C' }}> *Required</span>}
           </label>
           <div className={formErrors.video ? localStyles.fileErrorBorder : ''}>
             <input 
               type="file"
-              accept="video/mp4,video/webm,video/ogg"
+              accept="video/*,.mp4,.webm,.ogg,.mov,.avi,.wmv,.mkv,.flv,.3gp,.m4v"
               onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {

@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 import { UploadCloud, Image as ImageIcon, Trash2, CheckCircle2 } from 'lucide-react';
+import { BASE_URL } from '@/lib/api';
 import { validateImage } from '@/lib/validation';
 import styles from './ImageUpload.module.css';
 
@@ -44,7 +45,7 @@ const ImageUpload = ({
     if (!path) return "";
     if (path.startsWith('http') || path.startsWith('blob:')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   const displayUrl = value ? getImageUrl(value) : "";

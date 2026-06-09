@@ -3,6 +3,17 @@ import { sanitizeData } from "./sanitizer";
 
 export const BASE_URL = "http://192.168.15.95:5000";
 
+export const getImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+};
+
+export const stripBaseUrl = (url) => {
+  if (!url) return '';
+  return url.replace(BASE_URL, '');
+};
+
 const handleApiError = (error) => {
   const msg = error.response?.data?.message || error.message || "";
   if (msg.includes("Invalid authentication token") || error.response?.status === 401) {

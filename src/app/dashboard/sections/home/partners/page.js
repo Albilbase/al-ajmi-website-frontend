@@ -15,7 +15,7 @@ import localStyles from './partners-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { toast } from 'react-toastify';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 
@@ -47,7 +47,7 @@ export default function PartnersManager() {
           if (partnersSections.length > 0) {
             const mappedPartners = partnersSections.map(s => ({
               id: s.id,
-              src: s.images && s.images.length > 0 ? `http://192.168.15.95:5000${s.images[s.images.length - 1]}` : null
+              src: s.images && s.images.length > 0 ? `${BASE_URL}${s.images[s.images.length - 1]}` : null
             }));
             setPartners(mappedPartners);
           }

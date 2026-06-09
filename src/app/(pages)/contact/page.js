@@ -9,7 +9,7 @@ import {
 import useCMSStore from '@/store/useCMSStore';
 import styles from './contact.module.css';
 
-import { submitContactFormAPI } from '@/lib/api';
+import { submitContactFormAPI, BASE_URL } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { validatePhone } from '@/lib/validation';
 
@@ -146,7 +146,7 @@ const ContactPage = () => {
     if (!path) return "/images/contactusbanner.webp";
     if (path.startsWith('http')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `http://192.168.15.95:5000${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
   };
 
   const handleSubmit = async (e) => {

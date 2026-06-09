@@ -19,7 +19,9 @@ import {
   Mail,
   Paperclip,
   Download,
-  Eye
+  Eye,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -47,6 +49,7 @@ export default function JobsManager() {
   // Vacancy State
   const [currentVacancy, setCurrentVacancy] = useState(null);
   const [isVacancyModalOpen, setIsVacancyModalOpen] = useState(false);
+  const [orderChanged, setOrderChanged] = useState(false);
 
   // Field State
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
@@ -119,6 +122,7 @@ export default function JobsManager() {
           const jobsData = sections.filter(s => s.section_key === 'jobs' && s.type === 'vacancy');
           const mappedJobs = jobsData.map(j => ({
             id: j.id,
+            sort_order: j.sort_order || 999,
             en: { 
               title: j.title_en || "", 
               description: j.description_en || "", 
@@ -133,7 +137,7 @@ export default function JobsManager() {
               experience: j.details?.ar?.experience || "", 
               qualification: j.details?.ar?.qualification || "" 
             }
-          }));
+          })).sort((a, b) => a.sort_order - b.sort_order);
           setVacancies(mappedJobs);
 
           // Filter Form Fields
@@ -173,6 +177,7 @@ export default function JobsManager() {
     } else {
       setCurrentVacancy({
         id: null,
+        sort_order: vacancies.length + 1,
         en: { title: "", description: "", employeesCount: "", experience: "", qualification: "" },
         ar: { title: "", description: "", employeesCount: "", experience: "", qualification: "" }
       });
@@ -206,6 +211,7 @@ export default function JobsManager() {
       formData.append('section_key', 'jobs');
       formData.append('type', 'vacancy');
       formData.append('is_active', 'true');
+      formData.append('sort_order', String(currentVacancy.sort_order));
       formData.append('title_en', currentVacancy.en.title);
       formData.append('title_ar', currentVacancy.ar.title);
       formData.append('description_en', currentVacancy.en.description);
@@ -254,6 +260,48 @@ export default function JobsManager() {
       } catch (error) {
         toast.error("An error occurred while deleting the vacancy");
       }
+    }
+  };
+
+  // Order Handlers
+  const moveVacancy = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= vacancies.length) return;
+    const updated = [...vacancies];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    setVacancies(updated);
+    setOrderChanged(true);
+  };
+
+  const saveOrder = async () => {
+    setIsSubmitting(true);
+    try {
+      for (let i = 0; i < vacancies.length; i++) {
+        const v = vacancies[i];
+        const formData = new FormData();
+        formData.append('sort_order', String(i + 1));
+        formData.append('section_key', 'jobs');
+        formData.append('type', 'vacancy');
+        formData.append('is_active', 'true');
+        formData.append('title_en', v.en.title);
+        formData.append('title_ar', v.ar.title);
+        formData.append('description_en', v.en.description);
+        formData.append('description_ar', v.ar.description);
+        formData.append('details', JSON.stringify({
+          en: { employeesCount: v.en.employeesCount, experience: v.en.experience, qualification: v.en.qualification },
+          ar: { employeesCount: v.ar.employeesCount, experience: v.ar.experience, qualification: v.ar.qualification }
+        }));
+        await updateSectionAPI(v.id, formData);
+      }
+      await refreshSections();
+      toast.success('Vacancy order saved successfully');
+      setOrderChanged(false);
+    } catch (error) {
+      toast.error('Failed to save vacancy order');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -490,14 +538,19 @@ export default function JobsManager() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              {orderChanged && (
+                <button className={localStyles.saveOrderBtn} onClick={saveOrder} disabled={isSubmitting}>
+                  <Save size={20} /> {isSubmitting ? 'Saving...' : 'Save Order'}
+                </button>
+              )}
               <button className={localStyles.addVacancyBtn} onClick={() => openVacancyModal()}>
                 <Plus size={20} /> Add New Vacancy
               </button>
             </div>
             
             <div className={localStyles.vacanciesGrid}>
-              {vacancies.map(job => (
+              {vacancies.map((job, index) => (
                 <div key={job.id} className={localStyles.vacancyCard}>
                   <div className={localStyles.vacancyHeader}>
                     <div className={localStyles.vacancyTitle}>{job.en.title}</div>
@@ -510,6 +563,10 @@ export default function JobsManager() {
                     <div className={localStyles.metaItem}><Layers size={16} /> {job.en.qualification}</div>
                   </div>
                   <div className={localStyles.cardActions}>
+                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                      <button className={localStyles.moveBtn} onClick={() => moveVacancy(index, -1)} disabled={index === 0} title="Move up"><ArrowUp size={16} /></button>
+                      <button className={localStyles.moveBtn} onClick={() => moveVacancy(index, 1)} disabled={index === vacancies.length - 1} title="Move down"><ArrowDown size={16} /></button>
+                    </div>
                     <button className={localStyles.editBtn} onClick={() => openVacancyModal(job)}><Edit2 size={18} /> Edit</button>
                     <button className={localStyles.deleteBtn} onClick={() => handleDeleteVacancy(job.id)}><Trash2 size={18} /> Delete</button>
                   </div>

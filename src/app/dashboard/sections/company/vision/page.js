@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, getAllSectionsAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import dashboardStyles from '../../../dashboard.module.css';
 import localStyles from './vision-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
@@ -119,7 +119,7 @@ export default function VisionManager() {
                 subtitle_en: hero.description_en || "",
                 subtitle_ar: hero.description_ar || "",
                 subtitle_ar: hero.description_ar || "",
-                images: hero.images?.map(img => `http://192.168.15.95:5000${img}`) || [],
+                images: hero.images?.map(img => `${BASE_URL}${img}`) || [],
                 rawImages: hero.images || []
               }
             }));
@@ -343,7 +343,7 @@ export default function VisionManager() {
            hero: {
              ...prev.hero,
              id: response.data.id,
-             images: response.data.images?.map(img => `http://192.168.15.95:5000${img}`) || [],
+             images: response.data.images?.map(img => `${BASE_URL}${img}`) || [],
              rawImages: response.data.images || []
            }
          }));

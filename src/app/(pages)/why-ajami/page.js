@@ -7,6 +7,7 @@ import Image from 'next/image';
 import useCMSStore from '@/store/useCMSStore';
 import styles from './why-ajami.module.css';
 import { Truck, Droplet, Users, Target, Activity, Zap, ShieldCheck } from 'lucide-react';
+import { BASE_URL } from '@/lib/api';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -61,7 +62,7 @@ const WhyAjamiPage = () => {
   }, [sections]);
 
   const heroBgImage = whyAjamiData.hero?.images && whyAjamiData.hero.images.length > 0
-    ? `url('http://192.168.15.95:5000${whyAjamiData.hero.images[0]}')`
+    ? `url('${BASE_URL}${whyAjamiData.hero.images[0]}')`
     : "url('/images/whyajami/WhatsApp Image 2026-01-08 at 12.03.08 PM.jpeg')";
 
   const expertiseList = whyAjamiData.expertiseItems.length > 0
@@ -100,7 +101,7 @@ const WhyAjamiPage = () => {
         {whyAjamiData.contentSections.map((section, index) => {
           const imagePosition = section.details?.image_position || 'left';
           const sectionImage = section.images?.[0]
-            ? `http://192.168.15.95:5000${section.images[0]}`
+            ? `${BASE_URL}${section.images[0]}`
             : null;
           const swapOrder = isAr ? imagePosition === 'right' : imagePosition === 'left';
 

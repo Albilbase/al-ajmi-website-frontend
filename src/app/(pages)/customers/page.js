@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import styles from './customers.module.css';
 import Projects from '@/components/Projects/Projects'; // Reusing the Projects component as requested
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 
 // Define the animation variants
 const fadeInUp = {
@@ -18,10 +19,12 @@ const CustomersPage = () => {
   const sections = useCMSStore((state) => state.sections);
 
   const [banner, setBanner] = useState(null);
+  const [homeData, setHomeData] = useState(null);
 
   useEffect(() => {
     const homeSections = (sections || []).filter(section => section.section_key === 'home');
     if (homeSections.length > 0) {
+      setHomeData(homeSections);
       const bannerData = homeSections.find(item => item.type === 'project_banner' && item.is_active);
       if (bannerData) {
         setBanner(bannerData);
@@ -30,7 +33,7 @@ const CustomersPage = () => {
   }, [sections]);
 
   const bgImage = (banner && banner.images && banner.images.length > 0) 
-    ? `url('http://192.168.15.95:5000${banner.images[0]}')` 
+    ? `url('${BASE_URL}${banner.images[0]}')` 
     : null;
 
   const title = banner 
@@ -61,8 +64,7 @@ const CustomersPage = () => {
       </div>
 
       <div className={styles.contentWrapper}>
-         {/* The user requested to put the Projects component here */}
-        <Projects />
+        <Projects homeData={homeData} variant="grid" />
       </div>
     </div>
   );

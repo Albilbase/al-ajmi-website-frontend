@@ -65,11 +65,11 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.navLeft {
+.swiperPrev {
   left: -10px;
 }
 
-.navRight {
+.swiperNext {
   right: -10px;
 }
 
@@ -80,29 +80,28 @@
   box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.3);
 }
 
-.sliderWrapper {
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.navBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.swiper {
   padding: 1rem 0 2rem 0;
   cursor: grab;
 }
 
-.sliderWrapper::-webkit-scrollbar {
-  display: none;
+.swiper:active {
+  cursor: grabbing;
 }
 
-.sliderTrack {
+.swiperSlide {
   display: flex;
-  gap: 2rem;
-  padding: 0 1rem;
+  justify-content: center;
 }
 
 .partnerCard {
   width: 260px;
   height: 140px;
-  flex-shrink: 0;
   background: white;
   border-radius: 16px;
   display: flex;

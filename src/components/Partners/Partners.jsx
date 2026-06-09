@@ -1,17 +1,20 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import { BASE_URL } from '@/lib/api';
 import styles from "./Partners.module.css";
 
 const Partners = ({ homeData }) => {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const sliderRef = useRef(null);
-  const [isPaused, setIsPaused] = useState(false);
-
+  
   const [partners, setPartners] = useState([]);
 
   useEffect(() => {
@@ -21,7 +24,7 @@ const Partners = ({ homeData }) => {
         const partnerData = items.map(item => ({
           id: item.id,
           src: item.images && item.images.length > 0 
-            ? `http://192.168.15.95:5000${item.images[0]}` 
+            ? `${BASE_URL}${item.images[0]}` 
             : '/images/placeholder.png',
           title: isAr ? (item.title_ar || item.title_en || 'Partner') : (item.title_en || item.title_ar || 'Partner')
         }));
@@ -38,43 +41,6 @@ const Partners = ({ homeData }) => {
     }
   }, [homeData, isAr]);
 
-  const scrollSlider = (direction) => {
-    if (!sliderRef.current) return;
-    const scrollAmount = 280;
-    const currentScroll = sliderRef.current.scrollLeft;
-    const maxScroll = sliderRef.current.scrollWidth - sliderRef.current.offsetWidth;
-
-    let newScroll;
-    if (isAr) {
-      if (direction === 'next') {
-        newScroll = currentScroll - scrollAmount;
-        if (Math.abs(newScroll) > maxScroll + 50) newScroll = 0;
-      } else {
-        newScroll = currentScroll + scrollAmount;
-        if (newScroll > 50) newScroll = -maxScroll;
-      }
-    } else {
-      if (direction === 'next') {
-        newScroll = currentScroll + scrollAmount;
-        if (newScroll > maxScroll + 50) newScroll = 0;
-      } else {
-        newScroll = currentScroll - scrollAmount;
-        if (newScroll < -50) newScroll = maxScroll;
-      }
-    }
-
-    sliderRef.current.scrollTo({
-      left: newScroll,
-      behavior: 'smooth'
-    });
-  };
-
-  useEffect(() => {
-    if (!sliderRef.current || isPaused) return;
-    const interval = setInterval(() => scrollSlider('next'), 3500);
-    return () => clearInterval(interval);
-  }, [isPaused, isAr, partners]);
-
   return (
     <section className={styles.section}>
       <div className={styles.container}>
@@ -90,28 +56,38 @@ const Partners = ({ homeData }) => {
         </div>
 
         <div className={styles.sliderOuter}>
-          <button className={`${styles.navBtn} ${styles.navLeft}`} onClick={() => scrollSlider(isAr ? 'next' : 'prev')}>
+          <button className={`${styles.navBtn} ${styles.swiperPrev}`}>
             <ChevronLeft size={24} />
           </button>
-          <button className={`${styles.navBtn} ${styles.navRight}`} onClick={() => scrollSlider(isAr ? 'prev' : 'next')}>
+          <button className={`${styles.navBtn} ${styles.swiperNext}`}>
             <ChevronRight size={24} />
           </button>
 
-          <div 
-            className={styles.sliderWrapper} 
-            ref={sliderRef}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
+          <Swiper
+            modules={[Navigation, Autoplay]}
+            navigation={{
+              nextEl: `.${styles.swiperNext}`,
+              prevEl: `.${styles.swiperPrev}`,
+            }}
+            autoplay={{
+              delay: 3500,
+              disableOnInteraction: false,
+            }}
+            loop={true}
+            breakpoints={{
+              320: { slidesPerView: 2, spaceBetween: 16 },
+              480: { slidesPerView: 2, spaceBetween: 20 },
+              768: { slidesPerView: 3, spaceBetween: 24 },
+              1024: { slidesPerView: 4, spaceBetween: 32 },
+              1280: { slidesPerView: 5, spaceBetween: 32 },
+            }}
+            className={styles.swiper}
+            dir={isAr ? 'rtl' : 'ltr'}
+            key={isAr ? 'rtl' : 'ltr'}
           >
-            <motion.div className={styles.sliderTrack}>
-              {partners.map((partner, index) => (
-                <motion.div
-                  key={partner.id || index}
-                  className={styles.partnerCard}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                >
+            {partners.map((partner, index) => (
+              <SwiperSlide key={`${partner.id}-${index}`} className={styles.swiperSlide}>
+                <div className={styles.partnerCard}>
                   <div className={styles.logoWrapper}>
                     <Image 
                       src={partner.src} 
@@ -122,10 +98,10 @@ const Partners = ({ homeData }) => {
                       unoptimized
                     />
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
       </div>
     </section>

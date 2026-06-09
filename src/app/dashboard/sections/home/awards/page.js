@@ -17,7 +17,7 @@ import localStyles from './awards-manager.module.css';
 import Modal from '../../../_components/Modal/Modal';
 import ImageUpload from '../../../_components/ImageUpload/ImageUpload';
 import { toast } from 'react-toastify';
-import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI } from '@/lib/api';
+import { createSectionAPI, updateSectionAPI, deleteSectionAPI, deleteImageAPI, BASE_URL } from '@/lib/api';
 import useCMSStore from '@/store/useCMSStore';
 import { confirmDelete } from '@/lib/sweetalert';
 
@@ -79,7 +79,7 @@ export default function AwardsManager() {
               title_ar: s.title_ar,
               category_en: s.description_en,
               category_ar: s.description_ar,
-              src: s.images && s.images.length > 0 ? `http://192.168.15.95:5000${s.images[s.images.length - 1]}` : null,
+              src: s.images && s.images.length > 0 ? `${BASE_URL}${s.images[s.images.length - 1]}` : null,
               rawImage: s.images && s.images.length > 0 ? s.images[s.images.length - 1] : null
             }));
             setAwards(mappedAwards);
@@ -270,7 +270,7 @@ export default function AwardsManager() {
       if (result.isConfirmed) {
 
          try {
-            const rawPath = currentAward.rawImage || currentAward.src.replace('http://192.168.15.95:5000', '');
+            const rawPath = currentAward.rawImage || currentAward.src.replace(BASE_URL, '');
             await deleteImageAPI(currentAward.id, rawPath);
             await refreshSections();
             

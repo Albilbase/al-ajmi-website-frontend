@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import useCMSStore from '@/store/useCMSStore';
+import { BASE_URL } from '@/lib/api';
 import styles from './vision.module.css';
 import { Eye, Target, Shield, Heart, TrendingUp, Sparkles, Rocket, Award } from 'lucide-react';
 
@@ -92,7 +93,7 @@ const VisionPage = () => {
   }, [sections]);
 
   const heroImages = visionData.hero?.images && visionData.hero.images.length > 0
-    ? visionData.hero.images.map(img => `http://192.168.15.95:5000${img}`)
+    ? visionData.hero.images.map(img => `${BASE_URL}${img}`)
     : [
         '/images/vision/1.png',
         '/images/vision/2.png',
