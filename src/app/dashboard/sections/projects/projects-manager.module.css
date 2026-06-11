@@ -98,14 +98,23 @@
   font-weight: 600;
   transition: all 0.2s;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  width: 100%;
 }
 
 .categoryBtn:hover {
   background: #f8fafc;
   color: #1e293b;
   padding-left: 1.25rem;
+}
+
+.categoryBtnAr {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #94a3b8;
+  direction: rtl;
 }
 
 .activeCategory {

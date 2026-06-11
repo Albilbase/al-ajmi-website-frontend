@@ -297,6 +297,7 @@ export default function ProjectsManager() {
                   className={localStyles.categoryBtn}
                 >
                   {cat.name_en}
+                  {cat.name_ar && <span className={localStyles.categoryBtnAr}>{cat.name_ar}</span>}
                 </button>
               </div>
             ))}

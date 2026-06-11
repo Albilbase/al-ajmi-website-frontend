@@ -39,13 +39,17 @@ const fadeInUp = {
     if (!container || !wrapper || !button) return;
 
     requestAnimationFrame(() => {
-      const wrapperWidth = wrapper.offsetWidth;
-      const buttonLeft = button.offsetLeft;
-      const buttonWidth = button.offsetWidth;
-      const centerOffset = buttonLeft + buttonWidth / 2 - wrapperWidth / 2;
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const buttonRect = button.getBoundingClientRect();
 
-      let targetX = -centerOffset;
-      const maxScroll = Math.max(0, container.scrollWidth - wrapperWidth);
+      const wrapperCenter = wrapperRect.left + wrapperRect.width / 2;
+      const buttonCenter = buttonRect.left + buttonRect.width / 2;
+      const diff = buttonCenter - wrapperCenter;
+
+      const currentX = tabX.get();
+      let targetX = currentX - diff;
+
+      const maxScroll = Math.max(0, container.scrollWidth - wrapper.offsetWidth);
       if (isAr) {
         targetX = Math.max(0, Math.min(maxScroll, targetX));
       } else {
