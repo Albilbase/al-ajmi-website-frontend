@@ -29,7 +29,6 @@ export default function ProjectsManager() {
   const [activeItem, setActiveItem] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formErrors, setFormErrors] = useState({});
-  const [categories, setCategories] = useState([]);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [orderChanged, setOrderChanged] = useState(false);
@@ -63,8 +62,6 @@ export default function ProjectsManager() {
   const [newProject, setNewProject] = useState({
     fullName_en: "",
     fullName_ar: "",
-    type_en: "",
-    type_ar: "",
     logoFile: null,
     logoPreview: null
   });
@@ -92,9 +89,6 @@ export default function ProjectsManager() {
               id: s.id,
               fullName_en: s.title_en,
               fullName_ar: s.title_ar,
-              type_en: s.description_en,
-              type_ar: s.description_ar,
-
               logo: s.images && s.images.length > 0 ? `${BASE_URL}${s.images[s.images.length - 1]}` : null,
               rawImage: s.images && s.images.length > 0 ? s.images[s.images.length - 1] : null,
               sort_order: s.sort_order || 999
@@ -140,21 +134,9 @@ export default function ProjectsManager() {
     fetchAllData();
   }, [sections]);
 
-  // Fetch categories from projects section
-  useEffect(() => {
-    if (sections && sections.length > 0) {
-      const categorySections = sections.filter(
-        s => s.section_key === 'projects' && s.type === 'category'
-      );
-      setCategories(categorySections);
-    }
-  }, [sections]);
-
   const handleAddProject = async () => {
     const errors = {};
     if (!newProject.fullName_en) errors.new_fullName_en = true;
-    if (!newProject.type_en) errors.new_type_en = true;
-    if (!newProject.type_ar) errors.new_type_ar = true;
     if (!newProject.logoFile) errors.new_logo = true;
 
     if (Object.keys(errors).length > 0) {
@@ -168,8 +150,6 @@ export default function ProjectsManager() {
       const formData = new FormData();
       formData.append('title_en', newProject.fullName_en);
       formData.append('title_ar', newProject.fullName_ar);
-      formData.append('description_en', newProject.type_en);
-      formData.append('description_ar', newProject.type_ar);
       formData.append('section_key', 'home');
       formData.append('type', 'project');
       formData.append('is_active', 'true');
@@ -188,8 +168,6 @@ export default function ProjectsManager() {
       setNewProject({
         fullName_en: "",
         fullName_ar: "",
-        type_en: "",
-        type_ar: "",
         logoFile: null,
         logoPreview: null
       });
@@ -210,8 +188,6 @@ export default function ProjectsManager() {
 
     const errors = {};
     if (!currentProject.fullName_en) errors.fullName_en = true;
-    if (!currentProject.type_en) errors.type_en = true;
-    if (!currentProject.type_ar) errors.type_ar = true;
     if (!currentProject.logo && !editorFile) errors.logo = true;
 
     if (Object.keys(errors).length > 0) {
@@ -225,8 +201,6 @@ export default function ProjectsManager() {
       const formData = new FormData();
       formData.append('title_en', currentProject.fullName_en);
       formData.append('title_ar', currentProject.fullName_ar);
-      formData.append('description_en', currentProject.type_en);
-      formData.append('description_ar', currentProject.type_ar);
       formData.append('section_key', 'home');
       formData.append('type', 'project');
       formData.append('is_active', 'true');
@@ -299,8 +273,6 @@ export default function ProjectsManager() {
         const formData = new FormData();
         formData.append('title_en', p.fullName_en);
         formData.append('title_ar', p.fullName_ar);
-        formData.append('description_en', p.type_en);
-        formData.append('description_ar', p.type_ar);
         formData.append('section_key', 'home');
         formData.append('type', 'project');
         formData.append('is_active', 'true');
@@ -698,7 +670,6 @@ export default function ProjectsManager() {
                     </div>
                     <div className={localStyles.itemInfo}>
                       <div className={localStyles.itemTitle}>{project.fullName_en}</div>
-                      <div className={localStyles.itemMeta}>{project.type_en}</div>
                     </div>
                     {activeItem === index && <Check size={16} color="#DC143C" />}
                   </div>
@@ -725,48 +696,24 @@ export default function ProjectsManager() {
 
               {/* Name Fields */}
               <div className={localStyles.formGrid}>
-                <div className={localStyles.inputGroup} style={{ gridColumn: '1 / -1' }}>
-                  <label className={localStyles.fieldLabel}>Client/Project Name</label>
-                  <select
-                    value={categories.some(c => c.title_en === projects[activeItem].fullName_en) ? projects[activeItem].fullName_en : ''}
-                    onChange={(e) => {
-                      const cat = categories.find(c => c.title_en === e.target.value);
-                      if (cat) {
-                        updateActiveProject('fullName_en', cat.title_en);
-                        updateActiveProject('fullName_ar', cat.title_ar);
-                      }
-                    }}
-                    className={`${localStyles.inputField} ${formErrors.fullName_en ? dashboardStyles.invalidInput : ''}`}
-                    style={{ fontWeight: '700', cursor: 'pointer' }}
-                  >
-                    <option value="">-- Select Client --</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.title_en}>
-                        {cat.title_en} / {cat.title_ar}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Type Fields */}
-              <div className={localStyles.formGrid}>
                 <div className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>Project Category (EN)</label>
+                  <label className={localStyles.fieldLabel}>Client/Project Name (EN)</label>
                   <input
                     type="text"
-                    value={projects[activeItem].type_en}
-                    onChange={(e) => updateActiveProject('type_en', e.target.value)}
-                    className={`${localStyles.inputField} ${formErrors.type_en ? dashboardStyles.invalidInput : ''}`}
+                    value={projects[activeItem].fullName_en}
+                    onChange={(e) => updateActiveProject('fullName_en', e.target.value)}
+                    className={`${localStyles.inputField} ${formErrors.fullName_en ? dashboardStyles.invalidInput : ''}`}
+                    style={{ fontWeight: '700' }}
                   />
                 </div>
-                <div dir="rtl" className={localStyles.inputGroup}>
-                  <label className={localStyles.fieldLabel}>Project Category (AR)</label>
+                <div className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Client/Project Name (AR)</label>
                   <input
                     type="text"
-                    value={projects[activeItem].type_ar}
-                    onChange={(e) => updateActiveProject('type_ar', e.target.value)}
-                    className={`${localStyles.inputField} ${formErrors.type_ar ? dashboardStyles.invalidInput : ''}`}
+                    value={projects[activeItem].fullName_ar}
+                    onChange={(e) => updateActiveProject('fullName_ar', e.target.value)}
+                    className={`${localStyles.inputField} ${formErrors.fullName_ar ? dashboardStyles.invalidInput : ''}`}
+                    style={{ fontWeight: '700' }}
                   />
                 </div>
               </div>
@@ -1037,51 +984,38 @@ export default function ProjectsManager() {
         }
       >
         <div className={localStyles.formGrid}>
-          <div className={localStyles.inputGroup} style={{ gridColumn: '1 / -1' }}>
-            <label className={localStyles.fieldLabel}>Client Name</label>
-            <select
-              value=""
+          <div className={localStyles.inputGroup}>
+            <label className={localStyles.fieldLabel}>Client/Project Name (EN)</label>
+            <input
+              type="text"
+              placeholder="e.g. Saudi Aramco"
+              value={newProject.fullName_en}
               onChange={(e) => {
-                const cat = categories.find(c => c.title_en === e.target.value);
-                if (cat) {
-                  setNewProject(prev => ({
-                    ...prev,
-                    fullName_en: cat.title_en,
-                    fullName_ar: cat.title_ar
-                  }));
+                setNewProject({...newProject, fullName_en: e.target.value});
+                if(formErrors.new_fullName_en) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_fullName_en;
+                   setFormErrors(newErrors);
                 }
               }}
               className={`${localStyles.inputField} ${formErrors.new_fullName_en ? dashboardStyles.invalidInput : ''}`}
-              style={{ cursor: 'pointer' }}
-            >
-              <option value="">-- Select Client --</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.title_en}>
-                  {cat.title_en} / {cat.title_ar}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className={localStyles.formGrid}>
-          <div className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>Category (EN)</label>
-            <input
-              type="text"
-              placeholder="e.g. Energy & Oil"
-              value={newProject.type_en}
-              onChange={(e) => setNewProject({...newProject, type_en: e.target.value, type_ar: e.target.value ? newProject.type_ar : ''})}
-              className={`${localStyles.inputField} ${formErrors.new_type_en ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
-          <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>التصنيف (AR)</label>
+          <div className={localStyles.inputGroup}>
+            <label className={localStyles.fieldLabel}>Client/Project Name (AR)</label>
             <input
               type="text"
-              placeholder="مثال: الطاقة والنفط"
-              value={newProject.type_ar}
-              onChange={(e) => setNewProject({...newProject, type_ar: e.target.value})}
-              className={`${localStyles.inputField} ${formErrors.new_type_ar ? dashboardStyles.invalidInput : ''}`}
+              placeholder="مثال: أرامكو السعودية"
+              value={newProject.fullName_ar}
+              onChange={(e) => {
+                setNewProject({...newProject, fullName_ar: e.target.value});
+                if(formErrors.new_fullName_ar) {
+                   const newErrors = { ...formErrors };
+                   delete newErrors.new_fullName_ar;
+                   setFormErrors(newErrors);
+                }
+              }}
+              className={`${localStyles.inputField} ${formErrors.new_fullName_ar ? dashboardStyles.invalidInput : ''}`}
             />
           </div>
         </div>

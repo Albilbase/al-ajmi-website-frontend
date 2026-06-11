@@ -148,7 +148,7 @@ const NewsTicker = () => {
                             className={styles.tickerScroll}
                             style={{
                                 willChange: 'transform',
-                                direction: 'ltr'
+                                direction: isAr ? 'rtl' : 'ltr'
                             }}
                         >
                             {tickerItems.map((item, index) => (

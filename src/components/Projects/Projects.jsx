@@ -78,7 +78,7 @@ const Projects = ({ homeData, variant = 'slider' }) => {
         {variant === 'grid' ? (
           <div className={styles.grid}>
             {displayProjects.map((project, index) => (
-              <Link key={project.id || index} href={`/projects?cat=${encodeURIComponent(project.title_en || project.description_en || project.name || '')}`} className={styles.linkWrapper}>
+              <Link key={project.id || index} href={`/projects?cat=${encodeURIComponent(project.title_en || project.name || '')}`} className={styles.linkWrapper}>
                 <motion.div
                   className={`${styles.item} ${styles.gridItem}`}
                   initial={{ opacity: 0, y: 20 }}
@@ -101,9 +101,6 @@ const Projects = ({ homeData, variant = 'slider' }) => {
                     <h3 className={styles.projectName}>
                       {isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
                     </h3>
-                    <span className={styles.projectType}>
-                      {isAr ? (project.description_ar || project.type) : (project.description_en || project.type)}
-                    </span>
                   </div>
                 </motion.div>
               </Link>
@@ -141,7 +138,7 @@ const Projects = ({ homeData, variant = 'slider' }) => {
             >
               {displayProjects.map((project, index) => (
                 <SwiperSlide key={`${project.id || index}-${index}`} className={styles.swiperSlide}>
-                  <Link href={`/projects?cat=${encodeURIComponent(project.title_en || project.description_en || project.name || '')}`} className={styles.linkWrapper}>
+                  <Link href={`/projects?cat=${encodeURIComponent(project.title_en || project.name || '')}`} className={styles.linkWrapper}>
                     <div className={styles.item}>
                       <div className={styles.logoWrapper}>
                         <Image
@@ -158,9 +155,6 @@ const Projects = ({ homeData, variant = 'slider' }) => {
                         <h3 className={styles.projectName}>
                           {isAr ? (project.title_ar || project.fullName) : (project.title_en || project.fullName)}
                         </h3>
-                        <span className={styles.projectType}>
-                          {isAr ? (project.description_ar || project.type) : (project.description_en || project.type)}
-                        </span>
                       </div>
                     </div>
                   </Link>

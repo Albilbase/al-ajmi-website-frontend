@@ -7,9 +7,6 @@ import {
   Plus, 
   Trash2, 
   Edit2,
-  UploadCloud,
-  FolderPlus,
-  X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -43,12 +40,10 @@ export default function ProjectsManager() {
 
   // Modals state
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   
   // Selection state
   const [currentProject, setCurrentProject] = useState(null);
   const [projectFile, setProjectFile] = useState(null);
-  const [currentCategory, setCurrentCategory] = useState({ id: null, title_en: "", title_ar: "" });
 
 
   const getImageUrl = (path) => {
@@ -65,13 +60,14 @@ export default function ProjectsManager() {
         if (sections && sections.length > 0) {
           const projectsSections = sections.filter(s => s.section_key === 'projects');
           
-          const fetchedCategories = projectsSections.filter(s => s.type === 'category').map(c => ({
+          const homeProjects = sections.filter(s => s.section_key === 'home' && s.type === 'project');
+          const fetchedCategories = homeProjects.map(c => ({
             id: c.id,
-            name_en: c.title_en,
-            name_ar: c.title_ar
+            name_en: c.title_en || 'Untitled',
+            name_ar: c.title_ar || 'بدون عنوان'
           }));
 
-          const fetchedProjects = projectsSections.filter(s => s.type !== 'category').map(p => {
+          const fetchedProjects = projectsSections.map(p => {
             let details = { owner: "", location: "", duration: "", status: "", value: "" };
             let detailsAr = { owner: "", location: "", duration: "", status: "", value: "" };
             try {
@@ -85,7 +81,7 @@ export default function ProjectsManager() {
               id: p.id,
               image: getImageUrl(p.images?.[0]),
               rawImage: p.images?.[0],
-              categoryId: p.type, // Using 'type' as category identifier
+              categoryId: p.type,
               en: { title: p.title_en, ...details },
               ar: { title: p.title_ar, ...detailsAr }
             };
@@ -93,7 +89,6 @@ export default function ProjectsManager() {
 
           setCategories(fetchedCategories);
           setProjects(fetchedProjects);
-          // Only set active category if not already set or if current one is invalid
           if (fetchedCategories.length > 0 && !activeCategoryId) {
             setActiveCategoryId(fetchedCategories[0].id);
           }
@@ -105,7 +100,7 @@ export default function ProjectsManager() {
       }
     };
     fetchData();
-  }, [sections]); // Depend on sections
+  }, [sections]);
 
   const getStatusColor = (status) => {
     if (!status) return 'default';
@@ -113,75 +108,6 @@ export default function ProjectsManager() {
     if (s.includes('completed') || s.includes('مكتمل')) return localStyles.completed;
     if (s.includes('progress') || s.includes('construction') || s.includes('تنفيذ')) return localStyles.progress;
     return '';
-  };
-
-  // --- Category Handlers ---
-  const handleAddCategory = () => {
-    setCurrentCategory({ id: null, title_en: "", title_ar: "" });
-    setIsCategoryModalOpen(true);
-  };
-
-  const handleEditCategory = (cat) => {
-    setCurrentCategory({ id: cat.id, title_en: cat.name_en, title_ar: cat.name_ar });
-    setIsCategoryModalOpen(true);
-  };
-
-  const saveCategory = async () => {
-    const errors = {};
-    if (!currentCategory.title_en) errors.cat_title_en = true;
-    if (!currentCategory.title_ar) errors.cat_title_ar = true;
-
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      toast.error("Please fill in both English and Arabic category names");
-      return;
-    }
-
-    setFormErrors({});
-    setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append('section_key', 'projects');
-    formData.append('type', 'category');
-    formData.append('title_en', currentCategory.title_en);
-    formData.append('title_ar', currentCategory.title_ar);
-    formData.append('is_active', 'true');
-
-    try {
-      if (currentCategory.id) {
-        await updateSectionAPI(currentCategory.id, formData);
-        toast.success("Category updated successfully");
-      } else {
-        const response = await createSectionAPI(formData);
-        if (!activeCategoryId) setActiveCategoryId(response.data.id);
-        toast.success("Category added successfully");
-      }
-      setIsCategoryModalOpen(false);
-      await refreshSections();
-    } catch (error) {
-      toast.error("An error occurred while saving the project");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const deleteCategory = async (id) => {
-    const result = await confirmDelete('Delete Category', 'Are you sure you want to delete this category? All related projects will also be deleted.');
-    if (result.isConfirmed) {
-      try {
-
-        await deleteSectionAPI(id);
-        // Also delete sub-projects (though backend usually handles cascading if implemented, but here we just cleanup)
-        const subProjects = projects.filter(p => p.categoryId === String(id));
-        for (const p of subProjects) {
-          await deleteSectionAPI(p.id);
-        }
-        toast.success("Category deleted successfully");
-        if (activeCategoryId === id) setActiveCategoryId(null);
-        await refreshSections();
-      } catch (error) {
-        toast.error("Failed to delete category");
-      }
-    }
   };
 
   // --- Project Handlers ---
@@ -193,18 +119,15 @@ export default function ProjectsManager() {
     setCurrentProject({
       id: null,
       image: "",
-      en: { title: "", owner: activeCategory?.name_en || "", location: "", duration: "", status: "", value: "" },
-      ar: { title: "", owner: activeCategory?.name_ar || "", location: "", duration: "", status: "", value: "" }
+      en: { title: "", owner: "", location: "", duration: "", status: "", value: "" },
+      ar: { title: "", owner: "", location: "", duration: "", status: "", value: "" }
     });
     setProjectFile(null);
     setIsProjectModalOpen(true);
   };
 
   const handleEdit = (project) => {
-    const cloned = JSON.parse(JSON.stringify(project));
-    cloned.en.owner = activeCategory?.name_en || cloned.en.owner;
-    cloned.ar.owner = activeCategory?.name_ar || cloned.ar.owner;
-    setCurrentProject(cloned);
+    setCurrentProject(JSON.parse(JSON.stringify(project)));
     setProjectFile(null);
     setIsProjectModalOpen(true);
   };
@@ -364,12 +287,9 @@ export default function ProjectsManager() {
         {/* Sidebar */}
         <div className={localStyles.categorySidebar}>
           <div className={localStyles.categoryTitle}>
-            Categories
+            Projects List
           </div>
           <div className={localStyles.categoryList}>
-            <button onClick={handleAddCategory} className={localStyles.addCategoryBtn}>
-              <FolderPlus size={18} /> Add New Category
-            </button>
             {categories.map(cat => (
               <div key={cat.id} className={`${localStyles.categoryBtnWrapper} ${activeCategoryId === cat.id ? localStyles.activeCategory : ''}`}>
                 <button
@@ -378,12 +298,13 @@ export default function ProjectsManager() {
                 >
                   {cat.name_en}
                 </button>
-                <div className={localStyles.categoryActions}>
-                  <button onClick={() => handleEditCategory(cat)} title="Edit Category"><Edit2 size={14} /></button>
-                  <button onClick={() => deleteCategory(cat.id)} title="Delete Category"><Trash2 size={14} /></button>
-                </div>
               </div>
             ))}
+            {categories.length === 0 && (
+              <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                No projects found in home section.
+              </div>
+            )}
           </div>
         </div>
 
@@ -504,7 +425,37 @@ export default function ProjectsManager() {
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Owner</label>
-                  <input className={localStyles.inputField} value={currentProject.en.owner} disabled style={{ background: '#f1f5f9', cursor: 'not-allowed' }} />
+                  <select className={`${localStyles.inputField} ${formErrors.proj_owner_en ? dashboardStyles.invalidInput : ''}`} value={currentProject.en.owner} onChange={(e) => {
+                    const selected = categories.find(c => c.name_en === e.target.value);
+                    setCurrentProject(prev => ({
+                      ...prev,
+                      en: { ...prev.en, owner: e.target.value },
+                      ar: { ...prev.ar, owner: selected ? selected.name_ar : '' }
+                    }));
+                    if(formErrors.proj_owner_en) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.proj_owner_en;
+                       setFormErrors(newErrors);
+                    }
+                    if(formErrors.proj_owner_ar) {
+                       const newErrors = { ...formErrors };
+                       delete newErrors.proj_owner_ar;
+                       setFormErrors(newErrors);
+                    }
+                  }}>
+                    <option value="">-- Select Owner --</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.name_en}>{cat.name_en}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Location</label>
+                  <input className={localStyles.inputField} value={currentProject.en.location} onChange={(e) => updateField('en', 'location', e.target.value)} />
+                </div>
+                <div className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Duration</label>
+                  <input className={localStyles.inputField} value={currentProject.en.duration} onChange={(e) => updateField('en', 'duration', e.target.value)} />
                 </div>
                 <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Status</label>
@@ -533,6 +484,14 @@ export default function ProjectsManager() {
                   <input className={localStyles.inputField} value={currentProject.ar.owner} disabled style={{ background: '#f1f5f9', cursor: 'not-allowed' }} />
                 </div>
                 <div className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Location</label>
+                  <input className={localStyles.inputField} value={currentProject.ar.location} onChange={(e) => updateField('ar', 'location', e.target.value)} />
+                </div>
+                <div className={localStyles.inputGroup}>
+                  <label className={localStyles.fieldLabel}>Duration</label>
+                  <input className={localStyles.inputField} value={currentProject.ar.duration} onChange={(e) => updateField('ar', 'duration', e.target.value)} />
+                </div>
+                <div className={localStyles.inputGroup}>
                   <label className={localStyles.fieldLabel}>Status</label>
                   <select className={`${localStyles.inputField} ${formErrors.proj_status_ar ? dashboardStyles.invalidInput : ''}`} value={currentProject.ar.status} onChange={(e) => updateField('ar', 'status', e.target.value)}>
                      <option value="">Select...</option>
@@ -551,54 +510,7 @@ export default function ProjectsManager() {
         )}
       </Modal>
 
-      <Modal
-        isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
-        title={currentCategory.id ? 'Edit Category' : 'Add New Category'}
-        maxWidth="500px"
-        footer={
-          <>
-            <button onClick={() => setIsCategoryModalOpen(false)} className={localStyles.cancelBtn}>Cancel</button>
-            <button onClick={saveCategory} className={localStyles.submitBtn} disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Category'}
-            </button>
-          </>
-        }
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>Category Name (EN)</label>
-            <input 
-              className={`${localStyles.inputField} ${formErrors.cat_title_en ? dashboardStyles.invalidInput : ''}`}
-              value={currentCategory.title_en} 
-              onChange={(e) => {
-                setCurrentCategory({...currentCategory, title_en: e.target.value});
-                if(formErrors.cat_title_en) {
-                   const newErrors = { ...formErrors };
-                   delete newErrors.cat_title_en;
-                   setFormErrors(newErrors);
-                }
-              }} 
-            />
-          </div>
-          <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>Category Name (AR)</label>
-            <input 
-              className={`${localStyles.inputField} ${formErrors.cat_title_ar ? dashboardStyles.invalidInput : ''}`} 
-              style={{ textAlign: 'right' }}
-              value={currentCategory.title_ar} 
-              onChange={(e) => {
-                setCurrentCategory({...currentCategory, title_ar: e.target.value});
-                if(formErrors.cat_title_ar) {
-                   const newErrors = { ...formErrors };
-                   delete newErrors.cat_title_ar;
-                   setFormErrors(newErrors);
-                }
-              }} 
-            />
-          </div>
-        </div>
-      </Modal>
+
 
     </div>
   );

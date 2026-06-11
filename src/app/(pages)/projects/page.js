@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -28,41 +28,69 @@ const fadeInUp = {
   const [categories, setCategories] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
   const [activeTab, setActiveTab] = useState(null);
+  const tabX = useMotionValue(0);
+
+  // Scroll active tab into view when it changes
+  useEffect(() => {
+    if (!activeTab || categories.length === 0) return;
+    const container = tabsContainerRef.current;
+    const wrapper = tabsWrapperRef.current;
+    const button = container?.querySelector(`[data-tab-id="${activeTab}"]`);
+    if (!container || !wrapper || !button) return;
+
+    requestAnimationFrame(() => {
+      const wrapperWidth = wrapper.offsetWidth;
+      const buttonLeft = button.offsetLeft;
+      const buttonWidth = button.offsetWidth;
+      const centerOffset = buttonLeft + buttonWidth / 2 - wrapperWidth / 2;
+
+      let targetX = -centerOffset;
+      const maxScroll = Math.max(0, container.scrollWidth - wrapperWidth);
+      if (isAr) {
+        targetX = Math.max(0, Math.min(maxScroll, targetX));
+      } else {
+        targetX = Math.max(-maxScroll, Math.min(0, targetX));
+      }
+
+      animate(tabX, targetX, { type: 'spring', stiffness: 400, damping: 30 });
+    });
+  }, [activeTab, categories, tabX]);
 
   useEffect(() => {
-    const projectSections = (sections || []).filter(section => section.section_key === 'projects');
-    if (projectSections.length > 0) {
-      const cats = projectSections.filter(item => item.type === 'category' && item.is_active);
-      const projects = projectSections.filter(item => 
-        cats.some(cat => cat.id.toString() === item.type) && item.is_active
-      );
+    const homeProjects = (sections || []).filter(s => s.section_key === 'home' && s.type === 'project' && s.is_active);
+    const allSectionProjects = (sections || []).filter(s => s.section_key === 'projects');
+    
+    if (homeProjects.length > 0) {
+      setCategories(homeProjects);
       
-      setCategories(cats);
-      setAllProjects(projects);
+      const filteredProjects = allSectionProjects.filter(p => 
+        homeProjects.some(hp => String(hp.id) === String(p.type)) && p.is_active
+      );
+      setAllProjects(filteredProjects);
       
       const catParam = searchParams.get('cat');
       if (catParam) {
         const decoded = decodeURIComponent(catParam).toLowerCase().trim();
-        const match = cats.find(c => 
-          c.title_en?.toLowerCase() === decoded || 
-          c.title_ar?.toLowerCase() === decoded
+        const match = homeProjects.find(hp => 
+          hp.title_en?.toLowerCase() === decoded || 
+          hp.title_ar?.toLowerCase() === decoded
         );
         if (match) {
-          setActiveTab(match.id.toString());
+          setActiveTab(String(match.id));
           return;
         }
-        const projectMatch = projects.find(p => 
+        const projectMatch = filteredProjects.find(p => 
           p.title_en?.toLowerCase() === decoded || 
           p.title_ar?.toLowerCase() === decoded
         );
         if (projectMatch) {
-          setActiveTab(projectMatch.type);
+          setActiveTab(String(projectMatch.type));
           return;
         }
       }
       
-      if (cats.length > 0 && !activeTab) {
-        setActiveTab(cats[0].id.toString());
+      if (homeProjects.length > 0 && !activeTab) {
+        setActiveTab(String(homeProjects[0].id));
       }
     }
   }, [sections, searchParams]);
@@ -96,7 +124,7 @@ const fadeInUp = {
     };
   }, [categories.length, isAr]);
 
-  const activeProjects = allProjects.filter(p => p.type === activeTab);
+  const activeProjects = allProjects.filter(p => String(p.type) === activeTab);
 
   if (storeLoading && (sections || []).length === 0) {
     return (
@@ -129,24 +157,26 @@ const fadeInUp = {
         {/* Modern Draggable Tabs */}
         <div className={styles.tabsWrapper} ref={tabsWrapperRef}>
            <motion.div 
-             ref={tabsContainerRef}
-             className={styles.tabsContainer}
-             drag="x"
-             dragConstraints={dragConstraints}
-             dragElastic={0.2}
-             dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
-             whileTap={{ cursor: "grabbing" }}
-           >
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveTab(cat.id.toString())}
-                  className={`${styles.tabBtn} ${activeTab === cat.id.toString() ? styles.activeTab : ''}`}
-                >
-                  {isAr ? cat.title_ar : cat.title_en}
-                </button>
-              ))}
-           </motion.div>
+              ref={tabsContainerRef}
+              style={{ x: tabX }}
+              className={styles.tabsContainer}
+              drag="x"
+              dragConstraints={dragConstraints}
+              dragElastic={0.2}
+              dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
+              whileTap={{ cursor: "grabbing" }}
+            >
+               {categories.map((cat) => (
+                 <button
+                   key={cat.id}
+                   data-tab-id={cat.id.toString()}
+                   onClick={() => setActiveTab(cat.id.toString())}
+                   className={`${styles.tabBtn} ${activeTab === cat.id.toString() ? styles.activeTab : ''}`}
+                 >
+                   {isAr ? cat.title_ar : cat.title_en}
+                 </button>
+               ))}
+            </motion.div>
         </div>
 
         {/* Projects Grid */}
@@ -183,7 +213,7 @@ const fadeInUp = {
                       <h3 className={styles.projectTitle}>{isAr ? project.title_ar : project.title_en}</h3>
                       <div className={styles.metaTags}>
                         <span className={styles.categoryTag}>
-                          {categories.find(c => c.id.toString() === project.type)?.[isAr ? 'title_ar' : 'title_en']}
+                          {categories.find(c => String(c.id) === String(project.type))?.[isAr ? 'title_ar' : 'title_en']}
                         </span>
                         {isAr ? <ArrowLeft size={20} className={styles.arrowIcon} /> : <ArrowRight size={20} className={styles.arrowIcon} />}
                       </div>

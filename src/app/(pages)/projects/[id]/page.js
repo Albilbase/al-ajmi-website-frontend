@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import useCMSStore from '@/store/useCMSStore';
-import { BASE_URL } from '@/lib/api';
+import { BASE_URL, getAllSectionsAPI } from '@/lib/api';
 import { 
   ArrowLeft, ArrowRight, Building2, MapPin, 
   Clock, Activity, Banknote 
@@ -18,21 +18,42 @@ const ProjectDetails = () => {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const sections = useCMSStore((state) => state.sections);
-  const storeLoading = useCMSStore((state) => state.isLoading);
 
   const [project, setProject] = useState(null);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
-    const projectSections = (sections || []).filter(section => section.section_key === 'projects');
-    if (projectSections.length > 0) {
-      const foundProject = projectSections.find(item => item.id.toString() === id);
-      if (foundProject) {
-        setProject(foundProject);
-      }
+    const findProject = (data) => {
+      return (data || []).find(
+        item => item.section_key === 'projects' && item.id.toString() === id
+      );
+    };
+
+    // First try the store — if project is found, use it immediately
+    const fromStore = findProject(sections);
+    if (fromStore) {
+      setProject(fromStore);
+      setPageLoading(false);
+      return;
     }
+
+    // Otherwise fetch fresh data from the API
+    const fetchDirect = async () => {
+      try {
+        const response = await getAllSectionsAPI();
+        const data = response?.data || response || [];
+        const found = findProject(data);
+        if (found) setProject(found);
+      } catch (err) {
+        console.error('Failed to fetch project:', err);
+      } finally {
+        setPageLoading(false);
+      }
+    };
+    fetchDirect();
   }, [sections, id]);
 
-  if (storeLoading && (sections || []).length === 0) {
+  if (pageLoading) {
     return (
       <div className={styles.projectDetailsSection} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <p>{isAr ? 'جاري التحميل...' : 'Loading project details...'}</p>
@@ -48,7 +69,11 @@ const ProjectDetails = () => {
     );
   }
 
-  const projectDetails = project.details?.[isAr ? 'ar' : 'en'] || {};
+  let parsedDetails = project.details;
+  if (typeof parsedDetails === 'string') {
+    try { parsedDetails = JSON.parse(parsedDetails || '{}'); } catch (e) {}
+  }
+  const projectDetails = parsedDetails?.[isAr ? 'ar' : 'en'] || {};
   const imagePath = project.images && project.images.length > 0 
     ? `${BASE_URL}${project.images[0]}` 
     : '/images/placeholder.jpg';
