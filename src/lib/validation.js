@@ -50,7 +50,7 @@ export const validateImage = (file, mode = 'standard', isRTL = false) => {
  * @returns {boolean} - Returns true if valid, false otherwise.
  */
 export const validateVideo = (file, isRTL = false) => {
-    const maxSize = 300 * 1024 * 1024; // 300MB for video
+    const maxSize = 900 * 1024 * 1024; // 300MB for video
   
     if (!file) return false;
   
@@ -70,8 +70,8 @@ export const validateVideo = (file, isRTL = false) => {
     // 2. Size Check
     if (file.size > maxSize) {
       const errorMsg = isRTL 
-        ? `حجم الفيديو كبير جداً. الحد الأقصى المسموح هو 300MB` 
-        : `Video is too large. Maximum allowed is 300MB`;
+        ? `حجم الفيديو كبير جداً. الحد الأقصى المسموح هو 900MB` 
+        : `Video is too large. Maximum allowed is 900MB`;
       toast.error(errorMsg);
       return false;
     }

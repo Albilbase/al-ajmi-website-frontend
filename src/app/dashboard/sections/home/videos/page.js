@@ -322,7 +322,7 @@ export default function VideosManager() {
         </div>
         <div className={localStyles.inputGroup}>
           <label className={localStyles.fieldLabel}>
-            Video File (Any Video Format — max 300MB)
+            Video File (Any Video Format — max 900MB)
             {formErrors.video && <span style={{ color: '#DC143C' }}> *Required</span>}
           </label>
           <div className={formErrors.video ? localStyles.fileErrorBorder : ''}>
