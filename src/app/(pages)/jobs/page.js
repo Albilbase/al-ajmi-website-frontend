@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { 
   UploadCloud, 
@@ -277,6 +277,17 @@ const JobsPage = () => {
     }
   };
 
+  const detailRef = useRef(null);
+
+  const handleCardClick = (job) => {
+    setSelectedJob(job);
+    if (window.innerWidth <= 1100) {
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  };
+
   const getImageUrl = (path) => {
     if (!path) return "/images/Job-Search.jpg";
     if (path.startsWith('http')) return path;
@@ -343,7 +354,7 @@ const JobsPage = () => {
                   <div 
                     key={job.id} 
                     className={`${styles.jobCard} ${isActive ? styles.activeCard : ''}`}
-                    onClick={() => setSelectedJob(job)}
+                    onClick={() => handleCardClick(job)}
                   >
                     <h3 className={styles.jobTitle}>{jobTitle}</h3>
                     <p className={styles.jobDescriptionTruncated}>{jobDesc}</p>
@@ -368,6 +379,7 @@ const JobsPage = () => {
 
           {/* Job Detail View */}
           <motion.div 
+            ref={detailRef}
             className={styles.detailCard}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

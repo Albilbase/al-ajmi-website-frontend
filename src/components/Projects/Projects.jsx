@@ -127,10 +127,11 @@ const Projects = ({ homeData, variant = 'slider' }) => {
               }}
               loop={true}
               breakpoints={{
-                320: { slidesPerView: 1, spaceBetween: 16 },
-                640: { slidesPerView: 2, spaceBetween: 24 },
-                1024: { slidesPerView: 3, spaceBetween: 32 },
-                1280: { slidesPerView: 4, spaceBetween: 32 },
+                320: { slidesPerView: 2, spaceBetween: 12 },
+                480: { slidesPerView: 2, spaceBetween: 16 },
+                640: { slidesPerView: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, spaceBetween: 24 },
+                1280: { slidesPerView: 5, spaceBetween: 28 },
               }}
               className={styles.swiper}
               dir={isAr ? 'rtl' : 'ltr'}

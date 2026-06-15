@@ -733,5 +733,12 @@
   },
   "videos": {
     "title": "Our Videos"
+  },
+  "suggestionsPage": {
+    "subtitle": "We value your feedback and suggestions",
+    "form": {
+      "uploadFile": "Upload File (PDF, DOC)",
+      "submit": "Submit"
+    }
   }
 }

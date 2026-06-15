@@ -379,6 +379,16 @@
     .description { font-size: 1rem; }
     .slideContainer { padding: 0 1.5rem; }
     
+    .paginationWrapper {
+        gap: 0.6rem;
+    }
+    .customBullet {
+        width: 28px !important;
+    }
+    .bulletNumber {
+        font-size: 0.6rem;
+    }
+
     .tickerLabel {
         padding: 0 1rem;
         font-size: 0.75rem;

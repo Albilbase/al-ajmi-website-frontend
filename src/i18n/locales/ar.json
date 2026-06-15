@@ -733,5 +733,12 @@
   },
   "videos": {
     "title": "أبرز اللقطات"
+  },
+  "suggestionsPage": {
+    "subtitle": "نحن نقدر ملاحظاتك واقتراحاتك",
+    "form": {
+      "uploadFile": "رفع ملف (PDF, DOC)",
+      "submit": "إرسال"
+    }
   }
 }
