@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import useCMSStore from '@/store/useCMSStore';
@@ -10,6 +11,7 @@ import styles from './Footer.module.css';
 
 const Footer = () => {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
   const isAr = i18n.language === 'ar';
   const [mounted, setMounted] = useState(false);
   
@@ -26,12 +28,18 @@ const Footer = () => {
   }, []);
 
   useEffect(() => {
+    const tickerSections = (sections || []).filter(section => section.section_key === 'news_ticker');
     const footerSections = (sections || []).filter(section => section.section_key === 'footer');
-    if (footerSections.length > 0) {
+    
+    if (footerSections.length > 0 || tickerSections.length > 0) {
       const about = footerSections.find(item => item.type === 'about' && item.is_active);
       const contact = footerSections.find(item => item.type === 'contact' && item.is_active);
       const rights = footerSections.find(item => item.type === 'rights' && item.is_active);
-      const newsItems = footerSections.filter(item => item.type === 'news_item' && item.is_active);
+      
+      const newsItems = tickerSections
+        .filter(item => item.type === 'news_ticker' && item.is_active)
+        .sort((a, b) => (b.id || 0) - (a.id || 0))
+        .slice(0, 2);
       
       setFooterData({
         about,
@@ -41,6 +49,25 @@ const Footer = () => {
       });
     }
   }, [sections]);
+
+  const handleNewsClick = (newsItem) => {
+    if (!newsItem) return;
+
+    // Search for a matching media item title in all media sections
+    const mediaSectionItem = (sections || []).find(s => 
+        (s.section_key === 'media' || s.type === 'media' || s.section_key === 'news_media') &&
+        (
+            (s.title_en && s.title_en === newsItem.title_en) ||
+            (s.title_ar && s.title_ar === newsItem.title_ar)
+        )
+    );
+
+    if (mediaSectionItem) {
+        router.push(`/media/${mediaSectionItem.id}?source=news`);
+    } else {
+        console.warn("No matching media item found for title:", newsItem.title_en);
+    }
+  };
 
   const getTranslation = (key, fallback) => (mounted ? t(key) : fallback);
 
@@ -81,7 +108,12 @@ const Footer = () => {
             <ul className={styles.newsList}>
               {footerData.news.length > 0 ? (
                 footerData.news.map((newsItem) => (
-                  <li key={newsItem.id}>
+                  <li 
+                    key={newsItem.id} 
+                    onClick={() => handleNewsClick(newsItem)}
+                    style={{ cursor: 'pointer' }}
+                    className={styles.newsItem}
+                  >
                     {isAr ? newsItem.title_ar : newsItem.title_en}
                   </li>
                 ))

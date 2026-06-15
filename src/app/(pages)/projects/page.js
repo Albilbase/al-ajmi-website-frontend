@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import styles from './projects.module.css';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import useCMSStore from '@/store/useCMSStore';
 import { BASE_URL } from '@/lib/api';
 
@@ -130,6 +130,35 @@ const fadeInUp = {
 
   const activeProjects = allProjects.filter(p => String(p.type) === activeTab);
 
+  const scrollTabs = (direction) => {
+    const currentX = tabX.get();
+    let targetX = currentX + (direction * 300);
+    
+    const minX = dragConstraints.left;
+    const maxX = dragConstraints.right;
+    const AT_EDGE_THRESHOLD = 5;
+
+    if (isAr) {
+      if (direction === -1 && currentX <= minX + AT_EDGE_THRESHOLD) {
+        targetX = maxX;
+      } else if (direction === 1 && currentX >= maxX - AT_EDGE_THRESHOLD) {
+        targetX = minX;
+      } else {
+        targetX = Math.max(minX, Math.min(maxX, targetX));
+      }
+    } else {
+      if (direction === -1 && currentX <= minX + AT_EDGE_THRESHOLD) {
+        targetX = maxX;
+      } else if (direction === 1 && currentX >= maxX - AT_EDGE_THRESHOLD) {
+        targetX = minX;
+      } else {
+        targetX = Math.max(minX, Math.min(maxX, targetX));
+      }
+    }
+    
+    animate(tabX, targetX, { type: 'spring', stiffness: 400, damping: 30 });
+  };
+
   if (storeLoading && (sections || []).length === 0) {
     return (
       <div className={styles.projectsSection} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -159,28 +188,38 @@ const fadeInUp = {
 
       <div className={styles.container}>
         {/* Modern Draggable Tabs */}
-        <div className={styles.tabsWrapper} ref={tabsWrapperRef}>
-           <motion.div 
-              ref={tabsContainerRef}
-              style={{ x: tabX }}
-              className={styles.tabsContainer}
-              drag="x"
-              dragConstraints={dragConstraints}
-              dragElastic={0.2}
-              dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
-              whileTap={{ cursor: "grabbing" }}
-            >
-               {categories.map((cat) => (
-                 <button
-                   key={cat.id}
-                   data-tab-id={cat.id.toString()}
-                   onClick={() => setActiveTab(cat.id.toString())}
-                   className={`${styles.tabBtn} ${activeTab === cat.id.toString() ? styles.activeTab : ''}`}
-                 >
-                   {isAr ? cat.title_ar : cat.title_en}
-                 </button>
-               ))}
-            </motion.div>
+        <div className={styles.tabsOuter}>
+          <button className={`${styles.navBtn} ${styles.leftBtn}`} onClick={() => scrollTabs(1)}>
+            <ChevronLeft size={24} />
+          </button>
+          
+          <div className={styles.tabsWrapper} ref={tabsWrapperRef}>
+             <motion.div 
+                ref={tabsContainerRef}
+                style={{ x: tabX }}
+                className={styles.tabsContainer}
+                drag="x"
+                dragConstraints={dragConstraints}
+                dragElastic={0.2}
+                dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
+                whileTap={{ cursor: "grabbing" }}
+              >
+                 {categories.map((cat) => (
+                   <button
+                     key={cat.id}
+                     data-tab-id={cat.id.toString()}
+                     onClick={() => setActiveTab(cat.id.toString())}
+                     className={`${styles.tabBtn} ${activeTab === cat.id.toString() ? styles.activeTab : ''}`}
+                   >
+                     {isAr ? cat.title_ar : cat.title_en}
+                   </button>
+                 ))}
+              </motion.div>
+          </div>
+
+          <button className={`${styles.navBtn} ${styles.rightBtn}`} onClick={() => scrollTabs(-1)}>
+            <ChevronRight size={24} />
+          </button>
         </div>
 
         {/* Projects Grid */}

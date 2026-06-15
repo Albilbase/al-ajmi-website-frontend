@@ -10,7 +10,6 @@ import {
   MapPin, 
   Phone, 
   Clock, 
-  Newspaper,
   Copyright,
   Loader2
 } from 'lucide-react';
@@ -31,7 +30,6 @@ import Modal from '../../_components/Modal/Modal';
 export default function FooterManager() {
   const [footerData, setFooterData] = useState({
     about: { id: null, en: "", ar: "" },
-    news: [],
     contact: {
       id: null,
       address: { en: "", ar: "" },
@@ -48,7 +46,6 @@ export default function FooterManager() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentNews, setCurrentNews] = useState(null);
   const [formErrors, setFormErrors] = useState({});
 
   // CMS Store
@@ -82,12 +79,7 @@ export default function FooterManager() {
             } catch (e) { console.error("Error parsing contact details", e); }
           }
   
-          // 3. News
-          const newsItems = footerSections.filter(s => s.type === 'news_item').map(n => ({
-            id: n.id,
-            en: n.title_en,
-            ar: n.title_ar
-          }));
+          // 3. (Removed News Items from Footer)
   
           // 4. Rights
           const rightsSec = footerSections.find(s => s.type === 'rights');
@@ -98,7 +90,6 @@ export default function FooterManager() {
               en: aboutSec?.title_en || "",
               ar: aboutSec?.title_ar || ""
             },
-            news: newsItems,
             contact: {
               id: contactSec?.id || null,
               ...contactDetails
@@ -180,70 +171,7 @@ export default function FooterManager() {
     }
   };
 
-  const handleAddNews = () => {
-    setCurrentNews({ id: null, en: "", ar: "" });
-    setIsModalOpen(true);
-  };
 
-  const handleEditNews = (item) => {
-    setCurrentNews({ ...item });
-    setIsModalOpen(true);
-  };
-
-  const handleSaveNews = async () => {
-    const errors = {};
-    if (!currentNews.en) errors.news_en = true;
-    if (!currentNews.ar) errors.news_ar = true;
-
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      toast.error("Please fill in both English and Arabic news details");
-      return;
-    }
-
-    setFormErrors({});
-    setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append('section_key', 'footer');
-    formData.append('type', 'news_item');
-    formData.append('title_en', currentNews.en);
-    formData.append('title_ar', currentNews.ar);
-    formData.append('is_active', 'true');
-
-    try {
-      if (currentNews.id) {
-        await updateSectionAPI(currentNews.id, formData);
-        toast.success("News item updated successfully");
-      } else {
-        await createSectionAPI(formData);
-        toast.success("News item added successfully");
-      }
-      await refreshSections();
-      setIsModalOpen(false);
-    } catch (error) {
-      toast.error("Failed to save news item");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteNews = async (id) => {
-    const result = await confirmDelete('Delete News', 'Are you sure you want to delete this news item?');
-    if (result.isConfirmed) {
-
-      try {
-        await deleteSectionAPI(id);
-        await refreshSections();
-        setFooterData(prev => ({
-          ...prev,
-          news: prev.news.filter(item => item.id !== id)
-        }));
-        toast.success("News item deleted successfully");
-      } catch (error) {
-        toast.error("Failed to delete news item");
-      }
-    }
-  };
 
   const handleUpdateRights = (lang, value) => {
     setFooterData(prev => ({
@@ -480,38 +408,7 @@ export default function FooterManager() {
           </div>
         </section>
 
-        {/* Last News Section */}
-        <section className={localStyles.sectionCard}>
-          <div className={localStyles.sectionHeader} style={{ justifyContent: 'space-between', borderBottom: 'none', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <Newspaper size={24} color="#DC143C" />
-              <h3 className={localStyles.sectionTitle}>Last News Items</h3>
-            </div>
-            <button className={localStyles.addBtnSmall} onClick={handleAddNews}>
-              <Plus size={16} /> Add News
-            </button>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.5rem' }}>The latest items will be displayed in the footer.</p>
-          
-          <div className={localStyles.newsList}>
-            {footerData.news.map((item) => (
-              <div key={item.id} className={localStyles.newsItem} style={{ gridTemplateColumns: '1fr 1fr auto auto' }}>
-                <div className={localStyles.inputGroup} style={{ marginBottom: 0 }}>
-                  <label className={localStyles.fieldLabel}>EN: {item.en}</label>
-                </div>
-                <div className={localStyles.inputGroup} style={{ marginBottom: 0 }} dir="rtl">
-                  <label className={localStyles.fieldLabel}>AR: {item.ar}</label>
-                </div>
-                <button className={localStyles.addBtnSmall} style={{ background: '#f1f5f9', color: '#1e293b', height: '40px' }} onClick={() => handleEditNews(item)}>
-                   Edit
-                </button>
-                <button className={localStyles.deleteBtn} onClick={() => handleDeleteNews(item.id)}>
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+
 
         {/* Copyright Section */}
         <section className={localStyles.sectionCard}>
@@ -542,57 +439,7 @@ export default function FooterManager() {
         </section>
       </div>
 
-      {/* Reusable Modal for News */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={currentNews?.id ? "Edit News Item" : "Add News Item"}
-        footer={
-          <>
-            <button className={localStyles.cancelBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
-            <button className={localStyles.submitBtn} onClick={handleSaveNews} disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save News"}
-            </button>
-          </>
-        }
-      >
-        {currentNews && (
-          <div className={localStyles.formGrid}>
-            <div className={localStyles.inputGroup}>
-              <label className={localStyles.fieldLabel}>News Content (EN)</label>
-              <textarea 
-                className={`${localStyles.textareaField} ${formErrors.news_en ? dashboardStyles.invalidInput : ''}`}
-                value={currentNews.en}
-                onChange={(e) => {
-                   setCurrentNews({ ...currentNews, en: e.target.value });
-                   if(formErrors.news_en) {
-                      const newErrors = { ...formErrors };
-                      delete newErrors.news_en;
-                      setFormErrors(newErrors);
-                   }
-                }}
-                placeholder="Enter news in English..."
-              />
-            </div>
-            <div className={localStyles.inputGroup} dir="rtl">
-              <label className={localStyles.fieldLabel} style={{ textAlign: 'right' }}>News Content (AR)</label>
-              <textarea 
-                className={`${localStyles.textareaField} ${formErrors.news_ar ? dashboardStyles.invalidInput : ''}`}
-                value={currentNews.ar}
-                onChange={(e) => {
-                  setCurrentNews({ ...currentNews, ar: e.target.value });
-                  if(formErrors.news_ar) {
-                     const newErrors = { ...formErrors };
-                     delete newErrors.news_ar;
-                     setFormErrors(newErrors);
-                  }
-                }}
-                placeholder="Enter news in Arabic content..."
-              />
-            </div>
-          </div>
-        )}
-      </Modal>
+
     </motion.div>
   );
 }

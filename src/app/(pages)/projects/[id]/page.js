@@ -10,6 +10,11 @@ import {
   ArrowLeft, ArrowRight, Building2, MapPin, 
   Clock, Activity, Banknote 
 } from 'lucide-react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination, Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
 import styles from './details.module.css';
 
 const ProjectDetails = () => {
@@ -134,15 +139,41 @@ const ProjectDetails = () => {
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <Image
-              src={imagePath}
-              alt={isAr ? project.title_ar : project.title_en}
-              fill
-              className={styles.projectImage}
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-              unoptimized={project.images && project.images.length > 0}
-            />
+            {project.images && project.images.length > 1 ? (
+               <Swiper
+                 modules={[Pagination, Navigation, Autoplay]}
+                 pagination={{ clickable: true }}
+                 navigation={true}
+                 autoplay={{ delay: 3000, disableOnInteraction: false }}
+                 loop={true}
+                 dir={isAr ? 'rtl' : 'ltr'}
+                 style={{ width: '100%', height: '100%' }}
+                 className="project-details-swiper"
+               >
+                 {project.images.map((img, idx) => (
+                   <SwiperSlide key={idx} style={{ position: 'relative', width: '100%', height: '100%' }}>
+                     <Image
+                       src={`${BASE_URL}${img}`}
+                       alt={`${isAr ? project.title_ar : project.title_en} - ${idx + 1}`}
+                       fill
+                       className={styles.projectImage}
+                       sizes="(max-width: 768px) 100vw, 50vw"
+                       unoptimized
+                     />
+                   </SwiperSlide>
+                 ))}
+               </Swiper>
+            ) : (
+               <Image
+                 src={imagePath}
+                 alt={isAr ? project.title_ar : project.title_en}
+                 fill
+                 className={styles.projectImage}
+                 sizes="(max-width: 768px) 100vw, 50vw"
+                 priority
+                 unoptimized={project.images && project.images.length > 0}
+               />
+            )}
           </motion.div>
 
           {/* Content Side */}

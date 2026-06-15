@@ -7,6 +7,7 @@ import {
   Plus, 
   Trash2, 
   Edit2,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -43,7 +44,6 @@ export default function ProjectsManager() {
   
   // Selection state
   const [currentProject, setCurrentProject] = useState(null);
-  const [projectFile, setProjectFile] = useState(null);
 
 
   const getImageUrl = (path) => {
@@ -80,6 +80,8 @@ export default function ProjectsManager() {
             return {
               id: p.id,
               image: getImageUrl(p.images?.[0]),
+              images: p.images?.map(img => getImageUrl(img)) || [],
+              rawImages: p.images || [],
               rawImage: p.images?.[0],
               categoryId: p.type,
               en: { title: p.title_en, ...details },
@@ -118,17 +120,24 @@ export default function ProjectsManager() {
     }
     setCurrentProject({
       id: null,
-      image: "",
+      images: [],
+      rawImages: [],
+      newFiles: [],
+      newSrcs: [],
       en: { title: "", owner: "", location: "", duration: "", status: "", value: "" },
       ar: { title: "", owner: "", location: "", duration: "", status: "", value: "" }
     });
-    setProjectFile(null);
     setIsProjectModalOpen(true);
   };
 
   const handleEdit = (project) => {
-    setCurrentProject(JSON.parse(JSON.stringify(project)));
-    setProjectFile(null);
+    setCurrentProject({
+      ...JSON.parse(JSON.stringify(project)),
+      images: project.images || [],
+      rawImages: project.rawImages || [],
+      newFiles: [],
+      newSrcs: []
+    });
     setIsProjectModalOpen(true);
   };
 
@@ -142,7 +151,7 @@ export default function ProjectsManager() {
     if (!currentProject.ar.status) errors.proj_status_ar = true;
     if (!currentProject.en.value) errors.proj_value_en = true;
     if (!currentProject.ar.value) errors.proj_value_ar = true;
-    if (!currentProject.id && !projectFile) errors.proj_image = true;
+    if (!currentProject.id && currentProject.newFiles.length === 0) errors.proj_images = true;
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -177,8 +186,12 @@ export default function ProjectsManager() {
     formData.append('details', detailsJson);
     formData.append('is_active', 'true');
     
-    if (projectFile) {
-      formData.append('images', projectFile);
+    formData.append('update_img_type', 'group'); // append multiple images without overriding all
+
+    if (currentProject.newFiles && currentProject.newFiles.length > 0) {
+      currentProject.newFiles.forEach(file => {
+        formData.append('images', file);
+      });
     }
 
     try {
@@ -225,42 +238,60 @@ export default function ProjectsManager() {
   };
 
 
-  const removeProjectImage = async () => {
-    if (!currentProject.image) return;
-
-    // Local file preview removal
-       setCurrentProject(prev => ({ ...prev, image: "", rawImage: null }));
-       setProjectFile(null);
-       if(formErrors.proj_image) {
-          const newErrors = { ...formErrors };
-          delete newErrors.proj_image;
-          setFormErrors(newErrors);
-       }
-       return;
-
-    // Server image removal
-    if (currentProject.id && currentProject.rawImage) {
-      const result = await confirmDelete('حذف الصورة', 'حذف الصورة نهائياً من السيرفر؟');
-      if (result.isConfirmed) {
-        try {
-
-          // rawImage should already be the relative path from the server response
-          await deleteImageAPI(currentProject.id, currentProject.rawImage);
-          setCurrentProject(prev => ({ ...prev, image: "", rawImage: null }));
-          
-          // Update the project in the main list as well to reflect the deletion immediately
-          setProjects(prev => prev.map(p => 
-            p.id === currentProject.id 
-              ? { ...p, image: "", rawImage: null } 
-              : p
-          ));
-
-          await refreshSections();
-          toast.success("Image deleted successfully");
-        } catch (error) {
-          console.error(error);
-          toast.error("Failed to delete image");
+  const handleFileUpload = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      // Removed validateImage temporarily to ensure images are added without errors
+      if (files.length > 0) {
+        const newSrcs = files.map(file => URL.createObjectURL(file));
+        setCurrentProject(prev => ({ 
+          ...prev, 
+          newFiles: [...(prev.newFiles || []), ...files], 
+          newSrcs: [...(prev.newSrcs || []), ...newSrcs] 
+        }));
+        if(formErrors.proj_images) {
+           const newErrors = { ...formErrors };
+           delete newErrors.proj_images;
+           setFormErrors(newErrors);
         }
+      }
+    }
+  };
+
+  const handleRemoveProjectImage = async (imagePath, index) => {
+    const result = await confirmDelete('Delete Photo', 'Are you sure you want to delete this photo from the project?');
+    if (result.isConfirmed) {
+      try {
+        await deleteImageAPI(currentProject.id, imagePath);
+        
+        setCurrentProject(prev => {
+           const newImages = [...prev.images];
+           const newRawImages = [...prev.rawImages];
+           newImages.splice(index, 1);
+           newRawImages.splice(index, 1);
+           return { ...prev, images: newImages, rawImages: newRawImages };
+        });
+
+        // Update main list so preview image updates if the first image was deleted
+        setProjects(prev => prev.map(p => {
+          if (p.id === currentProject.id) {
+             const updatedRawImages = p.rawImages.filter(img => img !== imagePath);
+             return {
+                ...p,
+                rawImages: updatedRawImages,
+                images: updatedRawImages.map(img => getImageUrl(img)),
+                image: updatedRawImages.length > 0 ? getImageUrl(updatedRawImages[0]) : "",
+                rawImage: updatedRawImages.length > 0 ? updatedRawImages[0] : null
+             };
+          }
+          return p;
+        }));
+
+        await refreshSections();
+        toast.success("Image deleted successfully");
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to delete image");
       }
     }
   };
@@ -394,26 +425,48 @@ export default function ProjectsManager() {
         {currentProject && (
           <>
              <div className={localStyles.formSection}>
-                <label className={localStyles.sectionLabel}>Project Image</label>
-                <ImageUpload 
-                  value={currentProject.image}
-                  mode="standard"
-                  height="200px"
-                  onChange={(file) => {
-                    setProjectFile(file);
-                    setCurrentProject(prev => ({
-                      ...prev,
-                      image: URL.createObjectURL(file)
-                    }));
-                    if(formErrors.proj_image) {
-                       const newErrors = { ...formErrors };
-                       delete newErrors.proj_image;
-                       setFormErrors(newErrors);
-                    }
-                  }}
-                  onDelete={removeProjectImage}
-                />
-                {formErrors.proj_image && <div style={{ border: '2px solid #DC143C', borderRadius: '12px', marginTop: '-201px', height: '201px', pointerEvents: 'none' }}></div>}
+                <label className={localStyles.sectionLabel}>Project Images</label>
+                <div className={formErrors.proj_images ? dashboardStyles.invalidInput : ''} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem', marginBottom: '1rem', border: formErrors.proj_images ? '2px solid #DC143C' : 'none', borderRadius: '12px', padding: formErrors.proj_images ? '10px' : '0' }}>
+                  
+                  {/* Existing Images */}
+                  {currentProject.images && currentProject.images.map((img, index) => (
+                    <div key={`existing-${index}`} style={{ position: 'relative', aspectRatio: '1/1', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                      <img src={img} alt={`Existing ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button 
+                        onClick={() => handleRemoveProjectImage(currentProject.rawImages[index], index)}
+                        style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* New Previews */}
+                  {currentProject.newSrcs && currentProject.newSrcs.map((src, index) => (
+                    <div key={`new-${index}`} style={{ position: 'relative', aspectRatio: '1/1', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                      <img src={src} alt={`New Preview ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button 
+                        onClick={() => {
+                          const newFiles = [...currentProject.newFiles];
+                          const newSrcs = [...currentProject.newSrcs];
+                          newFiles.splice(index, 1);
+                          newSrcs.splice(index, 1);
+                          setCurrentProject({...currentProject, newFiles, newSrcs});
+                        }}
+                        style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                         <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Upload Button */}
+                  <label className={localStyles.uploadPlaceholder} style={{ background: '#f8fafc', aspectRatio: '1/1', minHeight: '120px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748b', border: '2px dashed #cbd5e1', borderRadius: '12px' }}>
+                    <input type="file" hidden multiple onChange={handleFileUpload} accept="image/*" />
+                    <Plus size={24} style={{ marginBottom: '0.5rem' }} />
+                    <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Add Images</span>
+                  </label>
+                </div>
              </div>
 
             <div className={localStyles.formGrid}>
