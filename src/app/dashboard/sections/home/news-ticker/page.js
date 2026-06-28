@@ -1,24 +1,29 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Trash2, 
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Trash2,
   Megaphone,
-  Save, 
+  Save,
   Layout,
   Type,
   X,
-  CheckCircle2
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import dashboardStyles from '../../../dashboard.module.css';
-import localStyles from './news-ticker.module.css';
-import Modal from '../../../_components/Modal/Modal';
-import { toast } from 'react-toastify';
-import { confirmDelete } from '@/lib/sweetalert';
+  CheckCircle2,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import dashboardStyles from "../../../dashboard.module.css";
+import localStyles from "./news-ticker.module.css";
+import Modal from "../../../_components/Modal/Modal";
+import { toast } from "react-toastify";
+import { confirmDelete } from "@/lib/sweetalert";
 
-import { createSectionAPI, updateSectionAPI, getAllSectionsAPI, deleteSectionAPI } from '@/lib/api';
+import {
+  createSectionAPI,
+  updateSectionAPI,
+  getAllSectionsAPI,
+  deleteSectionAPI,
+} from "@/lib/api";
 
 export default function NewsTickerManager() {
   const [loading, setLoading] = useState(false);
@@ -26,18 +31,18 @@ export default function NewsTickerManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [newsItems, setNewsItems] = useState([]);
-  
+
   // Ticker Label state
   const [tickerLabel, setTickerLabel] = useState({
     id: null,
     label_en: "",
-    label_ar: ""
+    label_ar: "",
   });
-  
+
   // For new news item
   const [newItem, setNewItem] = useState({
     text_en: "",
-    text_ar: ""
+    text_ar: "",
   });
 
   // Fetch all news ticker data on mount
@@ -48,29 +53,37 @@ export default function NewsTickerManager() {
         const response = await getAllSectionsAPI();
         if (response.status === 200 && response.data) {
           // Fetch news items
-          const newsSections = response.data.filter(s => s.section_key === 'news_ticker' && s.type === 'news_ticker');
+          const newsSections = response.data.filter(
+            (s) => s.section_key === "news_ticker" && s.type === "news_ticker",
+          );
           if (newsSections.length > 0) {
-            const mappedNews = newsSections.map(s => ({
-              id: s.id,
-              text_en: s.title_en,
-              text_ar: s.title_ar
-            })).sort((a, b) => (a.id || 0) - (b.id || 0)); // Sort by ID ASC
+            const mappedNews = newsSections
+              .map((s) => ({
+                id: s.id,
+                text_en: s.title_en,
+                text_ar: s.title_ar,
+                sort_order: s.sort_order ?? 0,
+              }))
+              .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
             setNewsItems(mappedNews);
           }
 
           // Fetch ticker label
-          const labelSection = response.data.find(s => s.section_key === 'news_ticker' && s.type === 'news_ticker_label');
+          const labelSection = response.data.find(
+            (s) =>
+              s.section_key === "news_ticker" && s.type === "news_ticker_label",
+          );
           if (labelSection) {
             setTickerLabel({
               id: labelSection.id,
               label_en: labelSection.title_en || "",
-              label_ar: labelSection.title_ar || ""
+              label_ar: labelSection.title_ar || "",
             });
           }
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        toast.error('Failed to load data');
+        toast.error("Failed to load data");
       } finally {
         setLoading(false);
       }
@@ -94,38 +107,42 @@ export default function NewsTickerManager() {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('title_en', newItem.text_en);
-      formData.append('title_ar', newItem.text_ar);
-      formData.append('section_key', 'news_ticker');
-      formData.append('type', 'news_ticker');
-      formData.append('is_active', 'true');
+      formData.append("title_en", newItem.text_en);
+      formData.append("title_ar", newItem.text_ar);
+      formData.append("section_key", "news_ticker");
+      formData.append("type", "news_ticker");
+      formData.append("is_active", "true");
 
       const response = await createSectionAPI(formData);
-      
+
       const newId = response.data?.id || response.id || Date.now();
       const addedItem = {
         id: newId,
         text_en: newItem.text_en,
-        text_ar: newItem.text_ar
+        text_ar: newItem.text_ar,
       };
-      
-      
-      setNewsItems(prev => [...prev, addedItem].sort((a, b) => (a.id || 0) - (b.id || 0)));
-      toast.success(response.message || 'News item added successfully');
+
+      setNewsItems((prev) =>
+        [...prev, addedItem].sort((a, b) => (a.id || 0) - (b.id || 0)),
+      );
+      toast.success(response.message || "News item added successfully");
       setIsModalOpen(false);
-      
+
       setNewItem({
         text_en: "",
-        text_ar: ""
+        text_ar: "",
       });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error occurred while adding news item');
+      toast.error(
+        error.response?.data?.message ||
+          "Error occurred while adding news item",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSaveItem = async (id, text_en, text_ar) => {
+  const handleSaveItem = async (id, text_en, text_ar, sort_order) => {
     if (!id) {
       toast.error("Cannot update an unsaved news item.");
       return;
@@ -133,61 +150,76 @@ export default function NewsTickerManager() {
 
     try {
       const formData = new FormData();
-      formData.append('title_en', text_en);
-      formData.append('title_ar', text_ar);
-      formData.append('section_key', 'news_ticker');
-      formData.append('type', 'news_ticker');
-      formData.append('is_active', 'true');
+      formData.append("title_en", text_en);
+      formData.append("title_ar", text_ar);
+      formData.append("sort_order", sort_order ?? 0);
+      formData.append("section_key", "news_ticker");
+      formData.append("type", "news_ticker");
+      formData.append("is_active", "true");
 
       const response = await updateSectionAPI(id, formData);
       // toast.success(response.message || 'News item updated successfully');
     } catch (error) {
       console.error("Update Error:", error.response?.data || error);
-      toast.error(error.response?.data?.message || 'Error occurred while updating');
+      toast.error(
+        error.response?.data?.message || "Error occurred while updating",
+      );
     }
   };
 
   const removeItem = async (id) => {
     if (!id) return;
 
-    const result = await confirmDelete('Delete News Item', 'Are you sure you want to delete this news item?');
+    const result = await confirmDelete(
+      "Delete News Item",
+      "Are you sure you want to delete this news item?",
+    );
     if (result.isConfirmed) {
-
       try {
         await deleteSectionAPI(id);
-        const updatedItems = newsItems.filter(item => item.id !== id);
+        const updatedItems = newsItems.filter((item) => item.id !== id);
         setNewsItems(updatedItems);
-        toast.success('News item deleted successfully');
+        toast.success("News item deleted successfully");
       } catch (error) {
         console.error(error);
-        toast.error('An error occurred while deleting');
+        toast.error("An error occurred while deleting");
       }
     }
   };
-
   const updateItem = (id, lang, value) => {
-    const updatedItems = newsItems.map(item => 
-      item.id === id ? { ...item, [`text_${lang}`]: value } : item
+    const updatedItems = newsItems.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            ...(lang === "en" || lang === "ar"
+              ? { [`text_${lang}`]: value }
+              : {}),
+            ...(lang === "order"
+              ? { sort_order: value === "" ? 0 : Number(value) }
+              : {}),
+          }
+        : item,
     );
+
     setNewsItems(updatedItems);
-    
-    if(formErrors[`edit_${id}_${lang}`]) {
-       const newErrors = { ...formErrors };
-       delete newErrors[`edit_${id}_${lang}`];
-       setFormErrors(newErrors);
+
+    if (formErrors[`edit_${id}_${lang}`]) {
+      const newErrors = { ...formErrors };
+      delete newErrors[`edit_${id}_${lang}`];
+      setFormErrors(newErrors);
     }
   };
 
   const updateLabel = (lang, value) => {
-    setTickerLabel(prev => ({
+    setTickerLabel((prev) => ({
       ...prev,
-      [`label_${lang}`]: value
+      [`label_${lang}`]: value,
     }));
-    
-    if(formErrors[`label_${lang}`]) {
-       const newErrors = { ...formErrors };
-       delete newErrors[`label_${lang}`];
-       setFormErrors(newErrors);
+
+    if (formErrors[`label_${lang}`]) {
+      const newErrors = { ...formErrors };
+      delete newErrors[`label_${lang}`];
+      setFormErrors(newErrors);
     }
   };
 
@@ -206,11 +238,11 @@ export default function NewsTickerManager() {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('title_en', tickerLabel.label_en);
-      formData.append('title_ar', tickerLabel.label_ar);
-      formData.append('section_key', 'news_ticker');
-      formData.append('type', 'news_ticker_label');
-      formData.append('is_active', 'true');
+      formData.append("title_en", tickerLabel.label_en);
+      formData.append("title_ar", tickerLabel.label_ar);
+      formData.append("section_key", "news_ticker");
+      formData.append("type", "news_ticker_label");
+      formData.append("is_active", "true");
 
       let response;
       if (tickerLabel.id) {
@@ -220,16 +252,19 @@ export default function NewsTickerManager() {
       }
 
       // toast.success(response.message || 'Ticker label saved successfully');
-      
+
       if (response.data) {
         setTickerLabel({
           id: response.data.id || tickerLabel.id,
           label_en: response.data.title_en || tickerLabel.label_en,
-          label_ar: response.data.title_ar || tickerLabel.label_ar
+          label_ar: response.data.title_ar || tickerLabel.label_ar,
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error occurred while saving ticker label');
+      toast.error(
+        error.response?.data?.message ||
+          "Error occurred while saving ticker label",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -240,25 +275,32 @@ export default function NewsTickerManager() {
     try {
       // Save label
       await handleSaveLabel();
-      
+
       // Save all news items
       for (const item of newsItems) {
         if (item.id) {
-           if (!item.text_en || !item.text_ar) {
-             const errors = { ...formErrors };
-             if (!item.text_en) errors[`edit_${item.id}_en`] = true;
-             if (!item.text_ar) errors[`edit_${item.id}_ar`] = true;
-             setFormErrors(errors);
-             toast.error('All news items must have both English and Arabic messages');
-             return;
-           }
-           await handleSaveItem(item.id, item.text_en, item.text_ar);
+          if (!item.text_en || !item.text_ar) {
+            const errors = { ...formErrors };
+            if (!item.text_en) errors[`edit_${item.id}_en`] = true;
+            if (!item.text_ar) errors[`edit_${item.id}_ar`] = true;
+            setFormErrors(errors);
+            toast.error(
+              "All news items must have both English and Arabic messages",
+            );
+            return;
+          }
+          await handleSaveItem(
+            item.id,
+            item.text_en,
+            item.text_ar,
+            item.sort_order,
+          );
         }
       }
-      
-      toast.success('All changes saved successfully');
+
+      toast.success("All changes saved successfully");
     } catch (error) {
-      toast.error('Error occurred while saving changes');
+      toast.error("Error occurred while saving changes");
     } finally {
       setIsSubmitting(false);
     }
@@ -267,7 +309,7 @@ export default function NewsTickerManager() {
   if (loading) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div style={{ textAlign: 'center', padding: '3rem' }}>
+        <div style={{ textAlign: "center", padding: "3rem" }}>
           <p>Loading news ticker...</p>
         </div>
       </motion.div>
@@ -279,159 +321,229 @@ export default function NewsTickerManager() {
       <div className={localStyles.header}>
         <div>
           <h2 className={dashboardStyles.sectionTitle}>News Ticker Manager</h2>
-          <p className={dashboardStyles.sectionSubtitle}>Manage the scrolling news bar on the homepage accurately.</p>
+          <p className={dashboardStyles.sectionSubtitle}>
+            Manage the scrolling news bar on the homepage accurately.
+          </p>
         </div>
-        <button 
+        <button
           className={localStyles.saveButton}
           onClick={handleSaveAllChanges}
           disabled={isSubmitting}
         >
-          <Save size={20} /> {isSubmitting ? 'Saving...' : 'Save Changes'}
+          <Save size={20} /> {isSubmitting ? "Saving..." : "Save Changes"}
         </button>
       </div>
 
       <div className={localStyles.mainGrid}>
         <div className={localStyles.content}>
           {/* Label Editor */}
-          <div className={dashboardStyles.contentCard} style={{ marginBottom: '2rem' }}>
-             <div className={localStyles.sectionHeader}>
-                <div className={localStyles.headerLeft}>
-                   <Megaphone size={20} color="#DC143C" />
-                   <h3 className={localStyles.sectionTitle}>Ticker Main Label</h3>
-                </div>
-             </div>
-             <div className={localStyles.formGrid}>
-                <div className={localStyles.inputGroup}>
-                   <label className={localStyles.fieldLabel}>Label (EN)</label>
-                   <input 
-                     className={`${localStyles.inputField} ${formErrors.label_en ? dashboardStyles.invalidInput : ''}`} 
-                     value={tickerLabel.label_en} 
-                     onChange={(e) => updateLabel('en', e.target.value)}
-                   />
-                </div>
-                <div dir="rtl" className={localStyles.inputGroup}>
-                   <label className={localStyles.fieldLabel}>Label (AR)</label>
-                   <input 
-                     className={`${localStyles.inputField} ${formErrors.label_ar ? dashboardStyles.invalidInput : ''}`} 
-                     value={tickerLabel.label_ar} 
-                     onChange={(e) => updateLabel('ar', e.target.value)}
-                   />
-                </div>
-             </div>
+          <div
+            className={dashboardStyles.contentCard}
+            style={{ marginBottom: "2rem" }}
+          >
+            <div className={localStyles.sectionHeader}>
+              <div className={localStyles.headerLeft}>
+                <Megaphone size={20} color="#DC143C" />
+                <h3 className={localStyles.sectionTitle}>Ticker Main Label</h3>
+              </div>
+            </div>
+            <div className={localStyles.formGrid}>
+              <div className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>Label (EN)</label>
+                <input
+                  className={`${localStyles.inputField} ${formErrors.label_en ? dashboardStyles.invalidInput : ""}`}
+                  value={tickerLabel.label_en}
+                  onChange={(e) => updateLabel("en", e.target.value)}
+                />
+              </div>
+              <div dir="rtl" className={localStyles.inputGroup}>
+                <label className={localStyles.fieldLabel}>Label (AR)</label>
+                <input
+                  className={`${localStyles.inputField} ${formErrors.label_ar ? dashboardStyles.invalidInput : ""}`}
+                  value={tickerLabel.label_ar}
+                  onChange={(e) => updateLabel("ar", e.target.value)}
+                />
+              </div>
+            </div>
           </div>
 
           {/* News Items Editor */}
           <div className={dashboardStyles.contentCard}>
-             <div className={localStyles.sectionHeader}>
-                <div className={localStyles.headerLeft}>
-                   <Layout size={20} color="#DC143C" />
-                   <h3 className={localStyles.sectionTitle}>Active News Stream ({newsItems.length})</h3>
-                </div>
-                <button className={localStyles.addBtnPrimary} onClick={() => setIsModalOpen(true)}>
-                   <Plus size={18} /> Add News Item
-                </button>
-             </div>
-             
-             <div className={localStyles.itemsList}>
-                {newsItems.length === 0 ? (
-                  <p style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
-                    No news items found. Add one to get started.
-                  </p>
-                ) : (
-                  newsItems.map((item, index) => (
-                    <div key={item.id} className={localStyles.newsCard}>
-                       <div className={localStyles.cardIndex}>{index + 1}</div>
-                       <div className={localStyles.cardContent}>
-                         <div className={localStyles.formGrid}>
-                            <div className={localStyles.inputGroup}>
-                               <input 
-                                 className={`${localStyles.inputField} ${formErrors[`edit_${item.id}_en`] ? dashboardStyles.invalidInput : ''}`} 
-                                 value={item.text_en} 
-                                 placeholder="Message in English"
-                                 onChange={(e) => updateItem(item.id, 'en', e.target.value)}
-                               />
-                            </div>
-                            <div dir="rtl" className={localStyles.inputGroup}>
-                               <input 
-                                 className={`${localStyles.inputField} ${formErrors[`edit_${item.id}_ar`] ? dashboardStyles.invalidInput : ''}`} 
-                                 value={item.text_ar} 
-                                 placeholder="Message in Arabic"
-                                 onChange={(e) => updateItem(item.id, 'ar', e.target.value)}
-                               />
-                            </div>
-                         </div>
-                       </div>
-                       <button className={localStyles.removeBtn} onClick={() => removeItem(item.id)}>
-                          <Trash2 size={18} />
-                       </button>
+            <div className={localStyles.sectionHeader}>
+              <div className={localStyles.headerLeft}>
+                <Layout size={20} color="#DC143C" />
+                <h3 className={localStyles.sectionTitle}>
+                  Active News Stream ({newsItems.length})
+                </h3>
+              </div>
+              <button
+                className={localStyles.addBtnPrimary}
+                onClick={() => setIsModalOpen(true)}
+              >
+                <Plus size={18} /> Add News Item
+              </button>
+            </div>
+
+            <div className={localStyles.itemsList}>
+              {newsItems.length === 0 ? (
+                <p
+                  style={{
+                    textAlign: "center",
+                    color: "#64748b",
+                    padding: "2rem",
+                  }}
+                >
+                  No news items found. Add one to get started.
+                </p>
+              ) : (
+                newsItems.map((item, index) => (
+                  <div key={item.id} className={localStyles.newsCard}>
+                    <div className={localStyles.cardIndex}>{index + 1}</div>
+                    <div className={localStyles.cardContent}>
+                      <div className={localStyles.formGrid}>
+                        <div
+                          className={localStyles.inputGroup}
+                          style={{ maxWidth: 70 }}
+                        >
+                          <input
+                            type="number"
+                            className={localStyles.inputField}
+                            value={item.sort_order ?? 0}
+                            onChange={(e) =>
+                              updateItem(item.id, "order", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className={localStyles.inputGroup}>
+                          <input
+                            className={`${localStyles.inputField} ${formErrors[`edit_${item.id}_en`] ? dashboardStyles.invalidInput : ""}`}
+                            value={item.text_en}
+                            placeholder="Message in English"
+                            onChange={(e) =>
+                              updateItem(item.id, "en", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div dir="rtl" className={localStyles.inputGroup}>
+                          <input
+                            className={`${localStyles.inputField} ${formErrors[`edit_${item.id}_ar`] ? dashboardStyles.invalidInput : ""}`}
+                            value={item.text_ar}
+                            placeholder="Message in Arabic"
+                            onChange={(e) =>
+                              updateItem(item.id, "ar", e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
                     </div>
-                  ))
-                )}
-             </div>
+                    <button
+                      className={localStyles.removeBtn}
+                      onClick={() => removeItem(item.id)}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
         {/* Live Preview Sidebar */}
         <div className={localStyles.sidebar}>
-           <div className={localStyles.previewContainer}>
-              <div className={dashboardStyles.contentCard}>
-                 <div className={localStyles.sectionHeader}>
-                    <div className={localStyles.headerLeft}>
-                       <Type size={20} color="#DC143C" />
-                       <h3 className={localStyles.sectionTitle}>Real-time Preview</h3>
-                    </div>
-                 </div>
-                 
-                 <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem', lineHeight: '1.5' }}>
-                    This accurately simulates the animation and visual style of the homepage news ticker.
-                 </p>
-                 
-                 <div className={localStyles.tickerPreviewWrapper}>
-                    {/* EN Preview */}
-                    <div className={localStyles.previewBox}>
-                       <span className={localStyles.previewTag}>ENGLISH VERSION</span>
-                       <div className={localStyles.tickerPreview}>
-                          <div className={localStyles.previewLabel}>{tickerLabel.label_en || "Latest News"}</div>
-                          <div className={localStyles.previewTextWrapper}>
-                             <div className={localStyles.previewText}>
-                                {newsItems.length > 0 ? (
-                                  <>
-                                    {newsItems.map(i => i.text_en).join(' • ')} • {newsItems.map(i => i.text_en).join(' • ')}
-                                  </>
-                                ) : (
-                                  "No news items added yet"
-                                )}
-                             </div>
-                          </div>
-                       </div>
-                    </div>
-
-                    {/* AR Preview */}
-                    <div className={localStyles.previewBox}>
-                       <span className={localStyles.previewTag}>النسخة العربية</span>
-                       <div className={localStyles.tickerPreview} dir="rtl">
-                          <div className={localStyles.previewLabel}>{tickerLabel.label_ar || "آخر الأخبار"}</div>
-                          <div className={localStyles.previewTextWrapper}>
-                             <div className={localStyles.previewText} style={{ animationDirection: 'reverse' }}>
-                                {newsItems.length > 0 ? (
-                                  <>
-                                    {newsItems.map(i => i.text_ar).join(' • ')} • {newsItems.map(i => i.text_ar).join(' • ')}
-                                  </>
-                                ) : (
-                                  "لم تتم إضافة أخبار بعد"
-                                )}
-                             </div>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-                 
-                 <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#10b981', background: '#ecfdf5', padding: '0.75rem', borderRadius: '8px' }}>
-                    <CheckCircle2 size={16} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: '700' }}>Changes apply instantly to preview.</span>
-                 </div>
+          <div className={localStyles.previewContainer}>
+            <div className={dashboardStyles.contentCard}>
+              <div className={localStyles.sectionHeader}>
+                <div className={localStyles.headerLeft}>
+                  <Type size={20} color="#DC143C" />
+                  <h3 className={localStyles.sectionTitle}>
+                    Real-time Preview
+                  </h3>
+                </div>
               </div>
-           </div>
+
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#64748b",
+                  marginBottom: "1rem",
+                  lineHeight: "1.5",
+                }}
+              >
+                This accurately simulates the animation and visual style of the
+                homepage news ticker.
+              </p>
+
+              <div className={localStyles.tickerPreviewWrapper}>
+                {/* EN Preview */}
+                <div className={localStyles.previewBox}>
+                  <span className={localStyles.previewTag}>
+                    ENGLISH VERSION
+                  </span>
+                  <div className={localStyles.tickerPreview}>
+                    <div className={localStyles.previewLabel}>
+                      {tickerLabel.label_en || "Latest News"}
+                    </div>
+                    <div className={localStyles.previewTextWrapper}>
+                      <div className={localStyles.previewText}>
+                        {newsItems.length > 0 ? (
+                          <>
+                            {newsItems.map((i) => i.text_en).join(" • ")} •{" "}
+                            {newsItems.map((i) => i.text_en).join(" • ")}
+                          </>
+                        ) : (
+                          "No news items added yet"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AR Preview */}
+                <div className={localStyles.previewBox}>
+                  <span className={localStyles.previewTag}>النسخة العربية</span>
+                  <div className={localStyles.tickerPreview} dir="rtl">
+                    <div className={localStyles.previewLabel}>
+                      {tickerLabel.label_ar || "آخر الأخبار"}
+                    </div>
+                    <div className={localStyles.previewTextWrapper}>
+                      <div
+                        className={localStyles.previewText}
+                        style={{ animationDirection: "reverse" }}
+                      >
+                        {newsItems.length > 0 ? (
+                          <>
+                            {newsItems.map((i) => i.text_ar).join(" • ")} •{" "}
+                            {newsItems.map((i) => i.text_ar).join(" • ")}
+                          </>
+                        ) : (
+                          "لم تتم إضافة أخبار بعد"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "2rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  color: "#10b981",
+                  background: "#ecfdf5",
+                  padding: "0.75rem",
+                  borderRadius: "8px",
+                }}
+              >
+                <CheckCircle2 size={16} />
+                <span style={{ fontSize: "0.75rem", fontWeight: "700" }}>
+                  Changes apply instantly to preview.
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -442,46 +554,59 @@ export default function NewsTickerManager() {
         title="Add New Ticker Message"
         footer={
           <>
-            <button onClick={() => setIsModalOpen(false)} className={localStyles.cancelBtn}>Cancel</button>
-            <button onClick={handleAddItem} className={localStyles.submitBtn} disabled={isSubmitting}>
-              {isSubmitting ? 'Adding...' : 'Add to Ticker'}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className={localStyles.cancelBtn}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddItem}
+              className={localStyles.submitBtn}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Adding..." : "Add to Ticker"}
             </button>
           </>
         }
       >
         <div className={localStyles.formGrid}>
           <div className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>News Message (English)</label>
-            <textarea 
-              className={`${localStyles.inputField} ${formErrors.new_text_en ? dashboardStyles.invalidInput : ''}`} 
-              style={{ height: '100px', resize: 'none' }}
-              placeholder="e.g. Alajmi Company expansion in Riyadh..." 
-              value={newItem.text_en} 
+            <label className={localStyles.fieldLabel}>
+              News Message (English)
+            </label>
+            <textarea
+              className={`${localStyles.inputField} ${formErrors.new_text_en ? dashboardStyles.invalidInput : ""}`}
+              style={{ height: "100px", resize: "none" }}
+              placeholder="e.g. Alajmi Company expansion in Riyadh..."
+              value={newItem.text_en}
               onChange={(e) => {
-                setNewItem({...newItem, text_en: e.target.value});
-                if(formErrors.new_text_en) {
-                   const newErrors = { ...formErrors };
-                   delete newErrors.new_text_en;
-                   setFormErrors(newErrors);
+                setNewItem({ ...newItem, text_en: e.target.value });
+                if (formErrors.new_text_en) {
+                  const newErrors = { ...formErrors };
+                  delete newErrors.new_text_en;
+                  setFormErrors(newErrors);
                 }
-              }} 
+              }}
             />
           </div>
           <div dir="rtl" className={localStyles.inputGroup}>
-            <label className={localStyles.fieldLabel}>News Message (Arabic)</label>
-            <textarea 
-              className={`${localStyles.inputField} ${formErrors.new_text_ar ? dashboardStyles.invalidInput : ''}`} 
-              style={{ height: '100px', resize: 'none' }}
-              placeholder="e.g. Alajmi Company expansion in Riyadh..." 
-              value={newItem.text_ar} 
+            <label className={localStyles.fieldLabel}>
+              News Message (Arabic)
+            </label>
+            <textarea
+              className={`${localStyles.inputField} ${formErrors.new_text_ar ? dashboardStyles.invalidInput : ""}`}
+              style={{ height: "100px", resize: "none" }}
+              placeholder="e.g. Alajmi Company expansion in Riyadh..."
+              value={newItem.text_ar}
               onChange={(e) => {
-                setNewItem({...newItem, text_ar: e.target.value});
-                if(formErrors.new_text_ar) {
-                   const newErrors = { ...formErrors };
-                   delete newErrors.new_text_ar;
-                   setFormErrors(newErrors);
+                setNewItem({ ...newItem, text_ar: e.target.value });
+                if (formErrors.new_text_ar) {
+                  const newErrors = { ...formErrors };
+                  delete newErrors.new_text_ar;
+                  setFormErrors(newErrors);
                 }
-              }} 
+              }}
             />
           </div>
         </div>

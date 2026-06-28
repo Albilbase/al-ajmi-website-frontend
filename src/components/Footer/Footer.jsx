@@ -95,7 +95,7 @@ const Footer = () => {
             <h3>{getTranslation('footer.quickLinks', 'Quick Links')}</h3>
             <ul>
               <li><Link href="/">{getTranslation('nav.home', 'Home')}</Link></li>
-              <li><Link href="/company/about">{getTranslation('nav.companySub.about', 'About us')}</Link></li>
+              <li><Link href="/about">{getTranslation('nav.companySub.about', 'About us')}</Link></li>
               <li><Link href="/projects">{getTranslation('nav.projects', 'Our Projects')}</Link></li>
               <li><Link href="/services">{getTranslation('nav.services', 'Our Services')}</Link></li>
               <li><Link href="/contact">{getTranslation('nav.contact', 'Contact Us')}</Link></li>
