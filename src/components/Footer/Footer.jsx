@@ -48,7 +48,7 @@ const Footer = () => {
 
       const newsItems = tickerSections
         .filter((item) => item.type === "news_ticker" && item.is_active)
-        .sort((a, b) => (b.sort_order || 0) - (a.sort_order || 0))
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
         .slice(0, 2);
       console.log(newsItems);
 

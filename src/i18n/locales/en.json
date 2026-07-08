@@ -4,7 +4,7 @@
     "company": "Company",
     "companySub": {
       "about": "About us",
-      "whyAjami": "Why Ajami",
+      "whyAjami": "Why Al-Ajami",
       "vision": "COMPANY VISION",
       "board": "Board of Directors",
       "hse": "HEALTH, SAFETY & ENVIRONMENTAL POLICY"
@@ -127,7 +127,7 @@
     "description": "Abdul Ali Al-Ajmi Company was established in 1980 and has taken its main headquarters in the city of Riyadh and has expanded its business and established branches in Hofuf and Jaffa. The company has specialized since its establishment in 1980 in the field of road and bridge construction and maintenance, infrastructure, worksite preparation, real estate plans development, and land transport services. It is known as a major company in the field of road construction throughout the Kingdom of Saudi Arabia.",
     "button": "Read More"
   },
-   "projects": {
+  "projects": {
     "subtitle": "Our Projects",
     "title": "Projects We Are Proud Of",
     "items": [
@@ -247,8 +247,7 @@
       "title": "Our Presence",
       "text": "Abdul Ali Al-Ajmi Company meets the needs of its clients through its offices and branch offices, the head office is located in the city of Riyadh, and there are regional offices in Al-Ahsa."
     }
-  }
-  ,
+  },
   "visionPage": {
     "title": "COMPANY AL-AJMI",
     "subtitle": "Vision, Mission & Values",
@@ -384,80 +383,523 @@
     },
     "items": {
       "aramco": [
-        { "src": "Development of the heavy industrial zone in the Jazan Economic Area.png", "title": "Development of the heavy industrial zone in the Jazan Economic Area", "owner": "Saudi Aramco", "location": "", "duration": "", "status": "Under Construction", "value": "SR 88,367,400" },
-        { "src": "Gas Collection Plant Road.jpg", "title": "Gas Collection Plant Road", "owner": "Saudi Aramco", "location": " Chiba", "duration": "300 days", "status": "Under construction", "value": "SR 45,300,000" },
-        { "src": "Infrastructure works for the Jazan Economic Zone.png", "title": "Infrastructure works for the Jazan Economic Zone", "owner": "Saudi Aramco", "location": "", "duration": "", "status": "Under Construction", "value": "SR 323,145,280" },
-        { "src": "Maintenance of main roads in the southern region.jpg", "title": "Maintenance of main roads in the southern region", "owner": "Saudi Aramco", "location": "Southern Region", "duration": "5 years", "status": "Under construction", "value": "SAR 392,985,769" },
-        { "src": "Site of Jizan refinery.jpg", "title": "Site of Jizan refinery", "owner": "Saudi Aramco", "location": "Jizan", "duration": "368 days", "status": "Under construction", "value": "SR 245,360,850" },
-        { "src": "Transportation of clay and cement materials.png", "title": "Transportation of clay and cement materials", "owner": "Saudi Aramco", "location": "Eastern Region", "duration": "5 years", "status": "Done", "value": "SR 30,340,000" },
-        { "src": "Transportation of materials, cement and clay.jpg", "title": "Transportation of materials, cement and clay", "owner": "Saudi Aramco", "location": "", "duration": "5 years", "status": "Under construction", "value": "SR 30,660,000" }
+        {
+          "src": "Development of the heavy industrial zone in the Jazan Economic Area.png",
+          "title": "Development of the heavy industrial zone in the Jazan Economic Area",
+          "owner": "Saudi Aramco",
+          "location": "",
+          "duration": "",
+          "status": "Under Construction",
+          "value": "SR 88,367,400"
+        },
+        {
+          "src": "Gas Collection Plant Road.jpg",
+          "title": "Gas Collection Plant Road",
+          "owner": "Saudi Aramco",
+          "location": " Chiba",
+          "duration": "300 days",
+          "status": "Under construction",
+          "value": "SR 45,300,000"
+        },
+        {
+          "src": "Infrastructure works for the Jazan Economic Zone.png",
+          "title": "Infrastructure works for the Jazan Economic Zone",
+          "owner": "Saudi Aramco",
+          "location": "",
+          "duration": "",
+          "status": "Under Construction",
+          "value": "SR 323,145,280"
+        },
+        {
+          "src": "Maintenance of main roads in the southern region.jpg",
+          "title": "Maintenance of main roads in the southern region",
+          "owner": "Saudi Aramco",
+          "location": "Southern Region",
+          "duration": "5 years",
+          "status": "Under construction",
+          "value": "SAR 392,985,769"
+        },
+        {
+          "src": "Site of Jizan refinery.jpg",
+          "title": "Site of Jizan refinery",
+          "owner": "Saudi Aramco",
+          "location": "Jizan",
+          "duration": "368 days",
+          "status": "Under construction",
+          "value": "SR 245,360,850"
+        },
+        {
+          "src": "Transportation of clay and cement materials.png",
+          "title": "Transportation of clay and cement materials",
+          "owner": "Saudi Aramco",
+          "location": "Eastern Region",
+          "duration": "5 years",
+          "status": "Done",
+          "value": "SR 30,340,000"
+        },
+        {
+          "src": "Transportation of materials, cement and clay.jpg",
+          "title": "Transportation of materials, cement and clay",
+          "owner": "Saudi Aramco",
+          "location": "",
+          "duration": "5 years",
+          "status": "Under construction",
+          "value": "SR 30,660,000"
+        }
       ],
       "dammamAirports": [
-        { "src": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part A).png", "title": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part A)" , "owner": "Dammam Airports Company", "location": "Dammam", "duration": "39.5 months", "status": "in progress", "scopeOfWork":"Execution of infrastructure works (site development, construction of sewage networks, rain drainage, drinking water, fire, lighting, communications, roads and all other utilities Project duration: 39.5 months","value": "88,697,116.00 SAR"},
-        { "src": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part B).png", "title": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part B)", "owner": "Dammam Airports Company", "location": "Dammam", "duration": "22.3 months", "status": "in progress", "scopeOfWork":"Execution of infrastructure works (site development, construction of sewage networks, rain drainage, drinking water, fire, lighting, communications, roads and all other utilities Project duration: 22.3 months","value": "40,054,161.41 SAR" }
+        {
+          "src": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part A).png",
+          "title": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part A)",
+          "owner": "Dammam Airports Company",
+          "location": "Dammam",
+          "duration": "39.5 months",
+          "status": "in progress",
+          "scopeOfWork": "Execution of infrastructure works (site development, construction of sewage networks, rain drainage, drinking water, fire, lighting, communications, roads and all other utilities Project duration: 39.5 months",
+          "value": "88,697,116.00 SAR"
+        },
+        {
+          "src": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part B).png",
+          "title": "Infrastructure Development of the Air Cargo Village at King Fahd International Airport (Part B)",
+          "owner": "Dammam Airports Company",
+          "location": "Dammam",
+          "duration": "22.3 months",
+          "status": "in progress",
+          "scopeOfWork": "Execution of infrastructure works (site development, construction of sewage networks, rain drainage, drinking water, fire, lighting, communications, roads and all other utilities Project duration: 22.3 months",
+          "value": "40,054,161.41 SAR"
+        }
       ],
       "railways": [
-        { "src": "Construction of a concrete bridge (41-42) km on the double railway line 1-2.jpg", "title": "Construction of a concrete bridge (41-42) km on the double railway line 1-2" , "owner": "Railways General Authority", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 14,158,622"},
-        { "src": "Construction of a concrete bridge 196 km on the railway line.jpg", "title": "Construction of a concrete bridge 196 km on the railway line" , "owner": "Railways General Authority", "location": "", "duration": "", "status": "Completed", "scopeOfWork":"","value": "SR 17,725,385" },
-        { "src": "Modification of the soil shoulders for the iron line No. (1) between Al-Hofuf and Riyadh.jpg", "title": "Modification of the soil shoulders for the iron line No. (1) between Al-Hofuf and Riyadh" , "owner": "Railways General Authority", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": " SR 28.696.678.74" }
+        {
+          "src": "Construction of a concrete bridge (41-42) km on the double railway line 1-2.jpg",
+          "title": "Construction of a concrete bridge (41-42) km on the double railway line 1-2",
+          "owner": "Railways General Authority",
+          "location": "",
+          "duration": "",
+          "status": "Under Construction",
+          "scopeOfWork": "",
+          "value": "SR 14,158,622"
+        },
+        {
+          "src": "Construction of a concrete bridge 196 km on the railway line.jpg",
+          "title": "Construction of a concrete bridge 196 km on the railway line",
+          "owner": "Railways General Authority",
+          "location": "",
+          "duration": "",
+          "status": "Completed",
+          "scopeOfWork": "",
+          "value": "SR 17,725,385"
+        },
+        {
+          "src": "Modification of the soil shoulders for the iron line No. (1) between Al-Hofuf and Riyadh.jpg",
+          "title": "Modification of the soil shoulders for the iron line No. (1) between Al-Hofuf and Riyadh",
+          "owner": "Railways General Authority",
+          "location": "",
+          "duration": "",
+          "status": "Under Construction",
+          "scopeOfWork": "",
+          "value": " SR 28.696.678.74"
+        }
       ],
       "industrialCities": [
-        { "src": "Completion of the roads development in the second industrial city in Dammam.jpg", "title": "Completion of the roads development in the second industrial city in Dammam", "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 43,969,703.10" },
-        { "src": "Development of Oasis cities in Yanbu.jpg", "title": "Development of Oasis cities in Yanbu" , "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 47,812,668.16" },
-        { "src": "Development of building material zone in Sudair city for the industry & business.jpg", "title": "Development of building material zone in Sudair city for the industry & business", "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 210,271,351" },
-        { "src": "Development of the Second Industrial City in Al-Hasa.png", "title": "Development of the Second Industrial City in Al-Hasa" , "owner": "Saudi Industrial Property Authority “MODON”", "location": "Al– Ahsa – Hofuf", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": "SR 65,000,000" },
-        { "src": "Infrastructure implementation project in the second industrial city in Aseer Contract No-2490.png", "title": "Infrastructure implementation project in the second industrial city in Aseer Contract No-2490" , "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "36 Months", "status": "In progress", "scopeOfWork":"Implementation of the infrastructure in the second industrial city in Asir. The scope consists of (road and lighting network – medium voltage network – communication network – a network that adds torrents – the drainage network – the treated water network and irrigation – the drinking water network).","value": "SR 193,838,477.50" },
-        { "src": "Link services and facilities between the second and third industrial cities in Jeddah–Contract No.-2459.png", "title": "Link services and facilities between the second and third industrial cities in Jeddah–Contract No.-2459", "owner": "Saudi Industrial Property Authority “MODON”", "location": "", "duration": "36 months", "status": "In progress", "scopeOfWork":"Completion of infrastructure works, utilities and delivery of services between the Second and Third Industrial City in Jeddah","value": "SR 173,583,751.1" }
+        {
+          "src": "Completion of the roads development in the second industrial city in Dammam.jpg",
+          "title": "Completion of the roads development in the second industrial city in Dammam",
+          "owner": "Saudi Industrial Property Authority “MODON”",
+          "location": "",
+          "duration": "",
+          "status": "Under Construction",
+          "scopeOfWork": "",
+          "value": "SR 43,969,703.10"
+        },
+        {
+          "src": "Development of Oasis cities in Yanbu.jpg",
+          "title": "Development of Oasis cities in Yanbu",
+          "owner": "Saudi Industrial Property Authority “MODON”",
+          "location": "",
+          "duration": "",
+          "status": "Under Construction",
+          "scopeOfWork": "",
+          "value": "SR 47,812,668.16"
+        },
+        {
+          "src": "Development of building material zone in Sudair city for the industry & business.jpg",
+          "title": "Development of building material zone in Sudair city for the industry & business",
+          "owner": "Saudi Industrial Property Authority “MODON”",
+          "location": "",
+          "duration": "",
+          "status": "Under Construction",
+          "scopeOfWork": "",
+          "value": "SR 210,271,351"
+        },
+        {
+          "src": "Development of the Second Industrial City in Al-Hasa.png",
+          "title": "Development of the Second Industrial City in Al-Hasa",
+          "owner": "Saudi Industrial Property Authority “MODON”",
+          "location": "Al– Ahsa – Hofuf",
+          "duration": "",
+          "status": "Under Construction",
+          "scopeOfWork": "",
+          "value": "SR 65,000,000"
+        },
+        {
+          "src": "Infrastructure implementation project in the second industrial city in Aseer Contract No-2490.png",
+          "title": "Infrastructure implementation project in the second industrial city in Aseer Contract No-2490",
+          "owner": "Saudi Industrial Property Authority “MODON”",
+          "location": "",
+          "duration": "36 Months",
+          "status": "In progress",
+          "scopeOfWork": "Implementation of the infrastructure in the second industrial city in Asir. The scope consists of (road and lighting network – medium voltage network – communication network – a network that adds torrents – the drainage network – the treated water network and irrigation – the drinking water network).",
+          "value": "SR 193,838,477.50"
+        },
+        {
+          "src": "Link services and facilities between the second and third industrial cities in Jeddah–Contract No.-2459.png",
+          "title": "Link services and facilities between the second and third industrial cities in Jeddah–Contract No.-2459",
+          "owner": "Saudi Industrial Property Authority “MODON”",
+          "location": "",
+          "duration": "36 months",
+          "status": "In progress",
+          "scopeOfWork": "Completion of infrastructure works, utilities and delivery of services between the Second and Third Industrial City in Jeddah",
+          "value": "SR 173,583,751.1"
+        }
       ],
       "municipalRural": [
-        { "src": "CONSTRUCTION OF THE KING ABDULLAH CULTURAL CENTER.png", "title": "CONSTRUCTION OF THE KING ABDULLAH CULTURAL CENTER", "owner": "Ministry of Municipal and Rural Affairs  – Al Ahsa Secretariat", "location": "Al- Ahsa", "duration": "", "status": "Done", "scopeOfWork":"","value": "SR 61,195,000" },
-        { "src": "KING FAHAD INTERCHANGE – KING ABDULAZIZ ROAD.jpg", "title": "KING FAHAD INTERCHANGE – KING ABDULAZIZ ROAD", "owner": "Ministry of Municipal and Rural Affairs  – Al Ahsa Secretariat", "location": "Hofuf – Secretariat of Ahsa", "duration": "", "status": "Finished", "scopeOfWork":"","value": "SR 59,584,220.00" }
+        {
+          "src": "CONSTRUCTION OF THE KING ABDULLAH CULTURAL CENTER.png",
+          "title": "CONSTRUCTION OF THE KING ABDULLAH CULTURAL CENTER",
+          "owner": "Ministry of Municipal and Rural Affairs  – Al Ahsa Secretariat",
+          "location": "Al- Ahsa",
+          "duration": "",
+          "status": "Done",
+          "scopeOfWork": "",
+          "value": "SR 61,195,000"
+        },
+        {
+          "src": "KING FAHAD INTERCHANGE – KING ABDULAZIZ ROAD.jpg",
+          "title": "KING FAHAD INTERCHANGE – KING ABDULAZIZ ROAD",
+          "owner": "Ministry of Municipal and Rural Affairs  – Al Ahsa Secretariat",
+          "location": "Hofuf – Secretariat of Ahsa",
+          "duration": "",
+          "status": "Finished",
+          "scopeOfWork": "",
+          "value": "SR 59,584,220.00"
+        }
       ],
       "transportation": [
-        { "src": "Al-Hofuf Road-Al-Aqeer in the Eastern Region.jpg", "title": "Al-Hofuf Road-Al-Aqeer in the Eastern Region" , "owner": "Ministry of Transport", "location": "Eastern Region", "duration": "36 months", "status": "Done", "scopeOfWork":"","value": " SAR 55,000,000.00" },
-        { "src": "Completion of the Ring Road in Al-Hasa, Southern, Eastern and Northern Shr.jpg", "title": "Completion of the Ring Road in Al-Hasa, Southern, Eastern and Northern Shr", "owner": "Ministry of Transport ", "location": " Al Ahsa ring road", "duration": "36 months", "status": "Done", "scopeOfWork":"","value": " 219.999.992.00 SAR" },
-        { "src": "Completion of the Riyadh-Khurais road duplication in the Riyadh region.png", "title": "Completion of the Riyadh-Khurais road duplication in the Riyadh region", "owner": "Ministry of Transport", "location": "Riyadh", "duration": "47.5 months", "status": "in progress", "scopeOfWork":"mplementation of a dual road with the construction of a road of two traffic lanes and external shoulders, and the construction of ferries for the drainage of torrents and valleys, and networks for the drainage of torrential and rain water for the double part","value": " 94,999,999.50 SAR" },
-        { "src": "Completion of the intersections of Al-Ahsa Abqaiq-Dhahran -Abu Hadriyah in the Eastern Province.png", "title": "Completion of the intersections of Al-Ahsa Abqaiq-Dhahran -Abu Hadriyah in the Eastern Province", "owner": "Ministry of Transport", "location": "Al Ahsa", "duration": "24.3 months", "status": "in progress", "scopeOfWork":"Implementation of a dual road with the construction of a road of two traffic lanes and external shoulders, and the construction of ferries for the drainage of torrents and valleys, and networks for the drainage of torrential and rain water for the double part","value": " 122,443,611.68 SAR" },
-        { "src": "Construction of a road from King Khalid Military City to Daghileeb Al-Wajaan intersection in the Eastern Province.png", "title": "Construction of a road from King Khalid Military City to Daghileeb Al-Wajaan intersection in the Eastern Province", "owner": "Ministry of Transport ", "location": " Eastern Province ", "duration": "39.8 months", "status": "in progress", "scopeOfWork":"Roads and bridges construction and concrete works","value": " 197,336,358.45 SAR" },
-        { "src": "Double Hafof-Salwa.jpg", "title": "Double Hafof-Salwa", "owner": "Ministry of Transport", "location": "Double Hofuf / Salwa", "duration": "36 months", "status": "Done", "scopeOfWork":"","value": " 69,999.999.00 SAR" },
-        { "src": "Maintenance of Dhahran-Abqaiq-Hofuf-Khurais road performance, Contract No. (203).png", "title": "Maintenance of Dhahran-Abqaiq-Hofuf-Khurais road performance, Contract No. (203)", "owner": "", "location": "", "duration": "36 months", "status": "In progress", "scopeOfWork":"Maintenance works for road performance (Dhahran – Abqaiq – Hofuf – Khurais) Contract No. 203","value": " SR 73,869,102.20" },
-        { "src": "Maintenance of the performance of the roads of Riyadh – Khurais – Sudair, Contract No. (111).png", "title": "Maintenance of the performance of the roads of Riyadh – Khurais – Sudair, Contract No. (111)", "owner": "", "location": "", "duration": "36 months", "status": "In progress ", "scopeOfWork":"Road performance maintenance works (Riyadh – Khurais – Sudair) Contract No. 111","value": " SR 101,300,945.01" },
-        { "src": "Roads and Transport Administration Branch Building in Al-Ahsa Governorate.png", "title": "Roads and Transport Administration Branch Building in Al-Ahsa Governorate", "owner": "Ministry of Transport", "location": "Al Ahsa", "duration": "49.8 months", "status": "in progress ", "scopeOfWork":"Construction and implementation of the Roads and Transport Administration building in Al-Ahsa Governorate in the Eastern Province, consisting of three floors, with an estimated area of 2,100 square meters, with a reinforced concrete structure, with site fencing according to plans and bills of quantities.","value": " 9,999,957.00 SAR" },
-        { "src": "The implementation of a bridge at the intersection of the road Albuibat with the road Althamama.jpg", "title": "The implementation of a bridge at the intersection of the road Albuibat with the road Althamama", "owner": "Ministry of Transport ", "location": "Tramway", "duration": " 8 months", "status": "Done ", "scopeOfWork":"","value": " SR 53,272,000.00" }
+        {
+          "src": "Al-Hofuf Road-Al-Aqeer in the Eastern Region.jpg",
+          "title": "Al-Hofuf Road-Al-Aqeer in the Eastern Region",
+          "owner": "Ministry of Transport",
+          "location": "Eastern Region",
+          "duration": "36 months",
+          "status": "Done",
+          "scopeOfWork": "",
+          "value": " SAR 55,000,000.00"
+        },
+        {
+          "src": "Completion of the Ring Road in Al-Hasa, Southern, Eastern and Northern Shr.jpg",
+          "title": "Completion of the Ring Road in Al-Hasa, Southern, Eastern and Northern Shr",
+          "owner": "Ministry of Transport ",
+          "location": " Al Ahsa ring road",
+          "duration": "36 months",
+          "status": "Done",
+          "scopeOfWork": "",
+          "value": " 219.999.992.00 SAR"
+        },
+        {
+          "src": "Completion of the Riyadh-Khurais road duplication in the Riyadh region.png",
+          "title": "Completion of the Riyadh-Khurais road duplication in the Riyadh region",
+          "owner": "Ministry of Transport",
+          "location": "Riyadh",
+          "duration": "47.5 months",
+          "status": "in progress",
+          "scopeOfWork": "mplementation of a dual road with the construction of a road of two traffic lanes and external shoulders, and the construction of ferries for the drainage of torrents and valleys, and networks for the drainage of torrential and rain water for the double part",
+          "value": " 94,999,999.50 SAR"
+        },
+        {
+          "src": "Completion of the intersections of Al-Ahsa Abqaiq-Dhahran -Abu Hadriyah in the Eastern Province.png",
+          "title": "Completion of the intersections of Al-Ahsa Abqaiq-Dhahran -Abu Hadriyah in the Eastern Province",
+          "owner": "Ministry of Transport",
+          "location": "Al Ahsa",
+          "duration": "24.3 months",
+          "status": "in progress",
+          "scopeOfWork": "Implementation of a dual road with the construction of a road of two traffic lanes and external shoulders, and the construction of ferries for the drainage of torrents and valleys, and networks for the drainage of torrential and rain water for the double part",
+          "value": " 122,443,611.68 SAR"
+        },
+        {
+          "src": "Construction of a road from King Khalid Military City to Daghileeb Al-Wajaan intersection in the Eastern Province.png",
+          "title": "Construction of a road from King Khalid Military City to Daghileeb Al-Wajaan intersection in the Eastern Province",
+          "owner": "Ministry of Transport ",
+          "location": " Eastern Province ",
+          "duration": "39.8 months",
+          "status": "in progress",
+          "scopeOfWork": "Roads and bridges construction and concrete works",
+          "value": " 197,336,358.45 SAR"
+        },
+        {
+          "src": "Double Hafof-Salwa.jpg",
+          "title": "Double Hafof-Salwa",
+          "owner": "Ministry of Transport",
+          "location": "Double Hofuf / Salwa",
+          "duration": "36 months",
+          "status": "Done",
+          "scopeOfWork": "",
+          "value": " 69,999.999.00 SAR"
+        },
+        {
+          "src": "Maintenance of Dhahran-Abqaiq-Hofuf-Khurais road performance, Contract No. (203).png",
+          "title": "Maintenance of Dhahran-Abqaiq-Hofuf-Khurais road performance, Contract No. (203)",
+          "owner": "",
+          "location": "",
+          "duration": "36 months",
+          "status": "In progress",
+          "scopeOfWork": "Maintenance works for road performance (Dhahran – Abqaiq – Hofuf – Khurais) Contract No. 203",
+          "value": " SR 73,869,102.20"
+        },
+        {
+          "src": "Maintenance of the performance of the roads of Riyadh – Khurais – Sudair, Contract No. (111).png",
+          "title": "Maintenance of the performance of the roads of Riyadh – Khurais – Sudair, Contract No. (111)",
+          "owner": "",
+          "location": "",
+          "duration": "36 months",
+          "status": "In progress ",
+          "scopeOfWork": "Road performance maintenance works (Riyadh – Khurais – Sudair) Contract No. 111",
+          "value": " SR 101,300,945.01"
+        },
+        {
+          "src": "Roads and Transport Administration Branch Building in Al-Ahsa Governorate.png",
+          "title": "Roads and Transport Administration Branch Building in Al-Ahsa Governorate",
+          "owner": "Ministry of Transport",
+          "location": "Al Ahsa",
+          "duration": "49.8 months",
+          "status": "in progress ",
+          "scopeOfWork": "Construction and implementation of the Roads and Transport Administration building in Al-Ahsa Governorate in the Eastern Province, consisting of three floors, with an estimated area of 2,100 square meters, with a reinforced concrete structure, with site fencing according to plans and bills of quantities.",
+          "value": " 9,999,957.00 SAR"
+        },
+        {
+          "src": "The implementation of a bridge at the intersection of the road Albuibat with the road Althamama.jpg",
+          "title": "The implementation of a bridge at the intersection of the road Albuibat with the road Althamama",
+          "owner": "Ministry of Transport ",
+          "location": "Tramway",
+          "duration": " 8 months",
+          "status": "Done ",
+          "scopeOfWork": "",
+          "value": " SR 53,272,000.00"
+        }
       ],
       "waterElectricity": [
-        { "src": "Establishing drinking water networks in Buraidah city – Phase III.jpg", "title": "Establishing drinking water networks in Buraidah city – Phase III", "owner": "Ministry of Water and Electricity", "location": "Al- Ahsa", "duration": "", "status": "Under construction", "scopeOfWork":"","value": "SR 74,473,325" },
-        { "src": "Sewage treatment plant capacity of 3000 m3 -day and the main pumping station and the expulsion line surplus in the province of Samta Jazan.jpg", "title": "Sewage treatment plant capacity of 3000 m3 -day and the main pumping station...", "owner": "Ministry of Water and Electricity", "location": "Jazan", "duration": "", "status": "Under construction", "scopeOfWork":"","value": "SR 107,545,417" },
-        { "src": "Water line project to connect the desalination tank with the reserve in the desalination tank in Naaman city in Abha city.jpg", "title": "Water line project to connect the desalination tank with the reserve...", "owner": "Ministry of Water and Electricity", "location": "Abha", "duration": "", "status": "Done", "scopeOfWork":"","value": "SR 18,285,155" }
+        {
+          "src": "Establishing drinking water networks in Buraidah city – Phase III.jpg",
+          "title": "Establishing drinking water networks in Buraidah city – Phase III",
+          "owner": "Ministry of Water and Electricity",
+          "location": "Al- Ahsa",
+          "duration": "",
+          "status": "Under construction",
+          "scopeOfWork": "",
+          "value": "SR 74,473,325"
+        },
+        {
+          "src": "Sewage treatment plant capacity of 3000 m3 -day and the main pumping station and the expulsion line surplus in the province of Samta Jazan.jpg",
+          "title": "Sewage treatment plant capacity of 3000 m3 -day and the main pumping station...",
+          "owner": "Ministry of Water and Electricity",
+          "location": "Jazan",
+          "duration": "",
+          "status": "Under construction",
+          "scopeOfWork": "",
+          "value": "SR 107,545,417"
+        },
+        {
+          "src": "Water line project to connect the desalination tank with the reserve in the desalination tank in Naaman city in Abha city.jpg",
+          "title": "Water line project to connect the desalination tank with the reserve...",
+          "owner": "Ministry of Water and Electricity",
+          "location": "Abha",
+          "duration": "",
+          "status": "Done",
+          "scopeOfWork": "",
+          "value": "SR 18,285,155"
+        }
       ],
       "housing": [
-        { "src": "Abdu Arish Housing – Jazan.png", "title": "Abdu Arish Housing – Jazan", "owner": "Ministry of Housing", "location": "Eastern Region", "duration": "", "status": "Completed", "scopeOfWork":"","value": " SR 87,778,027.68"  },
-        { "src": "Al-Kharj Housing “Preliminary Works”.jpg", "title": "Al-Kharj Housing “Preliminary Works”", "owner": "Ministry of Housing", "location": "Al-Kharj housing", "duration": "", "status": "Done", "scopeOfWork":"","value": " SR 61,360,000" },
-        { "src": "Biesh Housing – Jazan.png", "title": "Biesh Housing – Jazan", "owner": "Ministry of Housing", "location": "Eastern Region", "duration": "", "status": "Completed", "scopeOfWork":"","value": " SR 80,548,212" },
-        { "src": "Housing of King Abdullah Suburb – Jazan.png", "title": "Housing of King Abdullah Suburb – Jazan", "owner": "Ministry of Housing", "location": "Eastern Region", "duration": "", "status": "Under Construction", "scopeOfWork":"","value": " SR 276,381,907.96" },
-        { "src": "Housing project in the area of Al Baha.jpg", "title": "Housing project in the area of Al Baha", "owner": "Ministry of Housing", "location": "Nawan – Jazan", "duration": "", "status": "Completed", "scopeOfWork":"","value": " SR 69,600,000" },
-        { "src": "Riyadh Airport King Khalid Hotel – Riyadh.jpg", "title": "Riyadh Airport King Khalid Hotel – Riyadh", "owner": "Ministry of Housing", "location": "Riyadh ", "duration": "", "status": "Done", "scopeOfWork":"","value": " SR 146,476,280" },
-        { "src": "Sabiyah Housing – Jazan.png", "title": "Sabiyah Housing – Jazan", "owner": " Ministry of Housing", "location": " ", "duration": " ", "status": "Completed", "scopeOfWork":"","value": " SR 79,767,376.60" },
-        { "src": "Samtah Housing – Jazan.png", "title": "Samtah Housing – Jazan", "owner": "Ministry of Housing", "location": " ", "duration": " ", "status": "Completed", "scopeOfWork":"","value": " SR 63,339,656.35" }
+        {
+          "src": "Abdu Arish Housing – Jazan.png",
+          "title": "Abdu Arish Housing – Jazan",
+          "owner": "Ministry of Housing",
+          "location": "Eastern Region",
+          "duration": "",
+          "status": "Completed",
+          "scopeOfWork": "",
+          "value": " SR 87,778,027.68"
+        },
+        {
+          "src": "Al-Kharj Housing “Preliminary Works”.jpg",
+          "title": "Al-Kharj Housing “Preliminary Works”",
+          "owner": "Ministry of Housing",
+          "location": "Al-Kharj housing",
+          "duration": "",
+          "status": "Done",
+          "scopeOfWork": "",
+          "value": " SR 61,360,000"
+        },
+        {
+          "src": "Biesh Housing – Jazan.png",
+          "title": "Biesh Housing – Jazan",
+          "owner": "Ministry of Housing",
+          "location": "Eastern Region",
+          "duration": "",
+          "status": "Completed",
+          "scopeOfWork": "",
+          "value": " SR 80,548,212"
+        },
+        {
+          "src": "Housing of King Abdullah Suburb – Jazan.png",
+          "title": "Housing of King Abdullah Suburb – Jazan",
+          "owner": "Ministry of Housing",
+          "location": "Eastern Region",
+          "duration": "",
+          "status": "Under Construction",
+          "scopeOfWork": "",
+          "value": " SR 276,381,907.96"
+        },
+        {
+          "src": "Housing project in the area of Al Baha.jpg",
+          "title": "Housing project in the area of Al Baha",
+          "owner": "Ministry of Housing",
+          "location": "Nawan – Jazan",
+          "duration": "",
+          "status": "Completed",
+          "scopeOfWork": "",
+          "value": " SR 69,600,000"
+        },
+        {
+          "src": "Riyadh Airport King Khalid Hotel – Riyadh.jpg",
+          "title": "Riyadh Airport King Khalid Hotel – Riyadh",
+          "owner": "Ministry of Housing",
+          "location": "Riyadh ",
+          "duration": "",
+          "status": "Done",
+          "scopeOfWork": "",
+          "value": " SR 146,476,280"
+        },
+        {
+          "src": "Sabiyah Housing – Jazan.png",
+          "title": "Sabiyah Housing – Jazan",
+          "owner": " Ministry of Housing",
+          "location": " ",
+          "duration": " ",
+          "status": "Completed",
+          "scopeOfWork": "",
+          "value": " SR 79,767,376.60"
+        },
+        {
+          "src": "Samtah Housing – Jazan.png",
+          "title": "Samtah Housing – Jazan",
+          "owner": "Ministry of Housing",
+          "location": " ",
+          "duration": " ",
+          "status": "Completed",
+          "scopeOfWork": "",
+          "value": " SR 63,339,656.35"
+        }
       ],
       "nationalHousing": [
-        { "src": "Implementation of the developmental housing project, King Abdulaziz Road – 1782 housing units – Medina.png", "title": "Implementation of the developmental housing project, King Abdulaziz Road – 1782 housing units – Medina", "owner": "National Housing Company", "location": "", "duration": "18 months", "status": " In progress", "scopeOfWork":"Implementation of housing units for developmental housing for the King Abdulaziz Road project – in the Medina region","value": "590,788,600" },
-        { "src": "Implementation of the infrastructure for the site of Forsan Gumah in Jazan.png", "title": "Implementation of the infrastructure for the site of Forsan Gumah in Jazan", "owner": "National Housing Company", "location": "Forsan Gumah in Jazan", "duration": "33.2 Months", "status": "Completed", "scopeOfWork":"Settlement of the general site, road construction and plots of land for the entire site of Farasan Qamah","value": "SR 99,561,287.73" }
+        {
+          "src": "Implementation of the developmental housing project, King Abdulaziz Road – 1782 housing units – Medina.png",
+          "title": "Implementation of the developmental housing project, King Abdulaziz Road – 1782 housing units – Medina",
+          "owner": "National Housing Company",
+          "location": "",
+          "duration": "18 months",
+          "status": " In progress",
+          "scopeOfWork": "Implementation of housing units for developmental housing for the King Abdulaziz Road project – in the Medina region",
+          "value": "590,788,600"
+        },
+        {
+          "src": "Implementation of the infrastructure for the site of Forsan Gumah in Jazan.png",
+          "title": "Implementation of the infrastructure for the site of Forsan Gumah in Jazan",
+          "owner": "National Housing Company",
+          "location": "Forsan Gumah in Jazan",
+          "duration": "33.2 Months",
+          "status": "Completed",
+          "scopeOfWork": "Settlement of the general site, road construction and plots of land for the entire site of Farasan Qamah",
+          "value": "SR 99,561,287.73"
+        }
       ],
       "qiddiya": [
-        { "src": "Comprehensive settlement of the main resort area and the city center of Qiddiya–Contract No.-QMPO-400-CT-00001.png", "title": "Comprehensive settlement of the main resort area and the city center of Qiddiya", "owner": "Qiddiya", "location": "Riyadh", "duration": "26.2 Months", "status": "Completed", "scopeOfWork":"Implementation of all earthworks, sewage, surveying, transfer and tree care in the center of the city of Qiddiya and the main resort area","value": "SR 249,794,890.29" },
-        { "src": "Service Road for the Upper Plateau of Qiddiya City – Contract No. QMPO-410-CT-00630.png", "title": "Service Road for the Upper Plateau of Qiddiya City", "owner": "Qiddiya", "location": "Riyadh", "duration": "13.1 Months", "status": "Completed", "scopeOfWork":"Raising the efficiency of roads, building sidewalks and traffic safety","value": "SR 41,895,000.00" },
-        { "src": "Settlement works project for the Six Flags Buildings for Qiddiya Investment Company – Contract No.- QPMO-410-CT-01498.png", "title": "Settlement works project for the Six Flags Buildings for Qiddiya Investment Company", "owner": "Qiddiya Investment Company", "location": "Riyadh", "duration": "3 months", "status": "Executed", "scopeOfWork":"General leveling works, removing waste, preparing the general site for construction works and deep excavation works (21 m) in all types of soil, including rocky, and transferring surplus materials to places approved by the owner.","value": "24,802,471.83 SAR" }
+        {
+          "src": "Comprehensive settlement of the main resort area and the city center of Qiddiya–Contract No.-QMPO-400-CT-00001.png",
+          "title": "Comprehensive settlement of the main resort area and the city center of Qiddiya",
+          "owner": "Qiddiya",
+          "location": "Riyadh",
+          "duration": "26.2 Months",
+          "status": "Completed",
+          "scopeOfWork": "Implementation of all earthworks, sewage, surveying, transfer and tree care in the center of the city of Qiddiya and the main resort area",
+          "value": "SR 249,794,890.29"
+        },
+        {
+          "src": "Service Road for the Upper Plateau of Qiddiya City – Contract No. QMPO-410-CT-00630.png",
+          "title": "Service Road for the Upper Plateau of Qiddiya City",
+          "owner": "Qiddiya",
+          "location": "Riyadh",
+          "duration": "13.1 Months",
+          "status": "Completed",
+          "scopeOfWork": "Raising the efficiency of roads, building sidewalks and traffic safety",
+          "value": "SR 41,895,000.00"
+        },
+        {
+          "src": "Settlement works project for the Six Flags Buildings for Qiddiya Investment Company – Contract No.- QPMO-410-CT-01498.png",
+          "title": "Settlement works project for the Six Flags Buildings for Qiddiya Investment Company",
+          "owner": "Qiddiya Investment Company",
+          "location": "Riyadh",
+          "duration": "3 months",
+          "status": "Executed",
+          "scopeOfWork": "General leveling works, removing waste, preparing the general site for construction works and deep excavation works (21 m) in all types of soil, including rocky, and transferring surplus materials to places approved by the owner.",
+          "value": "24,802,471.83 SAR"
+        }
       ],
       "royalCommission": [
-        { "src": "MAINTENANCE OF THE ROADS OF YANBU CITY – PHASE NINE – YANBU INDUSTRIAL CITY.jpg", "title": "MAINTENANCE OF THE ROADS OF YANBU CITY – PHASE NINE – YANBU INDUSTRIAL CITY", "owner": "Royal Commission for Jubail & Yanbu", "location": "Yanbu", "duration": "", "status": "Under construction", "scopeOfWork":"","value": "SR 59,990,587.00" }
+        {
+          "src": "MAINTENANCE OF THE ROADS OF YANBU CITY – PHASE NINE – YANBU INDUSTRIAL CITY.jpg",
+          "title": "MAINTENANCE OF THE ROADS OF YANBU CITY – PHASE NINE – YANBU INDUSTRIAL CITY",
+          "owner": "Royal Commission for Jubail & Yanbu",
+          "location": "Yanbu",
+          "duration": "",
+          "status": "Under construction",
+          "scopeOfWork": "",
+          "value": "SR 59,990,587.00"
+        }
       ],
       "borderGuards": [
-        { "src": "Operation, maintenance and cleanliness for the patrolling of the Border Guard in the sectors of (Al-Khafji-Hafr Al-Batin) – the Eastern Region No. (2).jpg", "title": "Operation, maintenance and cleanliness for the patrolling of the Border Guard...", "owner": "Border Guard", "location": "", "duration": "", "status": "Under construction", "scopeOfWork":"","value": " SR 21,522,310"  },
-        { "src": "Road construction of the for the border patrolling (Al-Matif – Kharkhir) – Sharurah.png", "title": "Road construction of the for the border patrolling (Al-Matif – Kharkhir) – Sharurah", "owner": "Border Guard", "location": "", "duration": "", "status": "Under construction", "scopeOfWork":"","value": "SR 597,150,000"  }
+        {
+          "src": "Operation, maintenance and cleanliness for the patrolling of the Border Guard in the sectors of (Al-Khafji-Hafr Al-Batin) – the Eastern Region No. (2).jpg",
+          "title": "Operation, maintenance and cleanliness for the patrolling of the Border Guard...",
+          "owner": "Border Guard",
+          "location": "",
+          "duration": "",
+          "status": "Under construction",
+          "scopeOfWork": "",
+          "value": " SR 21,522,310"
+        },
+        {
+          "src": "Road construction of the for the border patrolling (Al-Matif – Kharkhir) – Sharurah.png",
+          "title": "Road construction of the for the border patrolling (Al-Matif – Kharkhir) – Sharurah",
+          "owner": "Border Guard",
+          "location": "",
+          "duration": "",
+          "status": "Under construction",
+          "scopeOfWork": "",
+          "value": "SR 597,150,000"
+        }
       ],
       "miskCity": [
-        { "src": "The preliminary works of the Misk Al-Mishraq city project.png", "title": "The preliminary works of the Misk Al-Mishraq city project", "owner": "Misk Company ", "location": "Riyadh", "duration": "21.6 months", "status": "in progress ", "scopeOfWork":"excavation and disposal of materials","value": " 43,232,369.38 SAR" }
+        {
+          "src": "The preliminary works of the Misk Al-Mishraq city project.png",
+          "title": "The preliminary works of the Misk Al-Mishraq city project",
+          "owner": "Misk Company ",
+          "location": "Riyadh",
+          "duration": "21.6 months",
+          "status": "in progress ",
+          "scopeOfWork": "excavation and disposal of materials",
+          "value": " 43,232,369.38 SAR"
+        }
       ]
     }
   },
