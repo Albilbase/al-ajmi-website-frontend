@@ -193,6 +193,13 @@ const ProjectsPage = () => {
     );
   }
 
+  const getProjectImage = (project) => {
+    if (project.images && project.images.length > 0) {
+      console.log(`${BASE_URL}${project.images[0]}`);
+      return `${BASE_URL}${project.images[0]}`;
+    }
+  };
+
   return (
     <div className={styles.projectsSection} dir={isAr ? "rtl" : "ltr"}>
       {/* Hero Section */}
@@ -249,18 +256,31 @@ const ProjectsPage = () => {
         </div> */}
 
         <div className={styles.cardsGrid}>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              data-tab-id={cat.id.toString()}
-              onClick={() => setActiveTab(cat.id.toString())}
-              className={`${styles.card} ${
-                activeTab === cat.id.toString() ? styles.activeCard : ""
-              }`}
-            >
-              {isAr ? cat.title_ar : cat.title_en}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            console.log(cat);
+            return (
+              <button
+                key={cat.id}
+                data-tab-id={cat.id.toString()}
+                onClick={() => setActiveTab(cat.id.toString())}
+                className={`${styles.card} ${
+                  activeTab === cat.id.toString() ? styles.activeCard : ""
+                }`}
+              >
+                <div className={styles.logoWrapper}>
+                  <img
+                    src={getProjectImage(cat)}
+                    alt={null}
+                    className={styles.catImage}
+                    width={100}
+                    height={100}
+                    style={{ objectFit: "contain" }}
+                  />
+                </div>
+                {isAr ? cat.title_ar : cat.title_en}
+              </button>
+            );
+          })}
         </div>
 
         {/* Projects Grid */}
