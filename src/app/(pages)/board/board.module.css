@@ -9,15 +9,23 @@
 
 /* Background Pattern */
 .boardSection::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
-    radial-gradient(circle at 20% 30%, rgba(220, 20, 60, 0.02) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(220, 20, 60, 0.02) 0%, transparent 50%);
+  background-image:
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(220, 20, 60, 0.02) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(220, 20, 60, 0.02) 0%,
+      transparent 50%
+    );
   pointer-events: none;
 }
 
@@ -32,7 +40,7 @@
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: cover;
+  /* background-size: cover; */
   clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%);
   margin-bottom: 3rem;
 }
@@ -43,7 +51,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.8));
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6),
+    rgba(0, 0, 0, 0.8)
+  );
   z-index: 1;
 }
 
@@ -65,13 +77,13 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
   position: relative;
   display: inline-block;
 }
 
 .title::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -15px;
   left: 50%;
@@ -85,9 +97,9 @@
 .subtitle {
   font-size: 1.4rem;
   font-weight: 300;
-  color: rgba(255,255,255,0.95);
+  color: rgba(255, 255, 255, 0.95);
   letter-spacing: 1px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .container {
@@ -119,7 +131,7 @@
   background: white; /* Explicitly white for better contrast */
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
@@ -127,7 +139,9 @@
 /* Hover Effect: Lift & Glow */
 .card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(220, 20, 60, 0.12), 0 0 0 1px rgba(220, 20, 60, 0.1);
+  box-shadow:
+    0 20px 40px rgba(220, 20, 60, 0.12),
+    0 0 0 1px rgba(220, 20, 60, 0.1);
 }
 
 .imageWrapper {
@@ -139,13 +153,13 @@
 }
 
 .imageWrapper::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%);
   z-index: 2;
   opacity: 0.6;
   transition: opacity 0.5s ease;
@@ -158,7 +172,7 @@
 .image {
   width: 100%;
   height: 100%;
-  object-fit: cover; 
+  object-fit: cover;
   object-position: top center;
   transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   /* Removed grayscale to keep original vibrancy */
@@ -196,7 +210,7 @@
   font-weight: 800;
   margin-bottom: 0.25rem;
   /* Ensure dark color for readability on white */
-  color: #111827; 
+  color: #111827;
   text-align: center;
   position: relative;
 }
@@ -219,7 +233,7 @@
   z-index: 10;
   /* Change crown to red/accent */
   color: var(--accent);
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   opacity: 0.2;
   transform: translateY(0);
   transition: all 0.4s ease;
@@ -240,7 +254,7 @@
   .hero {
     height: 40vh;
   }
-  
+
   .title {
     font-size: 2.5rem;
   }
@@ -254,7 +268,7 @@
     margin-bottom: 2rem;
     background-attachment: scroll;
   }
-  
+
   .heroContent {
     padding: 0 1.5rem;
   }
@@ -263,7 +277,7 @@
     font-size: 2.2rem;
     letter-spacing: 2px;
   }
-  
+
   .subtitle {
     font-size: 1.1rem;
     line-height: 1.4;
@@ -272,7 +286,7 @@
   .container {
     padding: 1rem;
   }
-  
+
   .grid {
     display: flex;
     flex-direction: column;
@@ -282,7 +296,7 @@
     visibility: visible !important;
     opacity: 1 !important;
   }
-  
+
   .cardWrapper {
     height: 450px;
     width: 100%;
@@ -354,8 +368,8 @@
 /* Explicit Dark Mode Overrides if needed */
 @media (prefers-color-scheme: dark) {
   .card {
-     background: #1e293b; /* Dark Slate */
-     border-color: rgba(255,255,255,0.1);
+    background: #1e293b; /* Dark Slate */
+    border-color: rgba(255, 255, 255, 0.1);
   }
   .cardContent {
     background: #1e293b;

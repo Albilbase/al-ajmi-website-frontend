@@ -18,7 +18,7 @@
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: cover;
+  /* background-size: cover; */
   overflow: hidden;
   margin-bottom: 4rem;
 }
@@ -29,7 +29,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7));
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
   z-index: 1;
 }
 
@@ -89,7 +89,7 @@
 }
 
 .textContent h2::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -117,12 +117,12 @@
   border-radius: 30px;
   overflow: hidden;
   height: 500px;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
   background: var(--card);
 }
 
 .imageWrapper::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, rgba(220, 20, 60, 0.2), transparent);
@@ -146,7 +146,7 @@
   background: linear-gradient(135deg, var(--card), var(--background));
   padding: 6rem 3rem;
   border-radius: 40px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   margin-bottom: 8rem;
   text-align: center;
 }
@@ -187,7 +187,7 @@
 }
 
 .card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -242,7 +242,11 @@
 
 /* Offices Section */
 .officesSection {
-  background: linear-gradient(135deg, rgba(220, 20, 60, 0.1) 0%, transparent 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(220, 20, 60, 0.1) 0%,
+    transparent 100%
+  );
   padding: 6rem;
   border-radius: 40px;
   text-align: center;
@@ -268,7 +272,7 @@
   .section {
     gap: 3rem;
   }
-  
+
   .imageWrapper {
     height: 400px;
   }
@@ -281,7 +285,7 @@
     gap: 2.5rem;
     margin-bottom: 6rem;
   }
-  
+
   .textContent h2::after {
     left: 50%;
     transform: translateX(-50%);
@@ -295,7 +299,7 @@
   .sectionInverted .textContent {
     order: 1;
   }
-  
+
   .sectionInverted .imageWrapper {
     order: 2;
   }

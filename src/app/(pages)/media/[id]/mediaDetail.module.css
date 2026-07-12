@@ -8,7 +8,7 @@
 .hero {
   position: relative;
   height: 400px;
-  background-size: cover;
+  /* background-size: cover; */
   background-position: center;
   display: flex;
   align-items: center;
@@ -22,7 +22,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(220, 20, 60, 0.6) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(220, 20, 60, 0.6) 100%
+  );
   z-index: 1;
 }
 
@@ -193,8 +197,8 @@
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
   font-size: 0.9em;
-  color: #DC143C;
-  font-family: 'Consolas', 'Monaco', monospace;
+  color: #dc143c;
+  font-family: "Consolas", "Monaco", monospace;
 }
 
 .description hr {
@@ -389,7 +393,7 @@
   border-radius: 16px;
   overflow: hidden;
   background: #000;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .videoWrapper iframe {
@@ -405,7 +409,7 @@
   .videoSectionTitle {
     font-size: 1.5rem;
   }
-  
+
   .videoGrid {
     grid-template-columns: 1fr;
   }
@@ -794,7 +798,7 @@
   .swiper {
     height: 400px;
   }
-  
+
   .closeButton {
     top: 20px;
     right: 20px;

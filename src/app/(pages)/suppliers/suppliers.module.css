@@ -10,14 +10,18 @@
 /* Decorative Background Blobs - Responsive sizes */
 .suppliersSection::before,
 .suppliersSection::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 50vw;
   height: 50vw;
   max-width: 600px;
   max-height: 600px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.1),
+    rgba(var(--primary-rgb), 0.05)
+  );
   z-index: 0;
   filter: blur(80px);
 }
@@ -43,7 +47,7 @@
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: cover;
+  /* background-size: cover; */
   clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
   margin-bottom: -4rem; /* Adjusted for stacking */
   z-index: 10;
@@ -76,7 +80,7 @@
   text-transform: uppercase;
   letter-spacing: 2px;
   line-height: 1.1;
-  text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .subtitle {
@@ -101,17 +105,17 @@
   -webkit-backdrop-filter: blur(20px);
   border-radius: 30px;
   padding: 4rem;
-  box-shadow: 
+  box-shadow:
     0 20px 60px -10px rgba(var(--primary-rgb), 0.15),
-    0 10px 20px -10px rgba(0,0,0,0.1);
-  border: 1px solid rgba(255,255,255,0.8);
+    0 10px 20px -10px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   position: relative;
   margin-bottom: 2rem;
 }
 
 /* Decorative Line */
 .formCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 50%;
@@ -144,15 +148,17 @@
   width: 100%;
 }
 
-.input, .select, .textarea {
+.input,
+.select,
+.textarea {
   width: 100%;
-  padding: 1.25rem 1.5rem 0.5rem; 
+  padding: 1.25rem 1.5rem 0.5rem;
   height: 60px;
   border-radius: 12px;
   border: 2px solid #e1e4e8;
   background: #f8fafc;
   font-size: 1rem;
-  background-clip: padding-box; 
+  background-clip: padding-box;
   color: #1f2937;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -166,7 +172,7 @@
 }
 
 .select {
-  padding-top: 1.25rem; 
+  padding-top: 1.25rem;
   cursor: pointer;
   appearance: none;
 }
@@ -196,7 +202,9 @@
 }
 
 /* Focused / Filled State Logic */
-.input:focus, .select:focus, .textarea:focus {
+.input:focus,
+.select:focus,
+.textarea:focus {
   outline: none;
   background: #ffffff;
   border-color: var(--accent);
@@ -222,7 +230,6 @@
 [dir="rtl"] .errorMessage {
   padding: 0 0.5rem;
 }
-
 
 .input:focus ~ .label,
 .input:not(:placeholder-shown) ~ .label,
@@ -274,11 +281,15 @@
 }
 
 .fileDecor::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(220, 20, 60, 0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(220, 20, 60, 0.1) 0%,
+    transparent 70%
+  );
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -286,7 +297,7 @@
 .fileInput:hover + .fileDecor {
   border-color: var(--accent);
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
 }
 
 .fileInput:hover + .fileDecor::before {
@@ -431,13 +442,13 @@
 }
 
 .submitButton::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -469,53 +480,57 @@
 }
 
 @media (max-width: 768px) {
-  .hero { 
-    height: 45vh; 
-    clip-path: none; 
-    margin-bottom: 0; 
+  .hero {
+    height: 45vh;
+    clip-path: none;
+    margin-bottom: 0;
   }
-  
+
   .container {
     padding: 0 1rem;
   }
-  
-  .formCard { 
-    padding: 2rem 1.5rem; 
+
+  .formCard {
+    padding: 2rem 1.5rem;
     margin-top: -3rem; /* Small overlap on mobile */
-    border-radius: 20px; 
+    border-radius: 20px;
   }
-  
-  .formGrid { 
+
+  .formGrid {
     grid-template-columns: 1fr; /* Stack vertically */
-    gap: 1.5rem; 
+    gap: 1.5rem;
   }
-  
-  .fullWidth { 
-    grid-column: span 1; 
+
+  .fullWidth {
+    grid-column: span 1;
   }
-  
+
   .buttonWrapper {
     grid-column: span 1;
   }
-  
-  .submitButton { 
-    width: 100%; 
-    padding: 1.2rem; 
+
+  .submitButton {
+    width: 100%;
+    padding: 1.2rem;
     font-size: 1rem;
   }
-  
-  .submitButton:hover { 
-    padding: 1.2rem; 
+
+  .submitButton:hover {
+    padding: 1.2rem;
   }
-  
+
   .fileUploadContainer {
     height: 120px;
   }
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loadingContainer {
@@ -534,7 +549,7 @@
   .heroContent {
     margin-top: 0;
   }
-  
+
   .formCard {
     padding: 1.5rem 1rem;
   }

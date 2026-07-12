@@ -10,14 +10,18 @@
 /* Decorative Background Blobs */
 .suggestionsSection::before,
 .suggestionsSection::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 50vw;
   height: 50vw;
   max-width: 600px;
   max-height: 600px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.1),
+    rgba(var(--primary-rgb), 0.05)
+  );
   z-index: 0;
   filter: blur(80px);
 }
@@ -43,7 +47,7 @@
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: cover;
+  /* background-size: cover; */
   clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
   margin-bottom: -4rem;
   z-index: 10;
@@ -76,7 +80,7 @@
   text-transform: uppercase;
   letter-spacing: 2px;
   line-height: 1.1;
-  text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .subtitle {
@@ -88,7 +92,7 @@
 
 .container {
   width: 100%;
-  max-width: 1000px; 
+  max-width: 1000px;
   margin: 0 auto;
   padding: 0 1.5rem;
   position: relative;
@@ -101,16 +105,16 @@
   -webkit-backdrop-filter: blur(20px);
   border-radius: 30px;
   padding: 4rem;
-  box-shadow: 
+  box-shadow:
     0 20px 60px -10px rgba(var(--primary-rgb), 0.15),
-    0 10px 20px -10px rgba(0,0,0,0.1);
-  border: 1px solid rgba(255,255,255,0.8);
+    0 10px 20px -10px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   position: relative;
   margin-bottom: 2rem;
 }
 
 .formCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 50%;
@@ -142,14 +146,16 @@
   width: 100%;
 }
 
-.input, .select, .textarea {
+.input,
+.select,
+.textarea {
   width: 100%;
-  padding: 1.25rem 1.5rem 0.5rem; 
+  padding: 1.25rem 1.5rem 0.5rem;
   border-radius: 12px;
   border: 2px solid #e1e4e8;
   background: #f8fafc;
   font-size: 1rem;
-  background-clip: padding-box; 
+  background-clip: padding-box;
   color: #1f2937;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -157,9 +163,19 @@
   resize: none;
 }
 
-.input { height: 60px; }
-.select { height: 60px; padding-top: 1.25rem; appearance: none; cursor: pointer; }
-.textarea { height: 125px; padding-top: 1.75rem; }
+.input {
+  height: 60px;
+}
+.select {
+  height: 60px;
+  padding-top: 1.25rem;
+  appearance: none;
+  cursor: pointer;
+}
+.textarea {
+  height: 125px;
+  padding-top: 1.75rem;
+}
 
 .label {
   position: absolute;
@@ -185,7 +201,9 @@
   right: 1.5rem;
 }
 
-.input:focus, .select:focus, .textarea:focus {
+.input:focus,
+.select:focus,
+.textarea:focus {
   outline: none;
   background: #ffffff;
   border-color: var(--accent);
@@ -207,7 +225,6 @@
   gap: 0.25rem;
   padding: 0 0.5rem;
 }
-
 
 .input:focus ~ .label,
 .input:not(:placeholder-shown) ~ .label,
@@ -255,8 +272,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loadingContainer {
@@ -272,15 +293,15 @@
 }
 
 @media (max-width: 768px) {
-  .hero { 
-    height: 45vh; 
-    clip-path: none; 
-    margin-bottom: 0; 
+  .hero {
+    height: 45vh;
+    clip-path: none;
+    margin-bottom: 0;
   }
-  .formCard { 
-    padding: 2rem 1.5rem; 
+  .formCard {
+    padding: 2rem 1.5rem;
     margin-top: -3rem;
-    border-radius: 20px; 
+    border-radius: 20px;
   }
   .formGrid {
     grid-template-columns: 1fr;
@@ -292,9 +313,9 @@
   .buttonWrapper {
     grid-column: span 1;
   }
-  .submitButton { 
-    width: 100%; 
-    padding: 1.2rem; 
+  .submitButton {
+    width: 100%;
+    padding: 1.2rem;
   }
 }
 /* File Upload Styles */
@@ -377,8 +398,14 @@
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fileIcon {
