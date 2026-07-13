@@ -35,6 +35,40 @@ const ProjectsPage = () => {
   const [activeTab, setActiveTab] = useState(null);
   const tabX = useMotionValue(0);
 
+  const [banner, setBanner] = useState(null);
+
+  useEffect(() => {
+    const homeSections = (sections || []).filter(
+      (section) => section.section_key === "home",
+    );
+    if (homeSections.length > 0) {
+      const bannerData = homeSections.find(
+        (item) => item.type === "projects_banner" && item.is_active,
+      );
+      if (bannerData) {
+        setBanner(bannerData);
+      }
+    }
+  }, [sections]);
+
+  const bgImage =
+    banner && banner.images && banner.images.length > 0
+      ? `url('${BASE_URL}${banner.images[0]}')`
+      : null;
+
+  const title = banner
+    ? isAr
+      ? banner.title_ar
+      : banner.title_en
+    : t("nav.services");
+
+  // Use description as subtitle since API returns null for subtitle fields
+  const subtitle = banner
+    ? isAr
+      ? banner.subtitle_ar || banner.description_ar
+      : banner.subtitle_en || banner.description_en
+    : t("services.subtitle");
+
   // Scroll active tab into view when it changes
   useEffect(() => {
     if (!activeTab || categories.length === 0) return;
@@ -203,10 +237,7 @@ const ProjectsPage = () => {
   return (
     <div className={styles.projectsSection} dir={isAr ? "rtl" : "ltr"}>
       {/* Hero Section */}
-      <div
-        className={styles.hero}
-        style={{ backgroundImage: "url('/images/projectbanner.jpg')" }}
-      >
+      <div className={styles.hero} style={{ backgroundImage: bgImage }}>
         <div className={styles.heroOverlay} />
         <motion.div
           className={styles.heroContent}
@@ -214,8 +245,9 @@ const ProjectsPage = () => {
           animate="visible"
           variants={fadeInUp}
         >
-          <h1 className={styles.title}>{t("projectsPage.title")}</h1>
-          <p className={styles.subtitle}>{t("projectsPage.subtitle")}</p>
+          <h1 className={styles.title}>{title}</h1>
+
+          <p className={styles.subtitle}>{subtitle}</p>
         </motion.div>
       </div>
 

@@ -1,14 +1,14 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
-import { 
-  UploadCloud, 
-  CheckCircle2, 
-  ChevronDown, 
-  Briefcase, 
-  Users, 
-  Clock, 
+import React, { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import {
+  UploadCloud,
+  CheckCircle2,
+  ChevronDown,
+  Briefcase,
+  Users,
+  Clock,
   GraduationCap,
   Loader2,
   ArrowRight,
@@ -17,26 +17,31 @@ import {
   Info,
   X,
   FileText,
-  File
-} from 'lucide-react';
-import useCMSStore from '@/store/useCMSStore';
-import styles from './jobs.module.css';
-import Modal from '../../dashboard/_components/Modal/Modal';
+  File,
+} from "lucide-react";
+import useCMSStore from "@/store/useCMSStore";
+import styles from "./jobs.module.css";
+import Modal from "../../dashboard/_components/Modal/Modal";
 
 // Define the animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 };
 
-import { submitContactFormRaw, BASE_URL } from '@/lib/api';
-import { toast } from 'react-toastify';
-import { validatePhone, validateEmail, sanitizeEmailInput } from '@/lib/validation';
-import PhoneInput from '@/components/PhoneInput/PhoneInput';
+import { submitContactFormRaw, BASE_URL } from "@/lib/api";
+import { toast } from "react-toastify";
+import {
+  validatePhone,
+  validateEmail,
+  sanitizeEmailInput,
+} from "@/lib/validation";
+import PhoneInput from "@/components/PhoneInput/PhoneInput";
 
 const JobsPage = () => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const isAr = i18n.language === "ar";
+  const isRTL = i18n.language === "ar";
   const sections = useCMSStore((state) => state.sections);
   const storeLoading = useCMSStore((state) => state.isLoading);
   const [fileNames, setFileNames] = useState([]);
@@ -52,15 +57,56 @@ const JobsPage = () => {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
 
+  /* Bannner */
+
+  const [banner, setBanner] = useState(null);
+
   useEffect(() => {
-    const jobsSections = (sections || []).filter(section => section.section_key === 'jobs');
+    const homeSections = (sections || []).filter(
+      (section) => section.section_key === "home",
+    );
+    if (homeSections.length > 0) {
+      const bannerData = homeSections.find(
+        (item) => item.type === "jobs_banner" && item.is_active,
+      );
+      if (bannerData) {
+        setBanner(bannerData);
+      }
+    }
+  }, [sections]);
+
+  const bgImage =
+    banner && banner.images && banner.images.length > 0
+      ? `url('${BASE_URL}${banner.images[0]}')`
+      : null;
+
+  const title = banner
+    ? isAr
+      ? banner.title_ar
+      : banner.title_en
+    : t("nav.services");
+
+  // Use description as subtitle since API returns null for subtitle fields
+  const subtitle = banner
+    ? isAr
+      ? banner.subtitle_ar || banner.description_ar
+      : banner.subtitle_en || banner.description_en
+    : t("services.subtitle");
+
+  // ===============
+
+  useEffect(() => {
+    const jobsSections = (sections || []).filter(
+      (section) => section.section_key === "jobs",
+    );
     if (jobsSections.length > 0) {
-      const fetchedJobs = jobsSections.filter(s => s.type === 'vacancy');
-      const fetchedHero = jobsSections.find(s => s.type === 'hero');
-      
-      const fields = jobsSections.filter(s => 
-        (s.type === 'form_input' || s.type === 'form_dropdown') && 
-        (s.is_active === true || s.is_active === 'true')
+      const fetchedJobs = jobsSections.filter((s) => s.type === "vacancy");
+      const fetchedHero = jobsSections.find((s) => s.type === "hero");
+
+      const fields = jobsSections.filter(
+        (s) =>
+          (s.type === "form_input" || s.type === "form_dropdown") &&
+          (s.is_active === true || s.is_active === "true"),
       );
       setFormFields(fields.sort((a, b) => a.id - b.id));
 
@@ -71,13 +117,16 @@ const JobsPage = () => {
       }
 
       // Fetch dynamic email settings
-      const settingsSection = jobsSections.find(s => s.type === 'form_settings');
+      const settingsSection = jobsSections.find(
+        (s) => s.type === "form_settings",
+      );
       if (settingsSection) {
         try {
-          const details = typeof settingsSection.details === 'string' 
-            ? JSON.parse(settingsSection.details || '{}') 
-            : (settingsSection.details || {});
-          
+          const details =
+            typeof settingsSection.details === "string"
+              ? JSON.parse(settingsSection.details || "{}")
+              : settingsSection.details || {};
+
           if (details.receive_email) {
             setRecipientEmail(details.receive_email);
           }
@@ -88,22 +137,29 @@ const JobsPage = () => {
 
       // Initialize form data with 00966 for phone fields
       const initialForm = {};
-      fields.forEach(f => {
+      fields.forEach((f) => {
         const titleEn = f.title_en?.toLowerCase() || "";
         const titleAr = f.title_ar || "";
-        const isEmail = f.description_en === 'email' || titleEn.includes('email') || titleEn.includes('mail') || titleAr.includes('البريد') || titleAr.includes('ايميل');
-        const isTel = (f.description_en === 'tel' || 
-                      titleEn.includes('phone') || 
-                      titleEn.includes('mobile') ||
-                      titleEn.includes('tel') ||
-                      titleEn.includes('fax') ||
-                      titleAr.includes('هاتف') || 
-                      titleAr.includes('جوال') ||
-                      titleAr.includes('موبايل') ||
-                      titleAr.includes('فاكس')) && 
-                      !titleEn.includes('account') && 
-                      !titleEn.includes('iban') &&
-                      !titleAr.includes('حساب') && !isEmail;
+        const isEmail =
+          f.description_en === "email" ||
+          titleEn.includes("email") ||
+          titleEn.includes("mail") ||
+          titleAr.includes("البريد") ||
+          titleAr.includes("ايميل");
+        const isTel =
+          (f.description_en === "tel" ||
+            titleEn.includes("phone") ||
+            titleEn.includes("mobile") ||
+            titleEn.includes("tel") ||
+            titleEn.includes("fax") ||
+            titleAr.includes("هاتف") ||
+            titleAr.includes("جوال") ||
+            titleAr.includes("موبايل") ||
+            titleAr.includes("فاكس")) &&
+          !titleEn.includes("account") &&
+          !titleEn.includes("iban") &&
+          !titleAr.includes("حساب") &&
+          !isEmail;
         initialForm[f.id] = isTel ? "00966" : "";
       });
       setFormData(initialForm);
@@ -111,9 +167,9 @@ const JobsPage = () => {
   }, [sections]);
 
   const handleInputChange = (fieldId, value) => {
-    setFormData(prev => ({ ...prev, [fieldId]: value }));
+    setFormData((prev) => ({ ...prev, [fieldId]: value }));
     if (errors[fieldId]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[fieldId];
         return newErrors;
@@ -124,57 +180,76 @@ const JobsPage = () => {
   const handleFileChange = (event) => {
     const newSelectedFiles = Array.from(event.target.files);
     if (newSelectedFiles.length > 0) {
-      const allowedExtensions = ['pdf', 'doc', 'docx'];
-      const invalidFiles = newSelectedFiles.filter(f => {
-        const ext = f.name.split('.').pop().toLowerCase();
+      const allowedExtensions = ["pdf", "doc", "docx"];
+      const invalidFiles = newSelectedFiles.filter((f) => {
+        const ext = f.name.split(".").pop().toLowerCase();
         return !allowedExtensions.includes(ext);
       });
 
       if (invalidFiles.length > 0) {
-        toast.error(isRTL ? "يرجى اختيار ملفات PDF أو Word فقط." : "Please select only PDF or Word files.");
-        event.target.value = ''; 
+        toast.error(
+          isRTL
+            ? "يرجى اختيار ملفات PDF أو Word فقط."
+            : "Please select only PDF or Word files.",
+        );
+        event.target.value = "";
         return;
       }
 
-      const oversizedFiles = newSelectedFiles.filter(f => f.size > 5 * 1024 * 1024);
+      const oversizedFiles = newSelectedFiles.filter(
+        (f) => f.size > 5 * 1024 * 1024,
+      );
       if (oversizedFiles.length > 0) {
-        toast.error(isRTL 
-          ? "يوجد ملفات تتجاوز الحد المسموح (5 ميجابايت). يرجى اختيار ملفات أصغر." 
-          : "Some files exceed the 5MB limit. Please choose smaller files.");
+        toast.error(
+          isRTL
+            ? "يوجد ملفات تتجاوز الحد المسموح (5 ميجابايت). يرجى اختيار ملفات أصغر."
+            : "Some files exceed the 5MB limit. Please choose smaller files.",
+        );
         event.target.value = "";
         return;
       }
 
       // De-duplicate: Ensure name + size combination is unique
-      const uniqueNewFiles = newSelectedFiles.filter(newF => 
-        !files.some(existingF => existingF.name === newF.name && existingF.size === newF.size)
+      const uniqueNewFiles = newSelectedFiles.filter(
+        (newF) =>
+          !files.some(
+            (existingF) =>
+              existingF.name === newF.name && existingF.size === newF.size,
+          ),
       );
 
       if (uniqueNewFiles.length === 0) {
-        toast.info(isRTL ? "هذه الملفات موجودة مسبقاً." : "These files already exist.");
+        toast.info(
+          isRTL ? "هذه الملفات موجودة مسبقاً." : "These files already exist.",
+        );
         event.target.value = "";
         return;
       }
 
       if (uniqueNewFiles.length < newSelectedFiles.length) {
-        toast.info(isRTL ? "تم تجاهل الملفات المكررة." : "Duplicate files were ignored.");
+        toast.info(
+          isRTL ? "تم تجاهل الملفات المكررة." : "Duplicate files were ignored.",
+        );
       }
-      
+
       const combinedFiles = [...files, ...uniqueNewFiles];
-      const combinedNames = [...fileNames, ...uniqueNewFiles.map(f => f.name)];
-      
+      const combinedNames = [
+        ...fileNames,
+        ...uniqueNewFiles.map((f) => f.name),
+      ];
+
       setFiles(combinedFiles);
       setFileNames(combinedNames);
-      
-      if (errors['file']) {
-        setErrors(prev => {
+
+      if (errors["file"]) {
+        setErrors((prev) => {
           const newErrors = { ...prev };
-          delete newErrors['file'];
+          delete newErrors["file"];
           return newErrors;
         });
       }
-      
-      event.target.value = '';
+
+      event.target.value = "";
     }
   };
 
@@ -189,36 +264,57 @@ const JobsPage = () => {
 
   const validate = () => {
     const newErrors = {};
-    formFields.forEach(field => {
+    formFields.forEach((field) => {
       const value = formData[field.id]?.toString().trim() || "";
       const label = isRTL ? field.title_ar : field.title_en;
 
       if (!value) {
-        newErrors[field.id] = isRTL ? `حقل ${label} مطلوب` : `${label} is required`;
+        newErrors[field.id] = isRTL
+          ? `حقل ${label} مطلوب`
+          : `${label} is required`;
       } else {
         const tEn = field.title_en?.toLowerCase() || "";
         const tAr = field.title_ar || "";
-        const isEmail = field.description_en === 'email' || tEn.includes('email') || tEn.includes('mail') || tAr.includes('البريد') || tAr.includes('ايميل');
-        
-        const isTel = (field.description_en === 'tel' || 
-                      tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') ||
-                      tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && 
-                      !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
+        const isEmail =
+          field.description_en === "email" ||
+          tEn.includes("email") ||
+          tEn.includes("mail") ||
+          tAr.includes("البريد") ||
+          tAr.includes("ايميل");
+
+        const isTel =
+          (field.description_en === "tel" ||
+            tEn.includes("phone") ||
+            tEn.includes("tel") ||
+            tEn.includes("mobile") ||
+            tEn.includes("fax") ||
+            tAr.includes("هاتف") ||
+            tAr.includes("جوال") ||
+            tAr.includes("تلفون") ||
+            tAr.includes("فاكس")) &&
+          !tEn.includes("account") &&
+          !tEn.includes("iban") &&
+          !tAr.includes("حساب") &&
+          !isEmail;
 
         if (isEmail && !validateEmail(value)) {
-          newErrors[field.id] = isRTL ? "البريد الإلكتروني غير صحيح" : "Invalid email address";
+          newErrors[field.id] = isRTL
+            ? "البريد الإلكتروني غير صحيح"
+            : "Invalid email address";
         }
 
         if (isTel && !validatePhone(value)) {
-          newErrors[field.id] = isRTL 
-            ? "الرجاء اختيار مفتاح الدولة وإدخال 9 أرقام" 
+          newErrors[field.id] = isRTL
+            ? "الرجاء اختيار مفتاح الدولة وإدخال 9 أرقام"
             : "Please select country code and enter 9 digits";
         }
       }
     });
 
     if (files.length === 0) {
-      newErrors['file'] = isRTL ? "يرجى إرفاق السيرة الذاتية" : "Please attach your resume";
+      newErrors["file"] = isRTL
+        ? "يرجى إرفاق السيرة الذاتية"
+        : "Please attach your resume";
     }
 
     setErrors(newErrors);
@@ -227,11 +323,13 @@ const JobsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validate()) {
-      toast.error(isRTL 
-        ? "يرجى التأكد من ملء جميع الحقول المطلوبة بشكل صحيح" 
-        : "Please ensure all required fields are filled correctly");
+      toast.error(
+        isRTL
+          ? "يرجى التأكد من ملء جميع الحقول المطلوبة بشكل صحيح"
+          : "Please ensure all required fields are filled correctly",
+      );
       return;
     }
 
@@ -240,30 +338,34 @@ const JobsPage = () => {
     try {
       const submitData = new FormData();
       const jobTitleEn = selectedJob?.title_en || "General Application";
-      submitData.append('name', `Career - ${jobTitleEn}`);
-      submitData.append('send_to', recipientEmail);
+      submitData.append("name", `Career - ${jobTitleEn}`);
+      submitData.append("send_to", recipientEmail);
 
       const dataObj = {};
-      formFields.forEach(field => {
+      formFields.forEach((field) => {
         const key = field.title_en || `field_${field.id}`;
         dataObj[key] = formData[field.id];
       });
-      
-      submitData.append('data', JSON.stringify(dataObj));
+
+      submitData.append("data", JSON.stringify(dataObj));
 
       if (files.length > 0) {
-        files.forEach(f => {
-          submitData.append('files', f, f.name);
+        files.forEach((f) => {
+          submitData.append("files", f, f.name);
         });
       }
 
       await submitContactFormRaw(submitData);
 
-      toast.success(isRTL ? "تم إرسال طلبك بنجاح!" : "Application sent successfully!");
-      
+      toast.success(
+        isRTL ? "تم إرسال طلبك بنجاح!" : "Application sent successfully!",
+      );
+
       // Reset form
       const resetForm = {};
-      formFields.forEach(f => { resetForm[f.id] = ""; });
+      formFields.forEach((f) => {
+        resetForm[f.id] = "";
+      });
       setFormData(resetForm);
       setFiles([]);
       setFileNames([]);
@@ -271,7 +373,11 @@ const JobsPage = () => {
       setIsApplyModalOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error(isRTL ? "حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى." : "Error submitting application. Please try again.");
+      toast.error(
+        isRTL
+          ? "حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى."
+          : "Error submitting application. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -283,15 +389,18 @@ const JobsPage = () => {
     setSelectedJob(job);
     if (window.innerWidth <= 1100) {
       setTimeout(() => {
-        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        detailRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 50);
     }
   };
 
   const getImageUrl = (path) => {
     if (!path) return "/images/Job-Search.jpg";
-    if (path.startsWith('http')) return path;
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    if (path.startsWith("http")) return path;
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
     return `${BASE_URL}${cleanPath}`;
   };
 
@@ -303,47 +412,52 @@ const JobsPage = () => {
     );
   }
 
-  const heroImage = hero?.images?.[0] ? getImageUrl(hero.images[0]) : "/images/Job-Search.jpg";
-  const selectedJobTitle = selectedJob ? (isRTL ? selectedJob.title_ar : selectedJob.title_en) : "";
-  const selectedJobDesc = selectedJob ? (isRTL ? selectedJob.description_ar : selectedJob.description_en) : "";
+  const heroImage = hero?.images?.[0]
+    ? getImageUrl(hero.images[0])
+    : "/images/Job-Search.jpg";
+  const selectedJobTitle = selectedJob
+    ? isRTL
+      ? selectedJob.title_ar
+      : selectedJob.title_en
+    : "";
+  const selectedJobDesc = selectedJob
+    ? isRTL
+      ? selectedJob.description_ar
+      : selectedJob.description_en
+    : "";
   const selectedDetails = selectedJob?.details || {};
   const selectedMeta = isRTL ? selectedDetails.ar : selectedDetails.en;
 
   return (
-    <div className={styles.jobsSection} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={styles.jobsSection} dir={isRTL ? "rtl" : "ltr"}>
       {/* Hero Section */}
-      <div 
-        className={styles.hero}
-        style={{ backgroundImage: `url('${heroImage}')` }}
-      >
+      <div className={styles.hero} style={{ backgroundImage: bgImage }}>
         <div className={styles.heroOverlay} />
-        <motion.div 
+        <motion.div
           className={styles.heroContent}
           initial="hidden"
           animate="visible"
           variants={fadeInUp}
         >
-          <h1 className={styles.title}>
-            {isRTL ? (hero?.title_ar || t('jobsPage.title')) : (hero?.title_en || t('jobsPage.title'))}
-          </h1>
-          <p className={styles.subtitle}>
-            {isRTL ? (hero?.description_ar || t('jobsPage.subtitle')) : (hero?.description_en || t('jobsPage.subtitle'))}
-          </p>
+          <h1 className={styles.title}>{title}</h1>
+
+          <p className={styles.subtitle}>{subtitle}</p>
         </motion.div>
       </div>
 
       <div className={styles.container}>
         <div className={styles.grid}>
-          
           {/* Sidebar - Vacancies List */}
-          <motion.div 
+          <motion.div
             className={styles.sidebar}
             initial={{ opacity: 0, x: isRTL ? 50 : -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className={styles.sectionTitle}>{t('jobsPage.vacanciesTitle')}</h2>
-            
+            <h2 className={styles.sectionTitle}>
+              {t("jobsPage.vacanciesTitle")}
+            </h2>
+
             <div className={styles.jobsList}>
               {jobs.map((job) => {
                 const jobTitle = isRTL ? job.title_ar : job.title_en;
@@ -351,9 +465,9 @@ const JobsPage = () => {
                 const isActive = selectedJob?.id === job.id;
 
                 return (
-                  <div 
-                    key={job.id} 
-                    className={`${styles.jobCard} ${isActive ? styles.activeCard : ''}`}
+                  <div
+                    key={job.id}
+                    className={`${styles.jobCard} ${isActive ? styles.activeCard : ""}`}
                     onClick={() => handleCardClick(job)}
                   >
                     <h3 className={styles.jobTitle}>{jobTitle}</h3>
@@ -361,7 +475,11 @@ const JobsPage = () => {
                     <div className={styles.cardFooter}>
                       <span className={styles.viewMore}>
                         {isRTL ? "عرض التفاصيل" : "View Details"}
-                        {isRTL ? <ArrowLeft size={14} /> : <ArrowRight size={14} />}
+                        {isRTL ? (
+                          <ArrowLeft size={14} />
+                        ) : (
+                          <ArrowRight size={14} />
+                        )}
                       </span>
                     </div>
                   </div>
@@ -372,18 +490,22 @@ const JobsPage = () => {
             {jobs.length === 0 && (
               <div className={styles.noJobs}>
                 <Briefcase size={40} />
-                <p>{isRTL ? "لا توجد وظائف شاغرة حالياً" : "No active vacancies at the moment"}</p>
+                <p>
+                  {isRTL
+                    ? "لا توجد وظائف شاغرة حالياً"
+                    : "No active vacancies at the moment"}
+                </p>
               </div>
             )}
           </motion.div>
 
           {/* Job Detail View */}
-          <motion.div 
+          <motion.div
             ref={detailRef}
             className={styles.detailCard}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            key={selectedJob?.id || 'empty'}
+            key={selectedJob?.id || "empty"}
           >
             {selectedJob ? (
               <>
@@ -395,29 +517,39 @@ const JobsPage = () => {
                     <h2 className={styles.detailTitle}>{selectedJobTitle}</h2>
                     <div className={styles.detailMetaRow}>
                       <div className={styles.detailMetaItem}>
-                        <Users size={18} /> <span>{selectedMeta?.employeesCount || "0"} {isRTL ? "شاغر" : "Positions"}</span>
+                        <Users size={18} />{" "}
+                        <span>
+                          {selectedMeta?.employeesCount || "0"}{" "}
+                          {isRTL ? "شاغر" : "Positions"}
+                        </span>
                       </div>
                       <div className={styles.detailMetaItem}>
-                        <Clock size={18} /> <span>{selectedMeta?.experience || "-"}</span>
+                        <Clock size={18} />{" "}
+                        <span>{selectedMeta?.experience || "-"}</span>
                       </div>
                       <div className={styles.detailMetaItem}>
-                        <GraduationCap size={18} /> <span>{selectedMeta?.qualification || "-"}</span>
+                        <GraduationCap size={18} />{" "}
+                        <span>{selectedMeta?.qualification || "-"}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className={styles.detailContent}>
-                  <h3 className={styles.subTitle}>{isRTL ? "وصف الوظيفة" : "Job Description"}</h3>
+                  <h3 className={styles.subTitle}>
+                    {isRTL ? "وصف الوظيفة" : "Job Description"}
+                  </h3>
                   <p className={styles.fullDescription}>{selectedJobDesc}</p>
                 </div>
 
                 <div className={styles.detailFooter}>
-                  <button 
+                  <button
                     className={styles.applyNowButton}
                     onClick={() => setIsApplyModalOpen(true)}
                   >
-                    {isRTL ? "تقدم الآن لهذه الوظيفة" : "Apply Now for this Position"}
+                    {isRTL
+                      ? "تقدم الآن لهذه الوظيفة"
+                      : "Apply Now for this Position"}
                     <Send size={20} />
                   </button>
                 </div>
@@ -425,11 +557,14 @@ const JobsPage = () => {
             ) : (
               <div className={styles.emptyDetail}>
                 <Briefcase size={64} />
-                <p>{isRTL ? "يرجى اختيار وظيفة من القائمة لعرض التفاصيل" : "Please select a job from the list to view details"}</p>
+                <p>
+                  {isRTL
+                    ? "يرجى اختيار وظيفة من القائمة لعرض التفاصيل"
+                    : "Please select a job from the list to view details"}
+                </p>
               </div>
             )}
           </motion.div>
-
         </div>
       </div>
 
@@ -442,102 +577,181 @@ const JobsPage = () => {
       >
         <div className={styles.modalFormContainer}>
           <div className={styles.modalHeaderInfo}>
-             <h3>{selectedJobTitle}</h3>
-             <p>{isRTL ? "املأ النموذج التالي لتقديم طلبك" : "Fill out the following form to submit your application"}</p>
+            <h3>{selectedJobTitle}</h3>
+            <p>
+              {isRTL
+                ? "املأ النموذج التالي لتقديم طلبك"
+                : "Fill out the following form to submit your application"}
+            </p>
           </div>
 
           <form className={styles.formGrid} onSubmit={handleSubmit}>
-            
             {formFields.length > 0 ? (
               formFields.map((field) => {
-                const isDropdown = field.type === 'form_dropdown';
+                const isDropdown = field.type === "form_dropdown";
                 let width = "full";
-                
-                if (field.description_ar && field.description_ar.includes('|')) {
-                  const parts = field.description_ar.split('|');
-                  width = isDropdown ? (parts[1] || "full") : (parts[parts.length - 1] || "full");
+
+                if (
+                  field.description_ar &&
+                  field.description_ar.includes("|")
+                ) {
+                  const parts = field.description_ar.split("|");
+                  width = isDropdown
+                    ? parts[1] || "full"
+                    : parts[parts.length - 1] || "full";
                 } else if (!isDropdown) {
                   width = field.description_ar || "full";
                 }
 
                 const hasError = !!errors[field.id];
-                const groupClass = `${styles.formGroup} ${width === 'full' ? styles.fullWidth : ''}`;
+                const groupClass = `${styles.formGroup} ${width === "full" ? styles.fullWidth : ""}`;
 
                 return (
                   <div key={field.id} className={groupClass}>
                     <div className={styles.inputWrapper}>
-                      {field.type === 'form_input' ? (
+                      {field.type === "form_input" ? (
                         <>
-                          {field.description_en === 'textarea' ? (
-                            <textarea 
-                              id={`f-${field.id}`} 
-                              className={`${styles.textarea} ${hasError ? styles.inputError : ''}`} 
+                          {field.description_en === "textarea" ? (
+                            <textarea
+                              id={`f-${field.id}`}
+                              className={`${styles.textarea} ${hasError ? styles.inputError : ""}`}
                               value={formData[field.id] || ""}
-                              onChange={(e) => handleInputChange(field.id, e.target.value)}
-                              placeholder=" " 
+                              onChange={(e) =>
+                                handleInputChange(field.id, e.target.value)
+                              }
+                              placeholder=" "
                             />
-                          ) : (() => {
-                            const tEn = field.title_en?.toLowerCase() || "";
-                            const tAr = field.title_ar || "";
-                            const isEmail = field.description_en === 'email' || tEn.includes('email') || tEn.includes('mail') || tAr.includes('البريد') || tAr.includes('ايميل');
-                            
-                            const isTel = (field.description_en === 'tel' || 
-                                          tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') ||
-                                          tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && 
-                                          !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
+                          ) : (
+                            (() => {
+                              const tEn = field.title_en?.toLowerCase() || "";
+                              const tAr = field.title_ar || "";
+                              const isEmail =
+                                field.description_en === "email" ||
+                                tEn.includes("email") ||
+                                tEn.includes("mail") ||
+                                tAr.includes("البريد") ||
+                                tAr.includes("ايميل");
 
-                            if (isTel) {
+                              const isTel =
+                                (field.description_en === "tel" ||
+                                  tEn.includes("phone") ||
+                                  tEn.includes("tel") ||
+                                  tEn.includes("mobile") ||
+                                  tEn.includes("fax") ||
+                                  tAr.includes("هاتف") ||
+                                  tAr.includes("جوال") ||
+                                  tAr.includes("تلفون") ||
+                                  tAr.includes("فاكس")) &&
+                                !tEn.includes("account") &&
+                                !tEn.includes("iban") &&
+                                !tAr.includes("حساب") &&
+                                !isEmail;
+
+                              if (isTel) {
+                                return (
+                                  <PhoneInput
+                                    id={`f-${field.id}`}
+                                    label={
+                                      isRTL ? field.title_ar : field.title_en
+                                    }
+                                    value={formData[field.id] || ""}
+                                    onChange={(val) =>
+                                      handleInputChange(field.id, val)
+                                    }
+                                    isRTL={isRTL}
+                                    hasError={hasError}
+                                  />
+                                );
+                              }
+
                               return (
-                                <PhoneInput 
-                                  id={`f-${field.id}`} 
-                                  label={isRTL ? field.title_ar : field.title_en}
+                                <input
+                                  type={
+                                    isEmail
+                                      ? "email"
+                                      : field.description_en || "text"
+                                  }
+                                  id={`f-${field.id}`}
+                                  className={`${styles.input} ${hasError ? styles.inputError : ""}`}
                                   value={formData[field.id] || ""}
-                                  onChange={(val) => handleInputChange(field.id, val)}
-                                  isRTL={isRTL}
-                                  hasError={hasError}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      field.id,
+                                      isEmail
+                                        ? sanitizeEmailInput(e.target.value)
+                                        : e.target.value,
+                                    )
+                                  }
+                                  placeholder=" "
                                 />
                               );
-                            }
-
-                            return (
-                              <input 
-                                type={isEmail ? "email" : (field.description_en || "text")} 
-                                id={`f-${field.id}`}
-                                className={`${styles.input} ${hasError ? styles.inputError : ''}`} 
-                                value={formData[field.id] || ""}
-                                onChange={(e) => handleInputChange(
-                                  field.id,
-                                  isEmail ? sanitizeEmailInput(e.target.value) : e.target.value
-                                )}
-                                placeholder=" "
-                              />
-                            );
-                          })()}
+                            })()
+                          )}
                         </>
                       ) : (
                         <>
-                          <select 
-                            id={`f-${field.id}`} 
-                            className={`${styles.select} ${hasError ? styles.inputError : ''}`} 
+                          <select
+                            id={`f-${field.id}`}
+                            className={`${styles.select} ${hasError ? styles.inputError : ""}`}
                             value={formData[field.id] || ""}
-                            onChange={(e) => handleInputChange(field.id, e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange(field.id, e.target.value)
+                            }
                           >
                             <option value="" disabled></option>
-                            {(isRTL ? (field.description_ar?.split('|')[0] || "") : (field.description_en || "")).split(';').map((opt, idx) => (
-                              <option key={idx} value={opt.trim()}>{opt.trim()}</option>
-                            ))}
+                            {(isRTL
+                              ? field.description_ar?.split("|")[0] || ""
+                              : field.description_en || ""
+                            )
+                              .split(";")
+                              .map((opt, idx) => (
+                                <option key={idx} value={opt.trim()}>
+                                  {opt.trim()}
+                                </option>
+                              ))}
                           </select>
-                          <ChevronDown size={16} style={{position: 'absolute', [isRTL ? 'left' : 'right']: '1rem', top:'50%', transform:'translateY(-50%)', pointerEvents:'none', opacity:0.5}}/>
+                          <ChevronDown
+                            size={16}
+                            style={{
+                              position: "absolute",
+                              [isRTL ? "left" : "right"]: "1rem",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                              pointerEvents: "none",
+                              opacity: 0.5,
+                            }}
+                          />
                         </>
                       )}
                       {!(() => {
                         const tEn = field.title_en?.toLowerCase() || "";
                         const tAr = field.title_ar || "";
-                        const isEmail = field.description_en === 'email' || tEn.includes('email') || tEn.includes('mail') || tAr.includes('البريد') || tAr.includes('ايميل');
-                        const isTel = (field.description_en === 'tel' || tEn.includes('phone') || tEn.includes('tel') || tEn.includes('mobile') || tEn.includes('fax') || tAr.includes('هاتف') || tAr.includes('جوال') || tAr.includes('تلفون') || tAr.includes('فاكس')) && !tEn.includes('account') && !tEn.includes('iban') && !tAr.includes('حساب') && !isEmail;
+                        const isEmail =
+                          field.description_en === "email" ||
+                          tEn.includes("email") ||
+                          tEn.includes("mail") ||
+                          tAr.includes("البريد") ||
+                          tAr.includes("ايميل");
+                        const isTel =
+                          (field.description_en === "tel" ||
+                            tEn.includes("phone") ||
+                            tEn.includes("tel") ||
+                            tEn.includes("mobile") ||
+                            tEn.includes("fax") ||
+                            tAr.includes("هاتف") ||
+                            tAr.includes("جوال") ||
+                            tAr.includes("تلفون") ||
+                            tAr.includes("فاكس")) &&
+                          !tEn.includes("account") &&
+                          !tEn.includes("iban") &&
+                          !tAr.includes("حساب") &&
+                          !isEmail;
                         return isTel;
                       })() && (
-                        <label htmlFor={`f-${field.id}`} className={styles.label}>
+                        <label
+                          htmlFor={`f-${field.id}`}
+                          className={styles.label}
+                        >
                           {isRTL ? field.title_ar : field.title_en}
                         </label>
                       )}
@@ -551,29 +765,51 @@ const JobsPage = () => {
                 );
               })
             ) : (
-              <div className={styles.fullWidth} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                <Info size={32} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                <p>{isRTL ? "يرجى إضافة حقول النموذج من لوحة التحكم" : "Please add form fields from the dashboard"}</p>
+              <div
+                className={styles.fullWidth}
+                style={{
+                  textAlign: "center",
+                  padding: "2rem",
+                  color: "#64748b",
+                }}
+              >
+                <Info
+                  size={32}
+                  style={{ marginBottom: "1rem", opacity: 0.5 }}
+                />
+                <p>
+                  {isRTL
+                    ? "يرجى إضافة حقول النموذج من لوحة التحكم"
+                    : "Please add form fields from the dashboard"}
+                </p>
               </div>
             )}
 
             {/* Resume Upload (Keep it separate as it's mandatory and usually different from normal fields) */}
             <div className={styles.fullWidth}>
               <div className={styles.fileUploadContainer}>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   id="resume"
-                  className={styles.fileInput} 
+                  className={styles.fileInput}
                   onChange={handleFileChange}
                   accept=".pdf,.doc,.docx"
                   multiple
                 />
-                <div className={`${styles.fileDecor} ${fileNames.length > 0 ? styles.fileSelected : ''} ${errors['file'] ? styles.inputError : ''}`}>
+                <div
+                  className={`${styles.fileDecor} ${fileNames.length > 0 ? styles.fileSelected : ""} ${errors["file"] ? styles.inputError : ""}`}
+                >
                   <div className={styles.iconWrapper}>
-                    {fileNames.length > 0 ? <CheckCircle2 size={32} /> : <UploadCloud size={32} />}
+                    {fileNames.length > 0 ? (
+                      <CheckCircle2 size={32} />
+                    ) : (
+                      <UploadCloud size={32} />
+                    )}
                   </div>
                   <span className={styles.fileName}>
-                    {isRTL ? "ارفق السيرة الذاتية والمزيد (PDF, DOC)" : "Attach Resume & More (PDF, DOC)"}
+                    {isRTL
+                      ? "ارفق السيرة الذاتية والمزيد (PDF, DOC)"
+                      : "Attach Resume & More (PDF, DOC)"}
                   </span>
                 </div>
               </div>
@@ -581,16 +817,16 @@ const JobsPage = () => {
               {fileNames.length > 0 && (
                 <div className={styles.fileList}>
                   {fileNames.map((name, idx) => {
-                    const isPDF = name.toLowerCase().endsWith('.pdf');
+                    const isPDF = name.toLowerCase().endsWith(".pdf");
                     return (
                       <div key={idx} className={styles.fileItem}>
                         <div className={styles.fileIcon}>
                           {isPDF ? <FileText size={20} /> : <File size={20} />}
                         </div>
                         <span className={styles.fileItemName}>{name}</span>
-                        <button 
-                          type="button" 
-                          className={styles.removeFile} 
+                        <button
+                          type="button"
+                          className={styles.removeFile}
                           onClick={(e) => removeSpecificFile(e, idx)}
                           title="Remove file"
                         >
@@ -601,19 +837,25 @@ const JobsPage = () => {
                   })}
                 </div>
               )}
-              {errors['file'] && (
+              {errors["file"] && (
                 <span className={styles.errorMessage}>
-                  <Info size={14} /> {errors['file']}
+                  <Info size={14} /> {errors["file"]}
                 </span>
               )}
             </div>
 
-            <div className={styles.fullWidth} style={{ marginTop: '1rem' }}>
-              <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
+            <div className={styles.fullWidth} style={{ marginTop: "1rem" }}>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (
                   <Loader2 className="animate-spin" size={20} />
+                ) : isRTL ? (
+                  "إرسال الطلب الآن"
                 ) : (
-                  isRTL ? "إرسال الطلب الآن" : "Submit Application Now"
+                  "Submit Application Now"
                 )}
               </button>
             </div>

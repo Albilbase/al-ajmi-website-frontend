@@ -6,7 +6,7 @@
 
 .hero {
   position: relative;
-  height: 60vh;
+  height: 80vh;
   min-height: 400px;
   display: flex;
   align-items: center;
@@ -15,7 +15,7 @@
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  /* background-size: cover; */
+  background-size: cover;
   overflow: hidden;
 }
 

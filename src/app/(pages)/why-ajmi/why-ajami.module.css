@@ -9,15 +9,15 @@
 /* Hero Section Enhancement */
 .hero {
   position: relative;
-  height: 50vh;
+  height: 60vh;
   min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  background-repeat: no-repeat;
-  background-position: center;
   background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
   background-size: cover;
   overflow: hidden;
   margin-bottom: 4rem;

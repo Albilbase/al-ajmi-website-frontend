@@ -1,0 +1,397 @@
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.75rem;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  background-color: #DC143C;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(220, 20, 60, 0.25);
+}
+
+.sectionGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 1rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.cardHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  color: #1e293b;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.inputGroup {
+  margin-bottom: 1.5rem;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #64748b;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.inputField:focus {
+  border-color: #DC143C;
+}
+
+.textareaField {
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+
+.textareaField:focus {
+  border-color: #DC143C;
+}
+
+.mediaPreview {
+  aspect-ratio: 16/9;
+  background-color: #f1f5f9;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 2px dashed #cbd5e1;
+}
+
+.mediaPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mediaOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.mediaPreview:hover .mediaOverlay {
+  opacity: 1;
+}
+
+.changeMediaBtn {
+  background-color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.listManager {
+  margin-top: 1rem;
+}
+
+.scrollableList {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.scrollableList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollableList::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.scrollableList::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.listItem {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .listItem {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+.removeBtn {
+  color: #ef4444;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.addBtnSmall {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  color: #DC143C;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.addBtnSmall:hover {
+  background: #DC143C;
+  color: white;
+}
+
+
+/* Modal Base Styles removed in favor of reusable Modal component */
+
+.dynamicSectionCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.dynamicSectionCard:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.dynamicSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.dynamicSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.dynamicSectionActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.orderInputGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orderLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.orderInput {
+  width: 60px;
+  padding: 0.4rem 0.5rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.orderInput:focus {
+  border-color: #DC143C;
+}
+
+/* Hide number input spinners for cleaner look */
+.orderInput::-webkit-inner-spin-button,
+.orderInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.orderInput[type=number] {
+  -moz-appearance: textfield;
+}
+
+.saveBtn {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.saveBtn:hover {
+  background: #dcfce7;
+}
+
+.positionToggle {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.posBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #64748b;
+  transition: all 0.2s;
+  flex: 1;
+  justify-content: center;
+}
+
+.posBtn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.posBtnActive {
+  border-color: #DC143C;
+  background: rgba(220, 20, 60, 0.05);
+  color: #DC143C;
+}
+
+.cancelBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.submitBtn {
+  padding: 0.75rem 1.75rem;
+  border-radius: 10px;
+  border: none;
+  background-color: #DC143C;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submitBtn:hover {
+  background-color: #b91133;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 20, 60, 0.2);
+}
+
